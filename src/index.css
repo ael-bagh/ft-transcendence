@@ -2,11 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  @apply bg-black;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -21,7 +20,7 @@ code {
 }
 
 .primary {
-  @apply bg-purple-700 ;
+  @apply bg-purple-700 animate-pulse;
 }
 
 .secondary {
@@ -29,21 +28,58 @@ code {
 }
 
 .secondary:hover {
-  @apply bg-purple-500 animate-pulse border-purple-500 ;
+  @apply bg-white border-white text-black;
 }
 
 .nav {
-  @apply flex flex-col sm:flex-row justify-between gap-4 items-center bg-black text-white px-10 py-3;
+  @apply flex flex-col sm:flex-row justify-between gap-4 sm:items-center text-center bg-black text-white sm:px-10 py-3  z-0;
 }
 
 .nav ul {
-  @apply flex flex-col sm:flex-row sm:justify-items-center justify-start text-left gap-5;
+  @apply hidden sm:flex sm:flex-row sm:justify-items-center text-center gap-5;
+}
+
+
+.nav ul li{
+  @apply border-b-2 border-black text-base;
+}
+
+
+.nav ul li:hover {
+  @apply border-b-2 border-purple-500;
 }
 
 .logo {
-  @apply flex text-xl font-bold gap-2;
+  @apply flex text-xl font-bold gap-2  items-center justify-between;
+}
+
+.menu {
+  @apply border-2 border-white p-1 rounded-md sm:invisible w-10 h-10 mr-5 flex-none ;
 }
 
 .cover {
-  @apply flex flex-col items-center h-fit bg-black text-white;
+  @apply flex flex-col items-center h-screen bg-black text-white text-center;
+}
+
+.nab {
+  @apply m-8 sm:m-0 hidden sm:block flex-none;
+}
+
+.imgcover {
+  @apply absolute left-0 w-full h-full object-cover;
+}
+
+.hide {
+  @apply hidden;
+}
+.mobileMenu {
+  @apply flex flex-col sm:hidden  text-white text-center bg-purple-500 bg-opacity-10 border-2 border-gray-200  divide-y divide-dashed divide-gray-200 rounded-md;
+}
+
+.mobileMenu > li {
+  @apply py-3;
+}
+
+.mobileMenu > li:hover {
+  @apply bg-purple-500;
 }
