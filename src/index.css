@@ -5,7 +5,7 @@
 
 body {
   margin: 0;
-  @apply bg-black;
+  @apply bg-black w-screen;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -82,4 +82,47 @@ code {
 
 .mobileMenu > li:hover {
   @apply bg-purple-500;
+}
+
+/* Profile page */
+
+
+.avatar {
+  @apply w-full h-96 object-cover z-0 md:justify-center md:w-36 md:h-auto md:m-auto md:rounded-full md:p-2 md:border-2 md:border-white md:my-4  md:relative md:z-20;
+}
+
+.profileStats {
+  @apply w-full h-16 bg-purple-600 text-white flex flex-row items-center text-center text-lg font-bold  gap-5 p-8 justify-between z-10; 
+}
+
+.playerInfo {
+  @apply text-white relative -top-32 left-5 w-fit;
+}
+
+.badgeImg {
+  @apply inline flex-none w-40 h-40;
+}
+
+.badge {
+  @apply shrink-0 flex-none;
+}
+
+.achievements {
+  @apply flex flex-row w-screen flex-nowrap overflow-x-auto p-5 gap-5 md:w-3/4 md:m-auto;
+}
+
+.matchHistory {
+  @apply flex flex-col w-screen bg-purple-500 divide-y-2 divide-gray-200 p-5 gap-2 md:w-3/4 md:m-auto;
+}
+
+.match {
+  @apply flex flex-row justify-between h-32 p-2 gap-5;
+}
+
+.matchAvatar {
+  @apply flex-none w-24 object-cover rounded-full;
+}
+
+.matchInfo {
+  @apply text-center;
 }

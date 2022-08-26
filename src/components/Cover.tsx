@@ -1,5 +1,5 @@
 import Button from './Button'
-import cover from './gamecover.png'
+import cover from './imgs/gamecover.png'
 
 function play(){
     console.log("Play");

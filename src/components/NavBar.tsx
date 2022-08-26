@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import Button from './Button';
-import logo from './logo.png';
+import logo from './imgs/logo.png';
 import {CgMenu} from 'react-icons/cg';
+import { Link } from "react-router-dom";
 function login() {
     console.log("Login");
 }
 
 function NavBar() {
     const [show, setShow] = useState(false);
-    const ugh = "flex flex-col sm:hidden text-white text-center gap-10 invisible";
+    const ugh = "flex flex-col sm:hidden text-white text-center gap-10 h-0 invisible";
     return (
         <div>
             <div className='nav'>
@@ -17,18 +18,18 @@ function NavBar() {
                     <button onClick={()=>setShow(!show)}><CgMenu className='menu'/></button>
                 </div>
                 <ul>
-                    <li><a href='allo'>HOME</a></li>
-                    <li><a href='allo'>TEAM</a></li>
-                    <li><a href='allo'>LEADERBORD</a></li>
+                    <li><Link to='/Profile'>HOME</Link></li>
+                    <li><Link to='/allo'>TEAM</Link></li>
+                    <li><Link to='/allo'>LEADERBORD</Link></li>
                 </ul>
                 <Button className='secondary nab' label='GET STARTED' onClick={login}/>
             </div>
             
             <div className={(show)?"flex flex-col sm:hidden text-white text-center gap-10" : ugh}>
                 <ul className='mobileMenu'>
-                    <li><a href='allo'>HOME</a></li>
-                    <li><a href='allo'>TEAM</a></li>
-                    <li><a href='allo'>LEADERBORD</a></li>
+                    <li><Link to='/Profile'>HOME</Link></li>
+                    <li><Link to='/allo'>TEAM</Link></li>
+                    <li><Link to='/allo'>LEADERBORD</Link></li>
                 </ul>
             </div>
         </div>
