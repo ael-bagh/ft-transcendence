@@ -18,9 +18,9 @@ function NavBar() {
                     <button onClick={()=>setShow(!show)}><CgMenu className='menu'/></button>
                 </div>
                 <ul>
-                    <li><Link to='/Profile'>HOME</Link></li>
-                    <li><Link to='/allo'>TEAM</Link></li>
-                    <li><Link to='/allo'>LEADERBORD</Link></li>
+                    <li><Link to='/'>HOME</Link></li>
+                    <li><Link to='/profile'>TEAM</Link></li>
+                    <li><Link to='/leaderboard'>LEADERBORD</Link></li>
                 </ul>
                 <Button className='secondary nab' label='GET STARTED' onClick={login}/>
             </div>

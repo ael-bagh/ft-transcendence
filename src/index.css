@@ -32,7 +32,7 @@ code {
 }
 
 .nav {
-  @apply flex flex-col sm:flex-row justify-between gap-4 sm:items-center text-center bg-black text-white sm:px-10 py-3  z-0;
+  @apply flex flex-col sm:flex-row justify-between gap-4 sm:items-center text-center bg-black text-white sm:px-10 py-3 relative  z-50;
 }
 
 .nav ul {
