@@ -5,12 +5,15 @@ interface ChatContextInterface {
     setCurrentGroup: (group: string) => void;
 }
 
-export const ChatContext = React.createContext<ChatContextInterface>({} as ChatContextInterface);
+const ChatContextDefaultValues: ChatContextInterface = {
+  currentGroup: '',
+  setCurrentGroup: () => null,
+}
+
+export const ChatContext = React.createContext<ChatContextInterface>(ChatContextDefaultValues);
 
 const ChatProvider = ({ children }: { children?: React.ReactNode }) => {
     const [currentGroup, setCurrentGroup] = useState('');
-
-
   return (
     <ChatContext.Provider
       value={{
