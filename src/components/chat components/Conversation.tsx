@@ -32,7 +32,7 @@ export default function Conversation () {
                 </div>
             </div>
             <div className="conversation flex flex-col-reverse h-4/6 overflow-y-scroll p-4">
-                {conversation.map(message => (
+                {conversation.slice(0).reverse().map(message => (
                     <TextMessage user={message.user} message={message.message} isOwnMessage={(authUser === message.user)? true : false}/>
                 ))}
             </div>
