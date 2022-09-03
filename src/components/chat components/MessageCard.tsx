@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext} from "react";
 import { ChatContext } from "../../contexts/chat.context";
 
 interface user {
@@ -11,7 +11,7 @@ interface lastMessage {
   message: string;
 }
 
-export default function MessageCard(props: { id: string; Lastmessage: lastMessage; users: user[]; messages: number; time: string }) {
+export default function MessageCard(props: {id: string; Lastmessage: lastMessage; users: user[]; messages: number; time: string }) {
   const { currentGroup, setCurrentGroup } = useContext(ChatContext);
   /* remove messages prop and used state number of unread messages */
   /* listen on coming messages and increment number of unread messages for every message received*/
@@ -42,10 +42,10 @@ export default function MessageCard(props: { id: string; Lastmessage: lastMessag
           <div className="flex -space-x-4">
             {props.users.map(
               (ele, index) =>
-                index < 3 && <img className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800" src="https://flowbite.com/docs/images/people/profile-picture-1.jpg" alt={ele.name} />
+                index < 3 && <img key={index} className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800" src="https://flowbite.com/docs/images/people/profile-picture-1.jpg" alt={ele.name} />
             )}
             {props.users.length > 2 && (
-              <a className="flex justify-center items-center w-10 h-10 text-xs font-medium text-white bg-gray-700 rounded-full border-2 border-white hover:bg-gray-600 dark:border-gray-800" href="#">
+              <a className="flex justify-center items-center w-10 h-10 text-xs font-medium text-white bg-gray-700 rounded-full border-2 border-white hover:bg-gray-600 dark:border-gray-800" href="/chat">
                 +{props.users.length - 3}
               </a>
             )}

@@ -49,8 +49,8 @@ export default function Conversation () {
                 </div>
             </div>
             <div className="conversation flex flex-col-reverse h-4/6 overflow-y-scroll p-4">
-                {conversation.slice(0).reverse().map(message => (
-                    <TextMessage user={message.user} message={message.message} isOwnMessage={(authUser === message.user)? true : false}/>
+                {conversation.slice(0).reverse().map((message, index) => (
+                    <TextMessage key={index} user={message.user} message={message.message} isOwnMessage={(authUser === message.user)? true : false}/>
                 ))}
             </div>
             <form className="p-4 flex flex-row gap-2 mr-4">

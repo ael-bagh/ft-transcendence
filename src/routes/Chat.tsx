@@ -95,7 +95,7 @@ function ChatComponent() {
             {conversations
               .filter((conversation) => conversation.users.length === 1)
               .map((conversation) => (
-                <MessageCard id={conversation.id} Lastmessage={conversation.lastMessage} users={conversation.users} messages={conversation.messages} time={conversation.time} />
+                <MessageCard key={conversation.id} id={conversation.id} Lastmessage={conversation.lastMessage} users={conversation.users} messages={conversation.messages} time={conversation.time} />
               ))}
           </div>
           <h1 className="pt-4 font-bold text-gray-100"># Group Messages</h1>
@@ -103,7 +103,7 @@ function ChatComponent() {
             {conversations
               .filter((conversation) => conversation.users.length > 1)
               .map((conversation) => (
-                <MessageCard id={conversation.id} Lastmessage={conversation.lastMessage} users={conversation.users} messages={conversation.messages} time={conversation.time} />
+                <MessageCard key={conversation.id} id={conversation.id} Lastmessage={conversation.lastMessage} users={conversation.users} messages={conversation.messages} time={conversation.time} />
               ))}
           </div>
         </div>
