@@ -1,4 +1,4 @@
-import {useContext, useState} from "react";
+import {useContext, useState, ChangeEvent} from "react";
 import { ChatContext } from "../../contexts/chat.context";
 import TextMessage from "./TextMessage"
 
@@ -14,6 +14,23 @@ export default function Conversation () {
     const authUser:string = 'KHAY SSERGHINI'
     const { currentGroup } = useContext(ChatContext);
         /* get conversationid where id = currentGroup */
+    const [message, setMessage] = useState('');
+    const onChangeHandler = (e: ChangeEvent<HTMLInputElement>)=> {
+            setMessage(e.currentTarget.value)
+          };
+    const onSubmitHandler = (e: React.SyntheticEvent)=> {
+        e.preventDefault();
+        if (message?.trim()) {
+            const newMessage: Message = {
+                id: '1',
+                message: message,
+                time: '10:00',
+                user: authUser
+            }
+            setConversation([...conversation, newMessage])
+        }
+        setMessage('')
+    }
     const [conversation, setConversation] = useState<Message[]>([{id:'1',  message : '3refti a khay sserghini',time: '10:00',user: 'Hamid nef7a' },
     {id:'2',  message : 'bghaw yrawdouni',time: '10:00',user: 'Hamid nef7A' },
     {id:'3',  message : 'Ewa XDERTI ?',time: '10:01',user: 'KHAY SSERGHINI' },
@@ -36,9 +53,10 @@ export default function Conversation () {
                     <TextMessage user={message.user} message={message.message} isOwnMessage={(authUser === message.user)? true : false}/>
                 ))}
             </div>
-            <div className="p-4">
-                <input type="text" className="w-full h-full border-2 border-gray-200 rounded-lg p-2"/>
-            </div>
+            <form className="p-4 flex flex-row gap-2 mr-4">
+                <input type="text" className="text-black h-full border-2 border-gray-200 rounded-lg p-2 w-5/6" value={message} onChange={onChangeHandler}/>
+                <button type="submit" className="bg-blue-500 text-white rounded-lg p-2 w-1/6" onClick={onSubmitHandler}>Send</button>
+            </form>
         </div>
     )
 }
