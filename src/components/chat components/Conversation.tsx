@@ -12,7 +12,7 @@ interface Message
 
 export default function Conversation () {
     const authUser:string = 'KHAY SSERGHINI'
-    const { currentGroup } = useContext(ChatContext);
+    const { setCurrentGroup ,currentGroup } = useContext(ChatContext);
         /* get conversationid where id = currentGroup */
     const [message, setMessage] = useState('');
     const onChangeHandler = (e: ChangeEvent<HTMLInputElement>)=> {
@@ -37,10 +37,11 @@ export default function Conversation () {
     {id:'4',  message : '3refti a khay sserghini NEDDT LBESST JELLABA D CHAMAL',time: '10:02',user: 'Hamid nef7a' },
     {id:'5',  message : 'bash tala dderbouni mayssewrou mni taaaa le3ba',time: '10:03',user: 'Hamid nef7A' },]);
     return (
-        <div className="flex flex-col w-3/4 h-full">
+        <div className={(!currentGroup)?"flex flex-col w-screen md:w-3/4 h-0 md:h-full invisible" : "flex flex-col w-screen md:w-3/4 h-screen"}>
             <div className="conversation-header flex flex-row justify-between items-center border-b-2 border-gray-200 p-4">
-                <div className="conversation-info">
-                    Player name "{currentGroup}"
+                <div className="conversation-info flex flex-row gap-2">
+                    <div className={(currentGroup)?"":"invisible w-0"} onClick={()=> setCurrentGroup('')}>Back</div>
+                    <div>Conversation "{currentGroup}"</div>
                 </div>
                 <div className="action-icons flex flex-row gap-2">
                     <div>icon</div>
@@ -48,7 +49,7 @@ export default function Conversation () {
                     <div>icon</div>
                 </div>
             </div>
-            <div className="conversation flex flex-col-reverse h-4/6 overflow-y-scroll p-4">
+            <div className="conversation flex flex-col-reverse md:h-4/6 h-full overflow-y-scroll p-4">
                 {conversation.slice(0).reverse().map((message, index) => (
                     <TextMessage key={index} user={message.user} message={message.message} isOwnMessage={(authUser === message.user)? true : false}/>
                 ))}
