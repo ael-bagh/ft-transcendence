@@ -31,7 +31,7 @@ export default function MessageCard(props: {id: string; Lastmessage: lastMessage
         </div>
         <div className="flex flex-col justify-between w-1/6 self-center items-end">
           <p className="text-sm">{props.time}</p>
-          {props.messages > 0 && <p className="rounded-full bg-purple-500 w-8 h-8 text-center p-1">{props.messages}</p>}
+          {props.messages > 0 && <p className="rounded-full bg-white text-purple-500 font-semibold w-8 h-8 text-center p-1">{props.messages}</p>}
         </div>
       </div>
     );
@@ -57,7 +57,7 @@ export default function MessageCard(props: {id: string; Lastmessage: lastMessage
         </div>
         <div className="flex flex-col justify-between w-1/6 self-center items-end">
           <p className="text-sm">{props.time}</p>
-          {props.messages > 0 && <p className="rounded-full bg-purple-500 w-8 h-8 text-center p-1">{props.messages}</p>}
+          {props.messages > 0 && <p className="rounded-full bg-white w-8 h-8 text-center text-purple-500 p-1 font-se">{props.messages}</p>}
         </div>
       </div>
     );

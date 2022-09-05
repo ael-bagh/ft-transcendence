@@ -25,7 +25,7 @@ function NavBar() {
                 <Button className='secondary nab' label='GET STARTED' onClick={login}/>
             </div>
             
-            <div className={(show)?"flex flex-col sm:hidden text-white text-center gap-10" : ugh}>
+            <div className={(show)?"flex flex-col absolute w-screen top-16 sm:hidde bg-black text-white text-center gap-10" : ugh}>
                 <ul className='mobileMenu'>
                     <li><Link to='/Profile'>HOME</Link></li>
                     <li><Link to='/allo'>TEAM</Link></li>

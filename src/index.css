@@ -16,7 +16,7 @@ code {
 }
 
 .button {
-  @apply text-white py-3 px-10  rounded-3xl text-center font-normal;
+  @apply text-white py-3 px-10 text-center font-normal;
 }
 
 .primary {
@@ -36,12 +36,12 @@ code {
 }
 
 .nav ul {
-  @apply hidden sm:flex sm:flex-row sm:justify-items-center text-center gap-5;
+  @apply hidden sm:flex sm:flex-row bg-black sm:justify-items-center text-center gap-5;
 }
 
 
 .nav ul li{
-  @apply border-b-2 border-black text-base;
+  @apply border-b-2 border-black bg-black text-base;
 }
 
 
@@ -54,7 +54,7 @@ code {
 }
 
 .menu {
-  @apply border-2 border-white p-1 rounded-md sm:invisible w-10 h-10 mr-5 flex-none ;
+  @apply  sm:invisible w-10 h-10 mr-5 flex-none ;
 }
 
 .cover {
@@ -73,11 +73,11 @@ code {
   @apply hidden;
 }
 .mobileMenu {
-  @apply flex flex-col sm:hidden  text-white text-center bg-purple-500 bg-opacity-10 border-2 border-gray-200  divide-y divide-dashed divide-gray-200 rounded-md;
+  @apply flex flex-col sm:hidden  text-white text-center bg-purple-500 bg-opacity-10  divide-y divide-gray-200;
 }
 
 .mobileMenu > li {
-  @apply py-3;
+  @apply py-3 bg-black;
 }
 
 .mobileMenu > li:hover {
