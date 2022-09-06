@@ -15,9 +15,9 @@ export default function Chat() {
 function ChatComponent() {
   const [messages, setMessages] = useState(false);
   return (
-    <div className="text-white">
+    <div className="text-white h-screen">
       <NavBar />
-      <div className="flex flex-col md:flex-row w-screen h-full mt-16">
+      <div className="flex flex-col md:flex-row h-screen w-screen">
         <ChatHistory />
         <Conversation />
       </div>

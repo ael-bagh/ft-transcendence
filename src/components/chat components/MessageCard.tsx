@@ -40,15 +40,7 @@ export default function MessageCard(props: {id: string; Lastmessage: lastMessage
       <div className={"flex flex-row p-2 hover:cursor-pointer" + cardCss} onClick={() => setCurrentGroup && setCurrentGroup(props.id)}>
         <div className="flex flex-row w-5/6">
           <div className="flex -space-x-4">
-            {props.users.map(
-              (ele, index) =>
-                index < 3 && <img key={index} className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800" src="https://flowbite.com/docs/images/people/profile-picture-1.jpg" alt={ele.name} />
-            )}
-            {props.users.length > 2 && (
-              <a className="flex justify-center items-center w-10 h-10 text-xs font-medium text-white bg-gray-700 rounded-full border-2 border-white hover:bg-gray-600 dark:border-gray-800" href="/chat">
-                +{props.users.length - 3}
-              </a>
-            )}
+            <div className="text-bold text-center bg-white text-purple-500 self-center items-center p-1 w-10 h-10 rounded-full border-2 border-white dark:border-gray-800"> LR </div>
           </div>
           <div className="flex flex-col ml-4">
             <div className="font-bold text-white">{props.users[0].name}</div>
@@ -57,7 +49,7 @@ export default function MessageCard(props: {id: string; Lastmessage: lastMessage
         </div>
         <div className="flex flex-col justify-between w-1/6 self-center items-end">
           <p className="text-sm">{props.time}</p>
-          {props.messages > 0 && <p className="rounded-full bg-white w-8 h-8 text-center text-purple-500 p-1 font-se">{props.messages}</p>}
+          {props.messages > 0 && <p className="rounded-full bg-white w-8 h-8 text-center text-purple-500 p-1 font-sans">{props.messages}</p>}
         </div>
       </div>
     );

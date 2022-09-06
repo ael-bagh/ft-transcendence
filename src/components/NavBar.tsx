@@ -9,7 +9,7 @@ function login() {
 
 function NavBar() {
     const [show, setShow] = useState(false);
-    const ugh = "flex flex-col sm:hidden text-white text-center gap-10 h-0 invisible";
+    const ugh = "absolute w-0 sm:hidden text-white text-center gap-10 h-0 invisible";
     return (
         <div>
             <div className='nav'>
