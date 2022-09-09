@@ -1,28 +1,28 @@
 version: "3.9"
 services:
   frontend:
-    container_name: frontend
+    container_name: client
     build:
-      context: ./packages/frontend
+      context: ./client
       dockerfile: Dockerfile.local
     restart: always
     env_file: .env
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     volumes:
-      - "./packages/frontend/src:/usr/src/app/src"
+      - "./client/src:/usr/src/app/src"
     networks:
       - bp-network
     command: "npm start"
   backend:
-    container_name: backend
+    container_name: server
     build:
-      context: ./packages/backend
+      context: ./server
       dockerfile: Dockerfile.local
     restart: always
     env_file: .env
     volumes:
-      - ./packages/backend:/svr/app
+      - ./server:/svr/app
       - "./scripts/wait.sh:/wait.sh"
       - /svr/app/node_modules
     networks:
