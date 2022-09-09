@@ -146,7 +146,7 @@ export default function ChatHistory() {
   const { currentGroup } = useContext(ChatContext);
 
   return (
-    <div className={(!currentGroup)?"flex flex-col h-full md:min-w-1/4 md:shrink-0 justify-between pt-16 md:border-r-2 border-gray-200": "invisible h-0 w-0 md:visible md:flex md:flex-col md:h-full md:w-1/4 md:shrink-0 md:min-w-1/4 pt-16 md:border-r-2 border-gray-200"}>
+    <div className={(!currentGroup)?"flex flex-col h-full md:w-1/4 md:shrink-0 justify-between pt-16 md:border-r border-gray-200": "invisible h-0 w-0 md:visible md:flex md:flex-col md:h-full md:w-1/4 md:shrink-0 md:min-w-1/4 pt-16 md:border-r border-gray-200"}>
       <div className="w-full p-4">
         <div className="relative w-full">
           <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
@@ -172,8 +172,8 @@ export default function ChatHistory() {
           </div>
         </div>
       </div>
-      <div className=" bg-purple-600 flex flex-row p-4 justify-between text-center h-16 items-center">
-            <div className="hover:cursor-pointer"> <BsChatRightTextFill className="w-12 h-12" /> </div>
+      <div className=" bg-purple-600 flex flex-row p-4 justify-center text-center h-16 items-center">
+            <div className="hover:cursor-pointer"> <BsChatRightTextFill className="bg-white shadow-lg rounded-full text-purple-500 p-2 w-12 h-12" /> </div>
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ function login() {
 
 function NavBar() {
     const [show, setShow] = useState(false);
-    const ugh = "absolute w-0 sm:hidden text-white text-center gap-10 h-0 invisible";
+    const ugh = "absolute w-0 sm:hidden text-white text-center gap-10 h-0 hidden";
     return (
         <div>
             <div className='nav'>
@@ -25,7 +25,7 @@ function NavBar() {
                 <Button className='secondary nab' label='GET STARTED' onClick={login}/>
             </div>
             
-            <div className={(show)?"flex flex-col absolute w-screen top-16 sm:hidde bg-black text-white text-center gap-10" : ugh}>
+            <div className={(show)?"flex flex-col absolute w-screen top-16 sm:hidden bg-black text-white text-center gap-10 z-50" : ugh}>
                 <ul className='mobileMenu'>
                     <li><Link to='/Profile'>HOME</Link></li>
                     <li><Link to='/allo'>TEAM</Link></li>
