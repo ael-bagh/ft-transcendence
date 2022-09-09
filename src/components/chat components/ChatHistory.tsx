@@ -1,7 +1,7 @@
 import MessageCard from "./MessageCard";
 import { useContext } from "react";
 import { ChatContext } from "../../contexts/chat.context";
-
+import {BsChatRightTextFill} from 'react-icons/bs'
 
 export default function ChatHistory() {
   const conversations = [
@@ -146,7 +146,7 @@ export default function ChatHistory() {
   const { currentGroup } = useContext(ChatContext);
 
   return (
-    <div className={(!currentGroup)?"flex flex-col h-full md:min-w-1/4 md:shrink-0 justify-between pt-16 md:border-r-2 border-gray-200": "invisible h-0 w-0 md:visible md:flex md:flex-col md:h-full md:w-1/4 md:min-w-1/4 pt-16 md:border-r-2 border-gray-200"}>
+    <div className={(!currentGroup)?"flex flex-col h-full md:min-w-1/4 md:shrink-0 justify-between pt-16 md:border-r-2 border-gray-200": "invisible h-0 w-0 md:visible md:flex md:flex-col md:h-full md:w-1/4 md:shrink-0 md:min-w-1/4 pt-16 md:border-r-2 border-gray-200"}>
       <div className="w-full p-4">
         <div className="relative w-full">
           <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
@@ -166,24 +166,14 @@ export default function ChatHistory() {
         <div className="p-4 overflow-x-auto h-24 grow">
           <h1 className="pt-4 font-bold text-gray-100">Messages</h1>
           <div className="pt-4">
-            {conversations
-              .filter((conversation) => conversation.users.length === 1)
-              .map((conversation) => (
-                <MessageCard key={conversation.id} id={conversation.id} Lastmessage={conversation.lastMessage} users={conversation.users} messages={conversation.messages} time={conversation.time} />
-              ))}
-          </div>
-          <h1 className="pt-4 font-bold text-gray-100"># Group Messages</h1>
-          <div className="pt-4">
-            {conversations
-              .filter((conversation) => conversation.users.length > 1)
-              .map((conversation) => (
+            {conversations.map((conversation) => (
                 <MessageCard key={conversation.id} id={conversation.id} Lastmessage={conversation.lastMessage} users={conversation.users} messages={conversation.messages} time={conversation.time} />
               ))}
           </div>
         </div>
       </div>
-      <div className=" bg-purple-600 flex flex-row p-4 justify-between text-center">
-            <div>new conversation</div>
+      <div className=" bg-purple-600 flex flex-row p-4 justify-between text-center h-16 items-center">
+            <div className="hover:cursor-pointer"> <BsChatRightTextFill className="w-12 h-12" /> </div>
       </div>
     </div>
   );

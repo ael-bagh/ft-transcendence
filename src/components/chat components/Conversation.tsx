@@ -1,6 +1,7 @@
 import {useContext, useState, ChangeEvent} from "react";
 import { ChatContext } from "../../contexts/chat.context";
 import TextMessage from "./TextMessage"
+import {AiOutlineArrowLeft} from 'react-icons/ai'
 
 interface Message 
 {
@@ -39,8 +40,8 @@ export default function Conversation () {
     return (
         <div className={(!currentGroup)?"absolute w-0 md:w-3/4 h-0 md:h-full invisible pt-16" : "flex flex-col w-screen md:w-3/4 h-full pt-16"}>
             <div className="flex flex-row justify-between items-center border-b-2 border-gray-200 p-4">
-                <div className="flex flex-row gap-2">
-                    <div className={(currentGroup)?"md:invisible md:w-0":"invisible w-0"} onClick={()=> setCurrentGroup('')}>Back</div>
+                <div className="flex flex-row gap-2 items-center">
+                    <div className={(currentGroup)?"md:invisible md:w-0 hover:cursor-pointer":"invisible w-0"} onClick={()=> setCurrentGroup('')}><AiOutlineArrowLeft  className="w-12 h12"  /></div>
                     <div>Conversation "{currentGroup}"</div>
                 </div>
                 <div className="action-icons flex flex-row gap-2">
