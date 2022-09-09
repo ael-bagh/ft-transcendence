@@ -2,4 +2,4 @@
 /**/build/
 /**/dist/
 .vscode
-.env
+.DS_Store

@@ -1,9 +1,10 @@
-FROM node:14-alpine
+FROM node:lts
 RUN mkdir -p /svr/app
 WORKDIR /svr/app
 RUN npm i -g @nestjs/cli --silent
 COPY package.json .
 COPY package-lock.json .
+COPY prisma ./prisma/
 RUN npm install --silent
 COPY . .
 # Value set in .env file.
