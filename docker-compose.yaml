@@ -34,7 +34,7 @@ services:
     links:
       - bp-pg-db
   bp-pg-db:
-    image: postgres:12-alpine
+    image: postgres:latest
     restart: always
     container_name: bp-pg-db
     env_file:
