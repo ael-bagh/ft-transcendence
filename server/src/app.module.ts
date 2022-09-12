@@ -5,8 +5,9 @@ import { AppService } from './app.service';
 import { EventsModule } from "./events.module";
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+// import { AuthModule } from './auth/auth.module';
+import { UserModule } from './Users_db/user.module';
+import { GameModule } from './Games_db/game.module';
 
 @Module({
 	imports: [
@@ -14,9 +15,10 @@ import { UsersModule } from './users/users.module';
 		ServeStaticModule.forRoot({
 			rootPath: join(__dirname, '..', 'client'),
 		}),
-		AuthModule,
-		UsersModule,
+		// AuthModule,
 		HttpModule,
+		UserModule,
+		GameModule
 	],
 	  controllers: [AppController],
 	  providers: [AppService],
