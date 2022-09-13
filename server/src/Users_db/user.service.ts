@@ -135,8 +135,11 @@ export class UserService {
 		userData: { login: string; nickname: string; password: string; avatar: string; two_factor_auth?: string; creation_date?: Date; current_lobby? : string; KDA?: number},
 	  ): Promise<User> {
 		const u = this.user({login: userData['login']});
-		  if (u)
+		  if (u == null)
+		  {
+			console.log(u);
 			  return u;
+		  }
 		userData['avatar'] = userData['avatar'] || 'https://i.imgur.com/0y0y0y0.png';
 		userData['KDA'] = 0;
 		userData['two_factor_auth'] = 'false';
@@ -146,6 +149,7 @@ export class UserService {
 		userData['winrate'] = 0.00;
 		userData['status'] = Status.OFFLINE;
 		userData['winrate'] = 0.00;
+		console.log("hi:)")
 		return this.createUser(userData);
 	  }
 
