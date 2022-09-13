@@ -140,7 +140,7 @@ export class UserService {
 			console.log(u);
 			  return u;
 		  }
-		userData['avatar'] = userData['avatar'] || 'https://i.imgur.com/0y0y0y0.png';
+		userData['avatar'] = userData['avatar'];
 		userData['KDA'] = 0;
 		userData['two_factor_auth'] = 'false';
 		userData['creation_date'] = new Date();
