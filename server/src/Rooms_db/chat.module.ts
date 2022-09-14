@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { PrismaService } from "src/prisma.service";
+import { PrismaService } from "../prisma.service";
 import { ChatService } from "./chat.service";
 
 
@@ -8,5 +8,6 @@ import { ChatService } from "./chat.service";
 	imports:[],
 	controllers: [],
 	providers: [ChatService, PrismaService],
+	exports: [ChatService]
 })
 export class ChatModule {}

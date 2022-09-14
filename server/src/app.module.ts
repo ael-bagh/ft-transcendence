@@ -8,6 +8,7 @@ import { join } from 'path';
 // import { AuthModule } from './auth/auth.module';
 import { UserModule } from './Users_db/user.module';
 import { GameModule } from './Games_db/game.module';
+import { ChatModule } from './Rooms_db/chat.module';
 
 @Module({
 	imports: [
@@ -18,7 +19,8 @@ import { GameModule } from './Games_db/game.module';
 		// AuthModule,
 		HttpModule,
 		UserModule,
-		GameModule
+		GameModule,
+		ChatModule
 	],
 	  controllers: [AppController],
 	  providers: [AppService],

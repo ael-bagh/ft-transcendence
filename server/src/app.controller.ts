@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { Response } from 'express';
 import * as dotenv from 'dotenv';
 import { UserService } from './Users_db/user.service';
+import { ChatService } from './Rooms_db/chat.service';
 
 dotenv.config();
 
@@ -14,7 +15,8 @@ export class AppController {
 	constructor(
 		// private authService: AuthService,
 		private httpService: HttpService,
-		private userService: UserService
+		private userService: UserService,
+		private chatService: ChatService
 	) { }
 
 	// @UseGuards(LocalAuthGuard)
@@ -65,5 +67,14 @@ export class AppController {
 			return {
 				url: process.env.URL,
 			}
+	}
+
+	@Get("chat/createRoom")
+	async test3(@Query() qw){
+		this.chatService.createRoom(
+			{
+				chat_name: qw['name'], chat_creator_id: 1, chat_private: false,
+			}
+		);
 	}
 }

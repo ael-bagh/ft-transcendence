@@ -13,19 +13,24 @@ export class ChatService {
 	// }
 
 	async createRoom(
-	roomData: { chat_password?: string; chat_name: string; chat_creator_id: number; chat_private: boolean; }
-	): Promise<Room>
-	{
-		let data: Prisma.RoomCreateInput = {chat_name: roomData['chat_name'], chat_creator: {
-			connect: {
+		roomData: { chat_password?: string; chat_name: string; chat_creator_id: number; chat_private: boolean; }
+		): Promise<Room>
+		{
+			let data: Prisma.RoomCreateInput = {chat_name: roomData['chat_name'], chat_creator: {
+				connect: {
+						user_id: Number(roomData['chat_creator_id'])
+				},
+			}, chat_private: roomData['chat_private'],
+			chat_creation_date: new Date(),
+			chat_password: roomData['chat_password'],
+			chat_users: {
+				connect: {
 					user_id: Number(roomData['chat_creator_id'])
-			},
-		}, chat_private: roomData['chat_private'],
-		chat_creation_date: new Date(),
-		chat_password: roomData['chat_password']
-	};
-		return this.prisma.room.create({data})
-	}
+				}
+			}
+		};
+			return this.prisma.room.create({data})
+		}
 
 	async rooms(params: Prisma.RoomFindManyArgs): Promise<Room[]> {
 		return this.prisma.room.findMany(params);
