@@ -41,7 +41,7 @@ model User {
 
 model Game {
 	game_id Int @id @default(autoincrement())
-	game_date DateTime?
+	game_date DateTime
 	game_winner_id Int
 	game_loser_id Int
 	game_winner User? @relation("winner", fields: [game_winner_id], references: [user_id])
@@ -60,9 +60,10 @@ model Achievement {
 
 model Room {
 	chat_id Int @id @default(autoincrement())
-	chat_password String
+	chat_password String?
 	chat_name String
 	chat_private Boolean
+	chat_creation_date DateTime
 	chat_creator_id Int
 	chat_creator User @relation("chat_creator", fields: [chat_creator_id], references: [user_id])
 	chat_messages Message[] @relation("message_chat")
