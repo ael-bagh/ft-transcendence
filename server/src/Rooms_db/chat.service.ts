@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Room, User, Prisma } from '@prisma/client';
+import { Room, User, Prisma, Message} from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -44,4 +44,83 @@ export class ChatService {
 		});
 	}
 
+	async deleteRoom(where: Prisma.RoomWhereUniqueInput): Promise<Room> {
+		return this.prisma.room.delete({
+			where,
+		});
+	}
+
+	async updateRoom(params: {
+		where: Prisma.RoomWhereUniqueInput;
+		data: Prisma.RoomUpdateInput;
+	}): Promise<Room> {
+		const { data, where } = params;
+		return this.prisma.room.update({
+			data,
+			where,
+		});
+	}
+
+	async addMessage(params: {
+		where: Prisma.RoomWhereUniqueInput;
+		data: Prisma.MessageCreateInput;
+	}): Promise<Message> {
+		const { data, where } = params;
+		return this.prisma.message.create({
+			data,
+		});
+	}
+
+	async getMessages(params: {
+		where: Prisma.RoomWhereUniqueInput;
+	}): Promise<Message[]> {
+		const { where } = params;
+		return this.prisma.message.findMany({
+			where: {
+				message_chat_id: where.chat_id
+			}
+		});
+	}
+
+	async addRoomUser(params: {
+		where: Prisma.RoomWhereUniqueInput;
+		data: Prisma.UserWhereUniqueInput;
+	}): Promise<Room> {
+		const { data, where } = params;
+		return this.prisma.room.update({
+			data: {
+				chat_users: {
+					connect: data
+				}
+			},
+			where,
+		});
+	}
+
+	async removeRoomUser(params: {
+		where: Prisma.RoomWhereUniqueInput;
+		data: Prisma.UserWhereUniqueInput;
+	}): Promise<Room> {
+		const { data, where } = params;
+		return this.prisma.room.update({
+			data: {
+				chat_users: {
+					disconnect: data
+				}
+			},
+			where,
+		});
+	}
+
+	async getRoomUsers(params: {
+		where: Prisma.RoomWhereUniqueInput;
+	}): Promise<User[]> {
+		const { where } = params;
+		return this.prisma.room.findUnique({
+			where,
+		}).chat_users();
+	}
 }
+
+//   }
+// }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Game, Prisma } from '@prisma/client';
+import { Game,User, Prisma } from '@prisma/client';
 
 @Injectable()
 export class GameService {
@@ -26,7 +26,7 @@ export class GameService {
     });
   }
 
-  async createGame(
+  async saveGame(
 	gameData: { game_winner_id: number; game_loser_id: number ; game_winner_score: number; game_loser_score: number},
   ): Promise<Game> {
 	let data: Prisma.GameCreateInput = {game_date: new Date()};
@@ -62,4 +62,6 @@ export class GameService {
       where,
     });
   }
+
+
 }
