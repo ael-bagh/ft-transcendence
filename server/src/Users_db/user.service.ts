@@ -134,11 +134,11 @@ export class UserService {
 	async signupUser(
 		userData: { login: string; nickname: string; password: string; avatar: string; two_factor_auth?: string; creation_date?: Date; current_lobby? : string; KDA?: number},
 	  ): Promise<User> {
-		const u = this.user({login: userData['login']});
-		  if (u == null)
+		const user_exists = this.user({login: userData['login']});
+		  if (user_exists == null)
 		  {
-			console.log(u);
-			  return u;
+			console.log(user_exists);
+			  return user_exists;
 		  }
 		userData['avatar'] = userData['avatar'];
 		userData['KDA'] = 0;
@@ -149,7 +149,7 @@ export class UserService {
 		userData['winrate'] = 0.00;
 		userData['status'] = Status.OFFLINE;
 		userData['winrate'] = 0.00;
-		console.log("hi:)")
+		userData['is_banned'] = false;
 		return this.createUser(userData);
 	  }
 

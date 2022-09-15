@@ -1,17 +1,17 @@
 import { IoAdapter } from '@nestjs/platform-socket.io';
 // import { verify } from 'jsonwebtoken';
 import { Socket } from 'socket.io';
-import { User } from '@prisma/client';
+import { User, Game } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
-import { UserService } from '../../user/user.service';
+import { UserService } from './Users_db/user.service';
 import { WsException } from '@nestjs/websockets';
-import { GameLobby } from '../../game/game';
+import { GameService } from './Games_db/game.service';
 
 export interface CustomSocket extends Socket {
     user: User;
     token_expire_at: number;
-    game_lobby?: GameLobby;
+    game_lobby?: Game;
 }
 
 export class AuthAdapter extends IoAdapter {
@@ -25,7 +25,7 @@ export class AuthAdapter extends IoAdapter {
             const token = socket.handshake.auth.token as string;
             try {
                 const payload = jwt.verify(token, this.configService.get('OAUTH_ACCESS_TOKEN_SECRET')) as any;
-                const user = await this.userService.getUserByLoginUnsafe(payload.user_login);
+                const user = await this.userService.user(payload.user_login);
                 if (!user) next(new WsException('User not found'));
                 if (user.is_banned) next(new WsException('User is banned'));
                 socket.user = user;

@@ -58,6 +58,8 @@ export class UserController {
 		user['two_factor_auth'] = userData['two_factor_auth'] || user['two_factor_auth'];
 		user['current_lobby'] = userData['current_lobby'] || user['current_lobby'];
 		user['status'] = userData['status'] || user['status'];
+		if (userData['is_banned'] != undefined)
+			user['is_banned'] = userData['is_banned'];
 		this.userService.updateUser({
 			where : {login: (login)},
 			data : user
