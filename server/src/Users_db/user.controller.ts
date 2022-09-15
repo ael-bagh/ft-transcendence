@@ -131,7 +131,7 @@ export class UsersController {
 		this.userService.addfriends(login, friend_login);
 		return (await this.userService.user({ login: (userData['login']) }));
 	}
-	@Post('acceptfriend')
+	@Patch('acceptfriend')
 	@ApiOperation({ summary: 'Accept a friend request' })
 	async acceptFriend(@Body()userData: {login: string; sender_login: string;})
 	{
