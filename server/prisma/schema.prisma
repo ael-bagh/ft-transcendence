@@ -20,6 +20,7 @@ model User {
 	two_factor_auth String?
 	creation_date DateTime?
 	current_lobby String?
+	is_banned Boolean?
 	KDA	Decimal?
 	games_lost Game[] @relation("winner")
 	games_won Game[] @relation ("loser")

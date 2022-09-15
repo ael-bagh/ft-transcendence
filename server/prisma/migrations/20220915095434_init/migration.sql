@@ -15,6 +15,7 @@ CREATE TABLE "User" (
     "two_factor_auth" TEXT,
     "creation_date" TIMESTAMP(3),
     "current_lobby" TEXT,
+    "is_banned" BOOLEAN NOT NULL,
     "KDA" DECIMAL(65,30),
     "player_level" DOUBLE PRECISION,
     "winrate" DOUBLE PRECISION,
@@ -25,7 +26,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Game" (
     "game_id" SERIAL NOT NULL,
-    "game_date" TIMESTAMP(3),
+    "game_date" TIMESTAMP(3) NOT NULL,
     "game_winner_id" INTEGER NOT NULL,
     "game_loser_id" INTEGER NOT NULL,
     "game_winner_score" INTEGER,
@@ -46,9 +47,10 @@ CREATE TABLE "Achievement" (
 -- CreateTable
 CREATE TABLE "Room" (
     "chat_id" SERIAL NOT NULL,
-    "chat_password" TEXT NOT NULL,
+    "chat_password" TEXT,
     "chat_name" TEXT NOT NULL,
     "chat_private" BOOLEAN NOT NULL,
+    "chat_creation_date" TIMESTAMP(3) NOT NULL,
     "chat_creator_id" INTEGER NOT NULL,
 
     CONSTRAINT "Room_pkey" PRIMARY KEY ("chat_id")
