@@ -8,6 +8,13 @@ import {
 	Delete,
 	Patch
   } from '@nestjs/common';
+  import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags,
+  } from '@nestjs/swagger';
+
 
 import { UserService } from './user.service';
 import { User as UserModel, Game as GameModel, Status, prisma} from '@prisma/client';
@@ -27,10 +34,12 @@ export class UserController {
 	
 
 	@Get(':login')
+	@ApiOperation({ summary: 'Get user data' })
 	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {
 	return this.userService.user({ login: (login) });
 	}
 	@Get(':login/history')
+	@ApiOperation({ summary: 'Get user match history' })
 	async getUserGames(@Param('login') login: string): Promise<GameModel[]> {
 		return  (await this.gameService.games({where: 
 			{OR: [{game_winner: {login: login}}, {game_loser: {login: login}}]},
@@ -38,14 +47,17 @@ export class UserController {
 		}));
 	}
 	@Get(':login/friendrequests')
+	@ApiOperation({ summary: 'Get user friend requests' })
 		async getUserFriendRequests(@Param('login') login: string): Promise<UserModel[]> {
 			return (await this.userService.users({where: {friend_requests: {some: {login: login}}}}));
 		}
 	@Get(':login/friends')
+	@ApiOperation({ summary: 'Get user friend list' })
 	async getUserFriends(@Param('login') login: string): Promise<UserModel[]> {
 			return (await this.userService.users({where: {friends: {some: {login: login}}}}));
 	}
 	@Patch('update')
+	@ApiOperation({ summary: 'Update user data, The values to change should be passed in the body' })
 	async updateUser(@Body()userData: {login: string; nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby? : string; status? : Status},)
 	{
 		let login = userData['login'];
@@ -75,28 +87,39 @@ export class UsersController {
 	constructor(private readonly userService: UserService, private readonly gameService : GameService) {}
 	
 	@Get('users')
+	@ApiOperation({ summary: 'Get a list of all users' })
 	async getUsers(): Promise<UserModel[]> {
 		return this.userService.users({});
 	}
 	
-	@Get('/leaderboard/:page')
+	@Get('/leaderboard/')
+	@ApiOperation({ summary: 'Get leaderboard' })
 	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
+		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20,} );
+	}
+
+	@Get('/leaderboard/:page')
+	@ApiOperation({ summary: 'Get leaderboard specific page, 20 users per page' })
+	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
 		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
 	}
 
 
 	@Post('/users/bulk')
+	@ApiOperation({ summary: 'Temporary controller for dev, generates 100 fake users, please call the /users/delete API before this one' })
 	async generateUsers()
 	{
 		this.userService.generateUsers(100);
 	}
 
 	@Post('/users/delete')
+	@ApiOperation({ summary: 'Temporary controller for dev, Delete all users from the database' })
 	async deleteAllUsers()
 	{
 		this.userService.deleteAllUsers();
 	}
 	@Patch('addfriend')
+	@ApiOperation({ summary: 'Send a friend request' })
 	async addFriend(@Body()userData: {login: string; friend_login: string;})
 	{
 		let login = userData['login'];
@@ -109,6 +132,7 @@ export class UsersController {
 		return (await this.userService.user({ login: (userData['login']) }));
 	}
 	@Post('acceptfriend')
+	@ApiOperation({ summary: 'Accept a friend request' })
 	async acceptFriend(@Body()userData: {login: string; sender_login: string;})
 	{
 		let login = userData['login'];
@@ -131,6 +155,7 @@ export class UsersController {
 		return (await this.userService.user({ login: (userData['login']) }));
 	}
 	@Patch('addfriendrequest')
+	@ApiOperation({ summary: `Adds a friend request to the user's list of requests` })
 	async sendFriendRequest(@Body()userData: {login: string; friend_login: string;})
 	{
 		let login = userData['login'];
@@ -178,6 +203,7 @@ export class UsersController {
 		return (await this.userService.user({ login: (login) }));
 	}
 	@Patch('deletefriendrequest')
+	@ApiOperation({ summary: 'Delete a friend request' })
 	async deleteFriendRequest(@Body()userData: {login: string; friend_login: string;})
 	{
 		let login = userData['login'];
@@ -200,6 +226,7 @@ export class UsersController {
 		return (await this.userService.user({ login: (login) }));
 	}
 	@Patch('deletefriend')
+	@ApiOperation({ summary: 'Delete a friend (RIP BOSO)' })
 	async deleteFriend(@Body()userData: {login: string; friend_login: string;})
 	{
 		await this.userService.deleteFriends(userData['login'], userData['friend_login']);
