@@ -11,6 +11,7 @@ export class EventsGateway {
 	handleDisconnect(client: Socket){
 		console.log("a user disconnected");
 	}
+
 	@SubscribeMessage('events')
 	handleEvent(
 		@MessageBody() data: string,
@@ -25,7 +26,7 @@ export class EventsGateway {
 		@ConnectedSocket() client: Socket,
 	): string {
 		this.server.emit("message", "Gest" + client.id + ": " + data);
-		console.log("Gest"+client.id + ": " + data);
+		console.log("Gest" + client.id + ": " + data);
 		return data;
 	}
 }

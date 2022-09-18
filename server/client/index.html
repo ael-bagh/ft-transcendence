@@ -69,7 +69,44 @@
 	<script src="https://cdn.socket.io/4.3.2/socket.io.min.js"
 		integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs"
 		crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"
+		integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script>
+		const axiosInstance = axios.create({
+			baseURL: 'http://localhost:3000',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			withCredentials: true
+		});
+
+		axiosInstance.interceptors.response.use(
+			res => res,
+			async err => {
+				const originalConfig = err.config;
+				if (originalConfig.url !== '/auth/refresh' && err.response) {
+					if (err.response.status === 401 && !originalConfig._retry) {
+						originalConfig._retry = true;
+						try {
+							const refreshResponse = await axiosInstance.get('/auth/refresh');
+							// refreshResponse
+							return axiosInstance(originalConfig);
+						} catch (_error) {
+							return Promise.reject(_error);
+						}
+					}
+				}
+				return Promise.reject(err);
+			}
+		)
+
+		setTimeout(() => {
+			axiosInstance.get('/profile').then(resp => console.log(resp.data));
+
+		}, 4000);
+
+
 		const socket = io('http://localhost:3000');
 		var form = document.getElementById('form');
 		var input = document.getElementById('input');
@@ -78,7 +115,7 @@
 			console.log('Connected');
 			socket.emit('events', 'a user connected');
 			socket.emit('identity', 0, response =>
-			console.log('Identity:', response),
+				console.log('Identity:', response),
 			);
 		});
 		socket.on('disconnect', function () {

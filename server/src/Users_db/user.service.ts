@@ -127,19 +127,20 @@ export class UserService {
 
 	async createUser(data: Prisma.UserCreateInput): Promise<User> {
 		return this.prisma.user.create({
-			data,
+			data
 		});
 	}
 
 	async signupUser(
 		userData: { login: string; nickname: string; password: string; avatar: string; two_factor_auth?: string; creation_date?: Date; current_lobby? : string; KDA?: number},
 	  ): Promise<User> {
-		const user_exists = this.user({login: userData['login']});
-		  if (user_exists == null)
+		  const user_exists = await this.user({login: userData['login']});
+		  if (user_exists != null)
 		  {
-			console.log(user_exists);
+			  console.log(user_exists,"hi");
 			  return user_exists;
-		  }
+			}
+			console.log(user_exists);
 		userData['avatar'] = userData['avatar'];
 		userData['KDA'] = 0;
 		userData['two_factor_auth'] = 'false';
