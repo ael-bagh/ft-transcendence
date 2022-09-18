@@ -5,7 +5,11 @@ module.exports = {
     'node_modules/flowbite-react/**/*.{js,jsx,ts,tsx}'
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'levi': ["Levibrush", "sans-serif"],
+      },
+    },
   },
   plugins: [
     require('flowbite/plugin')
