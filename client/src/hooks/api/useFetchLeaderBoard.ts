@@ -1,20 +1,17 @@
 import { useState, useEffect } from "react";
-
+import axiosInstance from "../../lib/axios";
 export default function useFetchLeaderBoard() {
     const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   
   useEffect(() => {
-    fetch(`${process.env.HOST_API}/leaderboard/0`)
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          setUsers(result);
-        },
-        (error) => {
-          setError(error);
-        }
-      );
+    axiosInstance.get("/leaderboard").then((res) => {
+      setUsers(res.data);
+    }
+    ).catch((err) => {
+      setError(err);
+    }
+    );
   }, [users]);
     return { users, error };
 }
