@@ -33,7 +33,7 @@ export class AuthAdapter extends IoAdapter {
             try {
 				console.log('access_token from header:', accessTokenHeader);
 				console.log('access_token from cookie:', accessTokenCookie);
-				const payload = jwt.verify(accessTokenCookie || accessTokenHeader, this.configService.get('SECRET_TOK')) as any;
+				const payload = jwt.verify(accessTokenCookie || accessTokenHeader, this.configService.get('SECRET_TOKEN')) as any;
 				console.log(payload);
                 const user = await this.userService.user({
 					login: payload.login
