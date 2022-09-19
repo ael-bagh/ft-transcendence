@@ -3,8 +3,8 @@ import { ChatContext } from "../../contexts/chat.context";
 import TextMessage from "./TextMessage"
 import {GiCrossedSwords} from 'react-icons/gi'
 import {BiLeftArrow} from 'react-icons/bi'
-import UserStatus from "../userComponents/UserStatus";
-import UserAvatar from "../userComponents/UserAvatar";
+import UserStatus from "../user/UserStatus";
+import UserAvatar from "../user/UserAvatar";
 
 interface Message 
 {

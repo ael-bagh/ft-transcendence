@@ -1,4 +1,4 @@
-import RankCard from "../components/leaderboard components/RankCard";
+import RankCard from "../components/leaderboard/RankCard";
 import NavBar from "../components/NavBar";
 import useFetchLeaderBoard from "../hooks/useFetchLeaderBoard";
 import {UserLeaderboard} from "../types/user.interface";
