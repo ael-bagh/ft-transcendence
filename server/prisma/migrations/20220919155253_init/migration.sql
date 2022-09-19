@@ -15,7 +15,7 @@ CREATE TABLE "User" (
     "two_factor_auth" TEXT,
     "creation_date" TIMESTAMP(3),
     "current_lobby" TEXT,
-    "is_banned" BOOLEAN NOT NULL,
+    "is_banned" BOOLEAN,
     "KDA" DECIMAL(65,30),
     "player_level" DOUBLE PRECISION,
     "winrate" DOUBLE PRECISION,
@@ -86,6 +86,12 @@ CREATE TABLE "_user_achievements" (
 );
 
 -- CreateTable
+CREATE TABLE "_chat_admins" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "_chat_user" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
@@ -120,6 +126,12 @@ CREATE UNIQUE INDEX "_user_achievements_AB_unique" ON "_user_achievements"("A", 
 
 -- CreateIndex
 CREATE INDEX "_user_achievements_B_index" ON "_user_achievements"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_chat_admins_AB_unique" ON "_chat_admins"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_chat_admins_B_index" ON "_chat_admins"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_chat_user_AB_unique" ON "_chat_user"("A", "B");
@@ -165,6 +177,12 @@ ALTER TABLE "_user_achievements" ADD CONSTRAINT "_user_achievements_A_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "_user_achievements" ADD CONSTRAINT "_user_achievements_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_chat_admins" ADD CONSTRAINT "_chat_admins_A_fkey" FOREIGN KEY ("A") REFERENCES "Room"("chat_id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_chat_admins" ADD CONSTRAINT "_chat_admins_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_chat_user" ADD CONSTRAINT "_chat_user_A_fkey" FOREIGN KEY ("A") REFERENCES "Room"("chat_id") ON DELETE CASCADE ON UPDATE CASCADE;

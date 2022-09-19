@@ -48,23 +48,22 @@ export class UserService {
 			}).games_lost();
 		}
 	}
+	
+	async userPermissions(
+		action_perfomer: Prisma.UserWhereUniqueInput,
+		action: string,
+		action_target: Prisma.UserWhereUniqueInput,
+	): Promise<Boolean> {
+		switch	(action) {
+			// add user permissions here.
+		}
+		return false;
+	}
 
-	// async userWR(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<number> {
-	// 	{
-	// 		const wins = await this.userWins(userWhereUniqueInput);
-	// 		const losses = await this.userLosses(userWhereUniqueInput);
-	// 		if (wins.length + losses.length === 0) {
-	// 			return 0;
-	// 		}
-	// 		return (wins.length / (wins.length + losses.length));
-	// 	}
-	// }
-
-	async deleteFriends(user_login:string, friend_login:string)
-	{
+	async deleteFriends(user_login: string, friend_login: string) {
 		await this.prisma.user.update({
-			where : {login: (friend_login)},
-			data : {
+			where: { login: (friend_login) },
+			data: {
 				friends: {
 					disconnect: {
 						login: user_login,
@@ -73,8 +72,8 @@ export class UserService {
 			},
 		});
 		await this.prisma.user.update({
-			where : {login: (user_login)},
-			data : {
+			where: { login: (user_login) },
+			data: {
 				friends: {
 					disconnect: {
 						login: friend_login,
@@ -84,11 +83,10 @@ export class UserService {
 		});
 		return;
 	}
-	async addfriends(user_login:string, friend_login:string)
-	{
+	async addfriends(user_login: string, friend_login: string) {
 		await this.prisma.user.update({
-			where : {login: (friend_login)},
-			data : {
+			where: { login: (friend_login) },
+			data: {
 				friends: {
 					connect: {
 						login: user_login,
@@ -97,8 +95,8 @@ export class UserService {
 			},
 		});
 		await this.prisma.user.update({
-			where : {login: (user_login)},
-			data : {
+			where: { login: (user_login) },
+			data: {
 				friends: {
 					connect: {
 						login: friend_login,
@@ -132,15 +130,14 @@ export class UserService {
 	}
 
 	async signupUser(
-		userData: { login: string; nickname: string; password: string; avatar: string; two_factor_auth?: string; creation_date?: Date; current_lobby? : string; KDA?: number},
-	  ): Promise<User> {
-		  const user_exists = await this.user({login: userData['login']});
-		  if (user_exists != null)
-		  {
-			  console.log(user_exists,"hi");
-			  return user_exists;
-			}
-			console.log(user_exists);
+		userData: { login: string; nickname: string; password: string; avatar: string; two_factor_auth?: string; creation_date?: Date; current_lobby?: string; KDA?: number },
+	): Promise<User> {
+		const user_exists = await this.user({ login: userData['login'] });
+		if (user_exists != null) {
+			console.log(user_exists, "hi");
+			return user_exists;
+		}
+		console.log(user_exists);
 		userData['avatar'] = userData['avatar'];
 		userData['KDA'] = 0;
 		userData['two_factor_auth'] = 'false';
@@ -152,7 +149,7 @@ export class UserService {
 		userData['winrate'] = 0.00;
 		userData['is_banned'] = false;
 		return this.createUser(userData);
-	  }
+	}
 
 	async updateUser(params: {
 		where: Prisma.UserWhereUniqueInput;
@@ -175,10 +172,8 @@ export class UserService {
 		return this.prisma.user.deleteMany({});
 	}
 
-	async generateUsers(number_wanted: number)
-	{
-		for (let i = 0; i < number_wanted; i++)
-		{
+	async generateUsers(number_wanted: number) {
+		for (let i = 0; i < number_wanted; i++) {
 			await this.prisma.user.create({
 				data: {
 					user_id: i,

@@ -12,6 +12,79 @@ export class ChatService {
 	// 	});
 	// }
 
+	async chatPermissions(
+		action_perfomer: Prisma.UserWhereUniqueInput,
+		action: string,
+		action_target: Prisma.UserWhereUniqueInput | null,
+		action_room: Prisma.RoomWhereUniqueInput | null,
+	): Promise<boolean> {
+		switch (action) {
+			case 'viewChat':
+				// Check if user is part of the room
+				if (action_room != null) {
+					return await this.prisma.room.count({
+						where: {
+							chat_id: action_room.chat_id,
+							chat_users:{
+								some: {
+									login: action_perfomer.login
+								}
+							},
+							chat_banned_users:{
+								some: {
+									NOT: {
+										login: action_perfomer.login
+									}
+								}
+							},
+						}
+					}).then((count) => count > 0);
+				}
+			case ('addAdmin' || 'removeAdmin'):
+				// Check if user is creator of the room
+				if (action_room != null) {
+					return await this.prisma.room.count({
+						where: {
+							chat_id: action_room.chat_id,
+							chat_creator: {
+								login: action_perfomer.login
+							}
+						}
+					}).then((count) => count > 0);
+					}
+				// Check if user is creator of the room
+			case 'banFromRoom' || 'unbanFromRoom':
+				if (action_room != null) {
+					return await this.prisma.room.count({
+						where: {
+							chat_id: action_room.chat_id,
+							chat_admins: {
+								some:
+								{
+									login: action_perfomer.login,
+									NOT:
+									{
+										login: action_target?.login
+									}
+								}
+							},
+							chat_banned_users: {
+								some:
+								{
+									NOT:
+									{
+										login: action_target.login
+									}
+								}
+							}
+
+						}
+					}).then((count) => count > 0);
+				}
+				return false;
+		}
+	}
+
 	async createRoom(
 		roomData: { chat_password?: string; chat_name: string; chat_creator_id: number; chat_private: boolean; }
 	): Promise<Room> {
@@ -20,7 +93,13 @@ export class ChatService {
 				connect: {
 					user_id: Number(roomData['chat_creator_id'])
 				},
-			}, chat_private: roomData['chat_private'],
+			}, 
+			chat_admins:{
+				connect: {
+					user_id: Number(roomData['chat_creator_id'])
+				}
+			}
+			,chat_private: roomData['chat_private'],
 			chat_creation_date: new Date(),
 			chat_password: roomData['chat_password'],
 			chat_users: {
@@ -66,9 +145,17 @@ export class ChatService {
 		data: Prisma.MessageCreateInput;
 	}): Promise<Message> {
 		const { data, where } = params;
-		return this.prisma.message.create({
-			data,
+		const message = this.prisma.message.create({
+			data: {
+				...data,
+				message_chat: {
+					connect: {
+						chat_id: where.chat_id
+					}
+				}
+			},
 		});
+		return message;
 	}
 
 	async getMessages(params: {
