@@ -1,8 +1,8 @@
 import NavBar from "../components/NavBar";
 import { useState } from "react";
-import Conversation from "../components/chatComponents/Conversation";
+import Conversation from "../components/chat/Conversation";
 import ChatProvider from "../contexts/chat.context";
-import ChatHistory from "../components/chatComponents/ChatHistory";
+import ChatHistory from "../components/chat/ChatHistory";
 
 export default function Chat() {
   return (
