@@ -41,6 +41,10 @@ export class UserController {
 		async getUserFriendRequests(@Param('login') login: string): Promise<UserModel[]> {
 			return (await this.userService.users({where: {friend_requests: {some: {login: login}}}}));
 		}
+	@Get(':login/sentfriendrequests')
+		async getUserSentFriendRequests(@Param('login') login: string): Promise<UserModel[]> {
+			return (await this.userService.users({where: {friend_requests_sent: {some: {login: login}}}}));
+		}
 	@Get(':login/friends')
 	async getUserFriends(@Param('login') login: string): Promise<UserModel[]> {
 			return (await this.userService.users({where: {friends: {some: {login: login}}}}));
@@ -78,9 +82,14 @@ export class UsersController {
 	async getUsers(): Promise<UserModel[]> {
 		return this.userService.users({});
 	}
+
+	@Get('/leaderboard')
+	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
+		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20});
+	}
 	
 	@Get('/leaderboard/:page')
-	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
+	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
 		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
 	}
 
@@ -199,6 +208,39 @@ export class UsersController {
 		});
 		return (await this.userService.user({ login: (login) }));
 	}
+	@Patch('deleteSentFriendRequest')
+	async deleteSentFriendRequest(@Body()userData: {login: string; friend_login: string;})
+	{
+		let login = userData['login'];
+		let friend_login = userData['friend_login'];
+		let user = await this.userService.user({ login: (login) });
+		let friend = await this.userService.user({ login: (friend_login) });
+		if (!user || !friend)
+		return null;
+		await this.userService.updateUser({
+			where : {login: (login)},
+			data : {
+				friend_requests_sent: {
+					disconnect: {
+						login: login,
+					},
+				},
+			},
+		});
+		await this.userService.updateUser({
+			where : {login: (friend_login)},
+			data : {
+				friend_requests: {
+					disconnect: {
+						login: login,
+					},
+				}
+			}
+		});
+
+		return (await this.userService.user({ login: (login) }));
+	}
+
 	@Patch('deletefriend')
 	async deleteFriend(@Body()userData: {login: string; friend_login: string;})
 	{

@@ -29,10 +29,13 @@ model User {
 	friends_relation User[] @relation("friends")
 	friend_requests User[] @relation("friend_request")
 	friends_request_relation User[] @relation("friend_request")
+	friend_requests_sent User[] @relation("friend_request_sent")
+	friends_request_sent_relation User[] @relation("friend_request_sent")
 	rooms_created Room[] @relation("chat_creator")
 	messages_sent Message[] @relation("message_user")
 	chats_member Room[] @relation("chat_user")
 	banned_from Room[] @relation("chat_banned_users")
+	admin_in Room[] @relation("chat_admins")
 	player_level Float?
 	winrate Float?
 
@@ -67,10 +70,13 @@ model Room {
 	chat_creation_date DateTime
 	chat_creator_id Int
 	chat_creator User @relation("chat_creator", fields: [chat_creator_id], references: [user_id])
+	chat_admins User[] @relation("chat_admins")
 	chat_messages Message[] @relation("message_chat")
 	chat_users User[] @relation("chat_user")
 	chat_banned_users User[] @relation("chat_banned_users")
 }
+
+
 
 model Message {
 	message_id Int @id @default(autoincrement())
