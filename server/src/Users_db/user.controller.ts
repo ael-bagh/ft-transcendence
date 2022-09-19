@@ -6,14 +6,20 @@ import {
 	Body,
 	Put,
 	Delete,
-	Patch
+	Patch,
+	UseGuards,
+	Req,
+	Res
   } from '@nestjs/common';
 
-import { UserService } from './user.service';
+import { UserService } from '@/Users_db/user.service';
 import { User as UserModel, Game as GameModel, Status, prisma} from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime';
-import { GameService } from '../Games_db/game.service';
+import { GameService } from '@/Games_db/game.service';
 import { timeStamp } from 'console';
+import { Request, Response } from 'express';
+import * as jwt from 'jsonwebtoken';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
 enum status {
 	'OFFLINE' = 0,
@@ -25,6 +31,14 @@ enum status {
 export class UserController {
 	constructor(private readonly userService: UserService, private readonly gameService : GameService) {}
 	
+	@UseGuards(JwtAuthGuard)
+	@Get('me')
+	async getProfile(@Req() req: Request, @Res() res : Response) {
+		const accessToken = req.cookies.access_token;
+		const payload = jwt.verify(accessToken,process.env.SECRET_TOKEN) as Record<string,any>
+		const user = await this.userService.user({login: payload.login});
+		res.json(user);
+	}
 
 	@Get(':login')
 	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {

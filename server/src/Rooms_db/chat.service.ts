@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '@/common/services/prisma.service';
 import { Room, User, Prisma, Message } from '@prisma/client';
 
 @Injectable()
@@ -84,19 +84,19 @@ export class ChatService {
 				return false;
 		}
 	}
-
+	
 	async createRoom(
-		roomData: { chat_password?: string; chat_name: string; chat_creator_id: number; chat_private: boolean; }
+		roomData: { chat_password?: string; chat_name: string; chat_creator_login: string; chat_private: boolean; }
 	): Promise<Room> {
 		let data: Prisma.RoomCreateInput = {
 			chat_name: roomData['chat_name'], chat_creator: {
 				connect: {
-					user_id: Number(roomData['chat_creator_id'])
+					login: roomData['chat_creator_login']
 				},
 			}, 
 			chat_admins:{
 				connect: {
-					user_id: Number(roomData['chat_creator_id'])
+					login: roomData['chat_creator_login']
 				}
 			}
 			,chat_private: roomData['chat_private'],
@@ -104,7 +104,7 @@ export class ChatService {
 			chat_password: roomData['chat_password'],
 			chat_users: {
 				connect: {
-					user_id: Number(roomData['chat_creator_id'])
+					login: roomData['chat_creator_login']
 				}
 			}
 		};

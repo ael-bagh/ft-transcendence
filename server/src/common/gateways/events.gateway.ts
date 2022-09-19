@@ -1,6 +1,4 @@
-import { Get } from "@nestjs/common"
 import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from "@nestjs/websockets"
-import { disconnect } from "process";
 import { Socket, Server } from "socket.io"
 
 @WebSocketGateway()
@@ -8,7 +6,7 @@ export class EventsGateway {
 	@WebSocketServer()
 	server: Server;
 
-	handleDisconnect(client: Socket){
+	handleDisconnect(client: Socket) {
 		console.log("a user disconnected");
 	}
 

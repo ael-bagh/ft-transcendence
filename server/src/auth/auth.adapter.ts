@@ -4,9 +4,9 @@ import { Socket } from 'socket.io';
 import { User, Game } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
-import { UserService } from '../Users_db/user.service';
+import { UserService } from '@/Users_db/user.service';
 import { WsException } from '@nestjs/websockets';
-import { GameService } from '../Games_db/game.service';
+import { GameService } from '@/Games_db/game.service';
 import { HttpService } from '@nestjs/axios';
 
 export interface CustomSocket extends Socket {
@@ -17,38 +17,38 @@ export interface CustomSocket extends Socket {
 
 export class AuthAdapter extends IoAdapter {
     constructor(app: any,
-		private configService: ConfigService,
-		private userService: UserService,) {
+        private configService: ConfigService,
+        private userService: UserService,) {
         super(app);
     }
 
     createIOServer(port: number, options?: any): Promise<any> {
         const server = super.createIOServer(port, options);
         server.use(async (socket: CustomSocket, next) => {
-			const accessTokenHeader = socket.handshake.auth.token as string;
-			const accessTokenCookie = socket.handshake.headers.cookie
-			?.split('; ')
-			?.find((cookie: string) => cookie.startsWith('access_token'))
-			?.split('=')[1];
+            const accessTokenHeader = socket.handshake.auth.token as string;
+            const accessTokenCookie = socket.handshake.headers.cookie
+                ?.split('; ')
+                ?.find((cookie: string) => cookie.startsWith('access_token'))
+                ?.split('=')[1];
             try {
-				console.log('access_token from header:', accessTokenHeader);
-				console.log('access_token from cookie:', accessTokenCookie);
-				const payload = jwt.verify(accessTokenCookie || accessTokenHeader, this.configService.get('SECRET_TOKEN')) as any;
-				console.log(payload);
+                console.log('access_token from header:', accessTokenHeader);
+                console.log('access_token from cookie:', accessTokenCookie);
+                const payload = jwt.verify(accessTokenCookie || accessTokenHeader, this.configService.get('SECRET_TOKEN')) as any;
+                console.log(payload);
                 const user = await this.userService.user({
-					login: payload.login
-				});
+                    login: payload.login
+                });
                 if (!user) next(new WsException('User not found'));
                 if (user.is_banned) next(new WsException('User is banned'));
                 socket.user = user;
                 socket.token_expire_at = payload.exp * 1000;
             } catch (e) {
-				console.log(e, "oh no");
-				return next(new WsException('Invalid token'));
+                console.log(e, "oh no");
+                return next(new WsException('Invalid token'));
             }
 
             return next();
-		});
+        });
         return server;
     }
 }

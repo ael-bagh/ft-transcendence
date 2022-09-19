@@ -1,21 +1,17 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { EventsModule } from "./events.module";
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './Users_db/user.module';
 import { GameModule } from './Games_db/game.module';
 import { ChatModule } from './Rooms_db/chat.module';
-import { UsersModule } from './users/users.module';
+import { EventsGateway } from './common/gateways/events.gateway'
 
 @Module({
 	imports: [
 		ConfigModule.forRoot(),
-		EventsModule,
 		ServeStaticModule.forRoot({
 			rootPath: join(__dirname, '..', 'client'),
 		}),
@@ -23,10 +19,9 @@ import { UsersModule } from './users/users.module';
 		HttpModule,
 		UserModule,
 		GameModule,
-		ChatModule,
-		UsersModule
+		ChatModule
 	],
-	  controllers: [AppController],
-	  providers: [AppService],
+	controllers: [],
+	providers: [EventsGateway],
 })
 export class AppModule { }

@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
-import { PrismaService } from "../prisma.service";
-import { GameController } from "./game.controller";
-import { GameService } from "./game.service";
+import { PrismaService } from "@/common/services/prisma.service";
+import { GameController } from "@/Games_db/game.controller";
+import { GameService } from "@/Games_db/game.service";
 
 @Module({
 	imports: [],

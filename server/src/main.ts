@@ -1,11 +1,11 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { prisma } from '@prisma/client';
-import { AppModule } from './app.module';
-import { AuthAdapter } from './auth/auth.adapter';
-import { PrismaService } from './prisma.service';
-import { UserService } from './Users_db/user.service';
+import { AppModule } from '@/app.module';
+import { AuthAdapter } from '@/auth/auth.adapter';
+import { UserService } from '@/Users_db/user.service';
 import * as cookieParser from 'cookie-parser';
+import { PrismaService } from '@/common/services/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

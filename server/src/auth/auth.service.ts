@@ -2,8 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { UserService } from '../Users_db/user.service';
+import { UserService } from '@/Users_db/user.service';
 
 @Injectable()
 export class AuthService {
@@ -14,15 +13,15 @@ export class AuthService {
 	) { }
 
 	async validateUser(login: string, pass: string): Promise<any> {
-		return await this.userService.user({login: login});
+		return await this.userService.user({ login: login });
 	}
 	async loginAndGenerateRefreshToken(user: any) {
 		const payload = { login: user.login, sub: user.user_id, refreshId: Math.random().toString(16).slice(2) + Date.now() };
 		console.log(payload);
 
-		return this.jwtService.sign(payload, {expiresIn: '60d'});
+		return this.jwtService.sign(payload, { expiresIn: '60d' });
 	}
-	async regenerateAccessTokenWithRefreshToken(user:any, refreshToken: string) {
+	async regenerateAccessTokenWithRefreshToken(user: any, refreshToken: string) {
 		const payload = this.jwtService.verify(refreshToken);
 		return this.jwtService.sign({ ...user, refreshId: payload.refreshId });
 	}
