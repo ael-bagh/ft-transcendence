@@ -2,7 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from '@/Users_db/user.service';
+import { UserService } from '@/user/user.service';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +23,7 @@ export class AuthService {
 	}
 	async regenerateAccessTokenWithRefreshToken(user: any, refreshToken: string) {
 		const payload = this.jwtService.verify(refreshToken);
+		// TODO: Only add the minimum required fields instead of ...user
 		return this.jwtService.sign({ ...user, refreshId: payload.refreshId });
 	}
 }

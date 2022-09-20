@@ -3,8 +3,13 @@ import { PrismaService } from '@/common/services/prisma.service';
 import { Room, User, Prisma, Message } from '@prisma/client';
 
 @Injectable()
-export class ChatService {
-	constructor(private prisma: PrismaService) { }
+export class RoomService {
+	constructor(private prisma: PrismaService) {
+		prisma.$on<any>('query', (event: Prisma.QueryEvent) => {
+			console.log('Query: ' + event.query);
+			console.log('Duration: ' + event.duration + 'ms');
+		  });
+	}
 
 	// async prismaCreateRoom(data: Prisma.RoomCreateInput): Promise<Room> {
 	// 	return this.prisma.room.create({
@@ -12,31 +17,31 @@ export class ChatService {
 	// 	});
 	// }
 
-	async chatPermissions(
-		action_perfomer: Prisma.UserWhereUniqueInput,
+	async roomPermissions(
+		action_perfomer: User,
 		action: string,
 		action_target: Prisma.UserWhereUniqueInput | null,
 		action_room: Prisma.RoomWhereUniqueInput | null,
 	): Promise<boolean> {
 		switch (action) {
-			case 'viewChat':
+			case 'viewRoom':
 				// Check if user is part of the room
 				if (action_room != null) {
 					return await this.prisma.room.count({
 						where: {
-							chat_id: action_room.chat_id,
-							chat_users:{
+							room_id: action_room.room_id,
+							room_users:{
 								some: {
 									login: action_perfomer.login
 								}
 							},
-							chat_banned_users:{
-								some: {
-									NOT: {
+							NOT: {
+								room_banned_users:{
+									some: {
 										login: action_perfomer.login
 									}
-								}
-							},
+								},
+							}
 						}
 					}).then((count) => count > 0);
 				}
@@ -45,8 +50,8 @@ export class ChatService {
 				if (action_room != null) {
 					return await this.prisma.room.count({
 						where: {
-							chat_id: action_room.chat_id,
-							chat_creator: {
+							room_id: action_room.room_id,
+							room_creator: {
 								login: action_perfomer.login
 							}
 						}
@@ -57,8 +62,8 @@ export class ChatService {
 				if (action_room != null) {
 					return await this.prisma.room.count({
 						where: {
-							chat_id: action_room.chat_id,
-							chat_admins: {
+							room_id: action_room.room_id,
+							room_admins: {
 								some:
 								{
 									login: action_perfomer.login,
@@ -68,7 +73,7 @@ export class ChatService {
 									}
 								}
 							},
-							chat_banned_users: {
+							room_banned_users: {
 								some:
 								{
 									NOT:
@@ -86,25 +91,25 @@ export class ChatService {
 	}
 	
 	async createRoom(
-		roomData: { chat_password?: string; chat_name: string; chat_creator_login: string; chat_private: boolean; }
+		roomData: { room_password?: string; room_name: string; room_creator_login: string; room_private: boolean; }
 	): Promise<Room> {
 		let data: Prisma.RoomCreateInput = {
-			chat_name: roomData['chat_name'], chat_creator: {
+			room_name: roomData['room_name'], room_creator: {
 				connect: {
-					login: roomData['chat_creator_login']
+					login: roomData['room_creator_login']
 				},
 			}, 
-			chat_admins:{
+			room_admins:{
 				connect: {
-					login: roomData['chat_creator_login']
+					login: roomData['room_creator_login']
 				}
 			}
-			,chat_private: roomData['chat_private'],
-			chat_creation_date: new Date(),
-			chat_password: roomData['chat_password'],
-			chat_users: {
+			,room_private: roomData['room_private'],
+			room_creation_date: new Date(),
+			room_password: roomData['room_password'],
+			room_users: {
 				connect: {
-					login: roomData['chat_creator_login']
+					login: roomData['room_creator_login']
 				}
 			}
 		};
@@ -148,9 +153,9 @@ export class ChatService {
 		const message = this.prisma.message.create({
 			data: {
 				...data,
-				message_chat: {
+				message_room: {
 					connect: {
-						chat_id: where.chat_id
+						room_id: where.room_id
 					}
 				}
 			},
@@ -164,7 +169,7 @@ export class ChatService {
 		const { where } = params;
 		return this.prisma.message.findMany({
 			where: {
-				message_chat_id: where.chat_id
+				message_room_id: where.room_id
 			}
 		});
 	}
@@ -176,7 +181,7 @@ export class ChatService {
 		const { data, where } = params;
 		return this.prisma.room.update({
 			data: {
-				chat_users: {
+				room_users: {
 					connect: data
 				}
 			},
@@ -191,7 +196,7 @@ export class ChatService {
 		const { data, where } = params;
 		return this.prisma.room.update({
 			data: {
-				chat_users: {
+				room_users: {
 					disconnect: data
 				}
 			},
@@ -205,6 +210,6 @@ export class ChatService {
 		const { where } = params;
 		return this.prisma.room.findUnique({
 			where,
-		}).chat_users();
+		}).room_users();
 	}
 }

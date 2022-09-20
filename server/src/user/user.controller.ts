@@ -12,14 +12,16 @@ import {
 	Res
   } from '@nestjs/common';
 
-import { UserService } from '@/Users_db/user.service';
-import { User as UserModel, Game as GameModel, Status, prisma} from '@prisma/client';
+import { UserService } from '@/user/user.service';
+import { User as UserModel, Game as GameModel, Status, prisma, Room} from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime';
-import { GameService } from '@/Games_db/game.service';
+import { GameService } from '@/game/game.service';
 import { timeStamp } from 'console';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RoomService } from '@/room/room.service';
+import { CurrentUser } from './user.decorator';
 
 enum status {
 	'OFFLINE' = 0,
@@ -29,15 +31,28 @@ enum status {
 
 @Controller('user')
 export class UserController {
-	constructor(private readonly userService: UserService, private readonly gameService : GameService) {}
+	constructor(private readonly userService: UserService, private readonly gameService : GameService, private readonly roomService: RoomService) {}
 	
 	@UseGuards(JwtAuthGuard)
 	@Get('me')
-	async getProfile(@Req() req: Request, @Res() res : Response) {
-		const accessToken = req.cookies.access_token;
-		const payload = jwt.verify(accessToken,process.env.SECRET_TOKEN) as Record<string,any>
-		const user = await this.userService.user({login: payload.login});
+	async getProfile(@CurrentUser() user: UserModel, @Res() res : Response) {
 		res.json(user);
+	}
+	@Get('rooms')
+	async getUserRooms(@CurrentUser() user: UserModel, ): Promise<Room[]>
+	{
+		return (await this.roomService.rooms({
+			where:
+			{
+				room_users:
+				{
+					some:
+					{
+						login: user.login,
+					}
+				}
+			}
+		}));
 	}
 
 	@Get(':login')
@@ -51,25 +66,22 @@ export class UserController {
 			orderBy: {game_date: 'desc'},
 		}));
 	}
-	@Get(':login/friendrequests')
-		async getUserFriendRequests(@Param('login') login: string): Promise<UserModel[]> {
-			return (await this.userService.users({where: {friend_requests: {some: {login: login}}}}));
-		}
-	@Get(':login/sentfriendrequests')
-		async getUserSentFriendRequests(@Param('login') login: string): Promise<UserModel[]> {
-			return (await this.userService.users({where: {friend_requests_sent: {some: {login: login}}}}));
-		}
-	@Get(':login/friends')
-	async getUserFriends(@Param('login') login: string): Promise<UserModel[]> {
-			return (await this.userService.users({where: {friends: {some: {login: login}}}}));
+	@Get('friendrequests')
+		async getUserFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
+			return (await this.userService.users({where: {friend_requests: {some: {login: user.login}}}}));
+	}
+	@Get('sentfriendrequests')
+		async getUserSentFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
+			return (await this.userService.users({where: {friend_requests_sent: {some: {login: user.login}}}}));
+	}
+	@Get('friends')
+	async getUserFriends(@CurrentUser() user: UserModel): Promise<UserModel[]> {
+			return (await this.userService.users({where: {friends: {some: {login: user.login}}}}));
 	}
 	@Patch('update')
-	async updateUser(@Body()userData: {login: string; nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby? : string; status? : Status},)
+	async updateUser(@CurrentUser() user: UserModel, @Body()userData: {nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby? : string; status? : Status},)
 	{
-		let login = userData['login'];
-		let user = await this.userService.user({ login: (login) });
-		if (!user)
-			return null;
+		let login = user.login;
 		user['nickname'] = userData['nickname'] || user['nickname'];
 		user['password'] = userData['password'] || user['password'];
 		user['avatar'] = userData['avatar'] || user['avatar'];
@@ -84,65 +96,28 @@ export class UserController {
 		});
 		return user;
 	}
-	
-
-}
-
-@Controller()
-export class UsersController {
-	constructor(private readonly userService: UserService, private readonly gameService : GameService) {}
-	
-	@Get('users')
-	async getUsers(): Promise<UserModel[]> {
-		return this.userService.users({});
-	}
-
-	@Get('/leaderboard')
-	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
-		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20});
-	}
-	
-	@Get('/leaderboard/:page')
-	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
-		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
-	}
-
-
-	@Post('/users/bulk')
-	async generateUsers()
-	{
-		this.userService.generateUsers(100);
-	}
-
-	@Post('/users/delete')
-	async deleteAllUsers()
-	{
-		this.userService.deleteAllUsers();
-	}
 	@Patch('addfriend')
-	async addFriend(@Body()userData: {login: string; friend_login: string;})
+	async addFriend(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
 	{
-		let login = userData['login'];
+		let login = user.login;
 		let friend_login = userData['friend_login'];
-		let user = await this.userService.user({ login: (login) });
 		let friend = await this.userService.user({ login: (friend_login) });
 		if (!user || !friend)
 			return null;
 		this.userService.addfriends(login, friend_login);
-		return (await this.userService.user({ login: (userData['login']) }));
+		return (await this.userService.user({ login: (user.login) }));
 	}
+	
 	@Post('acceptfriend')
-	async acceptFriend(@Body()userData: {login: string; sender_login: string;})
+	async acceptFriend(@CurrentUser() user: UserModel, @Body()userData: {sender_login: string;})
 	{
-		let login = userData['login'];
 		let friend_login = userData['sender_login'];
-		let user = await this.userService.user({ login: (login) });
 		let friend = await this.userService.user({ login: (friend_login) });
 		if (!user || !friend)
 			return null;
-		await this.userService.addfriends(login, friend_login);
+		await this.userService.addfriends(user.login, friend_login);
 		await this.userService.updateUser({
-			where : {login: (login)},
+			where : {login: (user.login)},
 			data : {
 				friend_requests: {
 					disconnect: {
@@ -151,14 +126,13 @@ export class UsersController {
 				},
 			},
 		});
-		return (await this.userService.user({ login: (userData['login']) }));
+		return (await this.userService.user({ login: (user.login) }));
 	}
 	@Patch('addfriendrequest')
-	async sendFriendRequest(@Body()userData: {login: string; friend_login: string;})
+	async sendFriendRequest(@CurrentUser() user: UserModel, @Body()userData: { friend_login: string;})
 	{
-		let login = userData['login'];
+		let login = user.login;
 		let friend_login = userData['friend_login'];
-		let user = await this.userService.user({ login: (login) });
 		let friend = await this.userService.user({ login: (friend_login) });
 		if (!user || !friend)
 			return null;
@@ -201,11 +175,10 @@ export class UsersController {
 		return (await this.userService.user({ login: (login) }));
 	}
 	@Patch('deletefriendrequest')
-	async deleteFriendRequest(@Body()userData: {login: string; friend_login: string;})
+	async deleteFriendRequest(@CurrentUser() user: UserModel,@Body()userData: {friend_login: string;})
 	{
-		let login = userData['login'];
+		let login = user.login;
 		let friend_login = userData['friend_login'];
-		let user = await this.userService.user({ login: (login) });
 		let friend = await this.userService.user({ login: (friend_login) });
 		if (!user || !friend)
 			return null;
@@ -223,11 +196,10 @@ export class UsersController {
 		return (await this.userService.user({ login: (login) }));
 	}
 	@Patch('deleteSentFriendRequest')
-	async deleteSentFriendRequest(@Body()userData: {login: string; friend_login: string;})
+	async deleteSentFriendRequest(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
 	{
-		let login = userData['login'];
+		let login = user.login
 		let friend_login = userData['friend_login'];
-		let user = await this.userService.user({ login: (login) });
 		let friend = await this.userService.user({ login: (friend_login) });
 		if (!user || !friend)
 		return null;
@@ -256,10 +228,45 @@ export class UsersController {
 	}
 
 	@Patch('deletefriend')
-	async deleteFriend(@Body()userData: {login: string; friend_login: string;})
+	async deleteFriend(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
 	{
-		await this.userService.deleteFriends(userData['login'], userData['friend_login']);
-		return (await this.userService.user({ login: (userData['login']) }));
+		await this.userService.deleteFriends(user.login, userData['friend_login']);
+		return (await this.userService.user({ login: (user.login) }));
 	}
+
+}
+
+@Controller()
+export class UsersController {
+	constructor(private readonly userService: UserService, private readonly gameService : GameService) {}
+	
+	@Get('users')
+	async getUsers(): Promise<UserModel[]> {
+		return this.userService.users({});
+	}
+
+	@Get('/leaderboard')
+	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
+		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20});
+	}
+	
+	@Get('/leaderboard/:page')
+	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
+		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
+	}
+
+
+	@Post('/users/bulk')
+	async generateUsers()
+	{
+		this.userService.generateUsers(100);
+	}
+
+	@Post('/users/delete')
+	async deleteAllUsers()
+	{
+		this.userService.deleteAllUsers();
+	}
+	
 
 }

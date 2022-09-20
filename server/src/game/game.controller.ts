@@ -8,9 +8,9 @@ import {
 	Delete,
   } from '@nestjs/common';
 
-import { GameService } from '@/Games_db/game.service';
+import { GameService } from '@/game/game.service';
 import { Game as GameModel, User as UserModel, Prisma} from '@prisma/client';
-import { UserModule } from '@/Users_db/user.module';
+import { UserModule } from '@/user/user.module';
 
 @Controller()
 export class GameController {

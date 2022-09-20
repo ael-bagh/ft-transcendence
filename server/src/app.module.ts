@@ -3,11 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './Users_db/user.module';
-import { GameModule } from './Games_db/game.module';
-import { ChatModule } from './Rooms_db/chat.module';
-import { EventsGateway } from './common/gateways/events.gateway'
+import { AuthModule } from '@/auth/auth.module';
+import { UserModule } from '@/user/user.module';
+import { GameModule } from '@/game/game.module';
+import { RoomModule } from '@/room/room.module';
+import { EventsGateway } from '@/common/gateways/events.gateway'
 
 @Module({
 	imports: [
@@ -19,7 +19,7 @@ import { EventsGateway } from './common/gateways/events.gateway'
 		HttpModule,
 		UserModule,
 		GameModule,
-		ChatModule
+		RoomModule
 	],
 	controllers: [],
 	providers: [EventsGateway],

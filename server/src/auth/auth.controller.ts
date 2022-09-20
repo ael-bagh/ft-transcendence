@@ -3,7 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { AuthService } from '@/auth/auth.service';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { UserService } from '@/Users_db/user.service';
+import { UserService } from '@/user/user.service';
 
 
 @Controller("auth")
