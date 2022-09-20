@@ -1,9 +1,9 @@
 import { Controller, Get, Query, Redirect, Res, Req } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { AuthService } from './auth.service';
+import { AuthService } from '@/auth/auth.service';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { UserService } from '../Users_db/user.service';
+import { UserService } from '@/user/user.service';
 
 
 @Controller("auth")
@@ -19,7 +19,9 @@ export class AuthController {
 		"client_id=" + process.env.OAUTH_CLIENT_ID +
 		"&redirect_uri=" + process.env.OAUTH_CALLBACK +
 		"&response_type=code")
-	ft_oauth_login() { }
+	ft_oauth_login() {
+
+	}
 
 
 	@Get("callback")
@@ -66,7 +68,8 @@ export class AuthController {
 							path: '/'
 						});
 						//send the token to be cookied
-						response.redirect(process.env.FRONTEND_URL);
+						// response.redirect(process.env.FRONTEND_URL);
+						response.redirect(process.env.BACKEND_URL);
 					});
 			});
 	}

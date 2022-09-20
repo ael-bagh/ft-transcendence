@@ -31,11 +31,11 @@ model User {
 	friends_request_relation User[] @relation("friend_request")
 	friend_requests_sent User[] @relation("friend_request_sent")
 	friends_request_sent_relation User[] @relation("friend_request_sent")
-	rooms_created Room[] @relation("chat_creator")
+	rooms_created Room[] @relation("room_creator")
 	messages_sent Message[] @relation("message_user")
-	chats_member Room[] @relation("chat_user")
-	banned_from Room[] @relation("chat_banned_users")
-	admin_in Room[] @relation("chat_admins")
+	rooms_member Room[] @relation("room_user")
+	banned_from Room[] @relation("room_banned_users")
+	admin_in Room[] @relation("room_admins")
 	player_level Float?
 	winrate Float?
 
@@ -63,17 +63,17 @@ model Achievement {
 }
 
 model Room {
-	chat_id Int @id @default(autoincrement())
-	chat_password String?
-	chat_name String
-	chat_private Boolean
-	chat_creation_date DateTime
-	chat_creator_id Int
-	chat_creator User @relation("chat_creator", fields: [chat_creator_id], references: [user_id])
-	chat_admins User[] @relation("chat_admins")
-	chat_messages Message[] @relation("message_chat")
-	chat_users User[] @relation("chat_user")
-	chat_banned_users User[] @relation("chat_banned_users")
+	room_id Int @id @default(autoincrement())
+	room_password String?
+	room_name String
+	room_private Boolean
+	room_creation_date DateTime
+	room_creator_id Int
+	room_creator User @relation("room_creator", fields: [room_creator_id], references: [user_id])
+	room_admins User[] @relation("room_admins")
+	room_messages Message[] @relation("message_room")
+	room_users User[] @relation("room_user")
+	room_banned_users User[] @relation("room_banned_users")
 }
 
 
@@ -84,8 +84,8 @@ model Message {
 	message_time DateTime
 	message_user_id Int
 	message_user User @relation("message_user", fields: [message_user_id], references: [user_id])
-	message_chat_id Int
-	message_chat Room @relation("message_chat", fields: [message_chat_id], references: [chat_id])
+	message_room_id Int
+	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id])
 }
 
 enum Status {
