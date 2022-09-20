@@ -9,7 +9,9 @@ import {
 	Patch,
 	UseGuards,
 	Req,
-	Res
+	Res,
+	HttpException,
+	HttpStatus
   } from '@nestjs/common';
 
 import { UserService } from '@/user/user.service';
@@ -22,6 +24,7 @@ import * as jwt from 'jsonwebtoken';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RoomService } from '@/room/room.service';
 import { CurrentUser } from './user.decorator';
+import { HttpService } from '@nestjs/axios';
 
 enum status {
 	'OFFLINE' = 0,
@@ -66,11 +69,11 @@ export class UserController {
 			orderBy: {game_date: 'desc'},
 		}));
 	}
-	@Get('friendrequests')
+	@Get('friend_requests')
 		async getUserFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
 			return (await this.userService.users({where: {friend_requests: {some: {login: user.login}}}}));
 	}
-	@Get('sentfriendrequests')
+	@Get('sent_friend_requests')
 		async getUserSentFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
 			return (await this.userService.users({where: {friend_requests_sent: {some: {login: user.login}}}}));
 	}
@@ -96,7 +99,7 @@ export class UserController {
 		});
 		return user;
 	}
-	@Patch('addfriend')
+	@Patch('add_friend')
 	async addFriend(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
 	{
 		let login = user.login;
@@ -108,7 +111,7 @@ export class UserController {
 		return (await this.userService.user({ login: (user.login) }));
 	}
 	
-	@Post('acceptfriend')
+	@Post('accept_friend')
 	async acceptFriend(@CurrentUser() user: UserModel, @Body()userData: {sender_login: string;})
 	{
 		let friend_login = userData['sender_login'];
@@ -128,7 +131,7 @@ export class UserController {
 		});
 		return (await this.userService.user({ login: (user.login) }));
 	}
-	@Patch('addfriendrequest')
+	@Patch('add_friend_request')
 	async sendFriendRequest(@CurrentUser() user: UserModel, @Body()userData: { friend_login: string;})
 	{
 		let login = user.login;
@@ -174,7 +177,7 @@ export class UserController {
 		// else add friends directly here
 		return (await this.userService.user({ login: (login) }));
 	}
-	@Patch('deletefriendrequest')
+	@Patch('delete_friend_request')
 	async deleteFriendRequest(@CurrentUser() user: UserModel,@Body()userData: {friend_login: string;})
 	{
 		let login = user.login;
@@ -195,7 +198,7 @@ export class UserController {
 		});
 		return (await this.userService.user({ login: (login) }));
 	}
-	@Patch('deleteSentFriendRequest')
+	@Patch('delete_sent_friend_request')
 	async deleteSentFriendRequest(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
 	{
 		let login = user.login
@@ -227,7 +230,7 @@ export class UserController {
 		return (await this.userService.user({ login: (login) }));
 	}
 
-	@Patch('deletefriend')
+	@Patch('delete_friend')
 	async deleteFriend(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
 	{
 		await this.userService.deleteFriends(user.login, userData['friend_login']);
@@ -247,11 +250,15 @@ export class UsersController {
 
 	@Get('/leaderboard')
 	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
+		if (!Number(page))
+			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
 		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20});
 	}
 	
 	@Get('/leaderboard/:page')
 	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
+		if (!Number(page))
+			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
 		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
 	}
 

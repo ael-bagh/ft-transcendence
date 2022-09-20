@@ -26,7 +26,6 @@ export class RoomService {
 		switch (action) {
 			case 'viewRoom':
 				// Check if user is part of the room
-				if (action_room != null) {
 					return await this.prisma.room.count({
 						where: {
 							room_id: action_room.room_id,
@@ -44,10 +43,8 @@ export class RoomService {
 							}
 						}
 					}).then((count) => count > 0);
-				}
 			case ('addAdmin' || 'removeAdmin'):
 				// Check if user is creator of the room
-				if (action_room != null) {
 					return await this.prisma.room.count({
 						where: {
 							room_id: action_room.room_id,
@@ -56,10 +53,8 @@ export class RoomService {
 							}
 						}
 					}).then((count) => count > 0);
-					}
 				// Check if user is creator of the room
 			case 'banFromRoom' || 'unbanFromRoom':
-				if (action_room != null) {
 					return await this.prisma.room.count({
 						where: {
 							room_id: action_room.room_id,
@@ -85,7 +80,6 @@ export class RoomService {
 
 						}
 					}).then((count) => count > 0);
-				}
 				return false;
 		}
 	}

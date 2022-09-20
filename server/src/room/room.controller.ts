@@ -32,21 +32,24 @@ export class RoomController {
 		}});
 	}
 
-	@Get("createRoom2")
+	@Get("create_room2")
 	async createRoom2(@CurrentUser() user: User): Promise<Room> {
 		return this.roomService.createRoom({room_name: "hello", room_creator_login: user.login, room_private: Boolean(false)});
 	}
 
-	@Get(':id')
-	async getRoom( @CurrentUser() action_perfomer: User, @Param('id') room_id: Prisma.RoomWhereUniqueInput): Promise<Room | null> {
+	@Get(':room_id')
+	async getRoom( @CurrentUser() action_perfomer: User, @Param('room_id') room_id: string): Promise<Room | null> {
+		if (!Number(room_id))
+			return null;
 		if (await (this.roomService.roomPermissions(action_perfomer.login,'viewRoom',null, {room_id: Number(room_id)})) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		return this.roomService.room({ room_id: Number(room_id) });
 	}
 
-	@Post("createRoom")
-	async createRoom(@CurrentUser() user: User, @Param() params: any): Promise<Room> {
-		const { name, is_private }:{name:string,is_private:Boolean} = params;
+
+	@Post("create_room")
+	async createRoom(@CurrentUser() user: User, @Param() params: {name: string, is_private: string}): Promise<Room> {
+		const { name, is_private }:{name:string,is_private:string} = params;
 		return this.roomService.createRoom({room_name: name, room_creator_login: user.login, room_private: Boolean(is_private)});
 	}
 }
