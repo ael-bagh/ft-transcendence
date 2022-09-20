@@ -21,8 +21,15 @@ export class RoomController {
 	constructor(private readonly roomService: RoomService) { }
 
 	@Get('')
-	async getRooms(): Promise<Room[]> {
-		return this.roomService.rooms({});
+	async getRooms(@CurrentUser() user: User): Promise<Room[]> {
+		return this.roomService.rooms({
+			where:{
+				room_users:{
+					some:{
+						login: user.login
+					}
+				}
+		}});
 	}
 
 	@Get("createRoom2")
@@ -32,7 +39,7 @@ export class RoomController {
 
 	@Get(':id')
 	async getRoom( @CurrentUser() action_perfomer: User, @Param('id') room_id: Prisma.RoomWhereUniqueInput): Promise<Room | null> {
-		if (await (this.roomService.roomPermissions(action_perfomer,'viewRoom',null, {room_id: Number(room_id)})) == false)
+		if (await (this.roomService.roomPermissions(action_perfomer.login,'viewRoom',null, {room_id: Number(room_id)})) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		return this.roomService.room({ room_id: Number(room_id) });
 	}

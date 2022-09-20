@@ -30,10 +30,10 @@ enum status {
 }
 
 @Controller('user')
+@UseGuards(JwtAuthGuard)
 export class UserController {
 	constructor(private readonly userService: UserService, private readonly gameService : GameService, private readonly roomService: RoomService) {}
-	
-	@UseGuards(JwtAuthGuard)
+
 	@Get('me')
 	async getProfile(@CurrentUser() user: UserModel, @Res() res : Response) {
 		res.json(user);

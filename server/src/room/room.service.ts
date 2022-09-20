@@ -18,7 +18,7 @@ export class RoomService {
 	// }
 
 	async roomPermissions(
-		action_perfomer: User,
+		action_perfomer: string,
 		action: string,
 		action_target: Prisma.UserWhereUniqueInput | null,
 		action_room: Prisma.RoomWhereUniqueInput | null,
@@ -32,13 +32,13 @@ export class RoomService {
 							room_id: action_room.room_id,
 							room_users:{
 								some: {
-									login: action_perfomer.login
+									login: action_perfomer
 								}
 							},
 							NOT: {
 								room_banned_users:{
 									some: {
-										login: action_perfomer.login
+										login: action_perfomer
 									}
 								},
 							}
@@ -52,7 +52,7 @@ export class RoomService {
 						where: {
 							room_id: action_room.room_id,
 							room_creator: {
-								login: action_perfomer.login
+								login: action_perfomer
 							}
 						}
 					}).then((count) => count > 0);
@@ -66,7 +66,7 @@ export class RoomService {
 							room_admins: {
 								some:
 								{
-									login: action_perfomer.login,
+									login: action_perfomer,
 									NOT:
 									{
 										login: action_target?.login
