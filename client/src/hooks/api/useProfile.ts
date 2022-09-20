@@ -6,7 +6,7 @@ export default function useFetchLeaderBoard() {
   const [error, setError] = useState(null);
   useEffect(() => {
     axiosInstance
-      .get("/profile")
+      .get("/auth/me")
       .then((res) => {
         setProfile(res.data);
       })
