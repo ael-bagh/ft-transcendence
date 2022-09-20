@@ -68,8 +68,8 @@ export class AuthController {
 							path: '/'
 						});
 						//send the token to be cookied
-						// response.redirect(process.env.FRONTEND_URL);
-						response.redirect(process.env.BACKEND_URL);
+						response.redirect(process.env.FRONTEND_URL);
+						// response.redirect(process.env.BACKEND_URL);
 					});
 			});
 	}
