@@ -60,7 +60,11 @@ export class UserController {
 
 	@Get(':login')
 	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {
-	return this.userService.user({ login: (login) });
+		console.log(!Number(login));
+		if (!Number(login)) {
+			return this.userService.user({login : login });
+		}
+		return this.userService.user({ user_id: Number(login)});
 	}
 	@Get(':login/history')
 	async getUserGames(@Param('login') login: string): Promise<GameModel[]> {

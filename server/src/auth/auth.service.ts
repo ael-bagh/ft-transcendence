@@ -17,7 +17,7 @@ export class AuthService {
 	}
 	async loginAndGenerateRefreshToken(user: any) {
 		const payload = { login: user.login, sub: user.user_id, refreshId: Math.random().toString(16).slice(2) + Date.now() };
-		console.log(payload);
+		// console.log(payload);
 
 		return this.jwtService.sign(payload, { expiresIn: '60d' });
 	}
