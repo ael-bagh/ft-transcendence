@@ -5,13 +5,13 @@ export default function useFetchLeaderBoard() {
   const [error, setError] = useState(null);
   
   useEffect(() => {
-    axiosInstance.get("/leaderboard").then((res) => {
+    axiosInstance.get("/leaderboard/1").then((res) => {
       setUsers(res.data);
     }
     ).catch((err) => {
       setError(err);
     }
     );
-  }, [users]);
+  }, []);
     return { users, error };
 }

@@ -1,19 +1,25 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../lib/axios";
+import { User } from "../../types/user.interface";
 
-export function useUserById(id: string) {
-  const [user, setUser] = useState([]);
-  const [error, setError] = useState(null);
+interface returnObject {
+  user: User | undefined;
+  error: Error | undefined;
+}
+
+export function useUserById(id: string | undefined): returnObject {
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const [error, setError] = useState<Error | undefined>(undefined);
   useEffect(() => {
     axiosInstance
-      .get("/users/" + id)
+      .get("/user/" + id)
       .then((res) => {
         setUser(res.data);
       })
       .catch((err) => {
         setError(err);
       });
-  }, [user]);
+  }, []);
   return { user, error };
 }
 
