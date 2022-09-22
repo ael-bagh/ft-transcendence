@@ -61,7 +61,7 @@ code {
 }
 
 .menu {
-  @apply  sm:invisible w-10 h-10 mr-5 flex-none ;
+  @apply  sm:hidden w-10 h-10 mr-5 flex-none ;
 }
 
 .cover {
@@ -69,7 +69,7 @@ code {
 }
 
 .nab {
-  @apply m-8 sm:m-0 hidden sm:block flex-none;
+  @apply m-8 sm:m-0 hidden sm:block;
 }
 
 .imgcover {

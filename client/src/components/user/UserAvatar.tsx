@@ -1,6 +1,7 @@
-export default function UserAvatar(props:  {username : string, id : number}){
-    
+import {User} from "../../types/user.interface";
+
+export default function UserAvatar(props:{user: User}){
     return (
-            <img src="https://flowbite.com/docs/images/people/profile-picture-1.jpg" alt="avatar" className="h-14 w-14 rounded-full" />
+            <img src={props.user?.avatar} alt="avatar" className="h-14 w-14 rounded-full" />
     )
 }

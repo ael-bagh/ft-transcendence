@@ -20,7 +20,7 @@ function Cover(){
             <video className='cover videoTag w-full' ref={videoRef} autoPlay muted>
                 <source src={Sample} type='video/mp4' />
             </video>
-            <button className='absolute p-4 text-purple-600 text-9xl text-center hover:cursor-pointer top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-levi' onClick={()=> {setPlay(true)}}>Play</button>
+            <a className='absolute p-4 text-purple-600 text-9xl text-center hover:cursor-pointer top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-levi' href='http://backend.transcendance.com/auth/login' onClick={()=> {setPlay(true)}}>Play</a>
         </div>
         // <div className="cover flex pt-10 gap-3 h-fit">
         //     <img src={cover} alt="cover" className='imgcover z-10'/>
