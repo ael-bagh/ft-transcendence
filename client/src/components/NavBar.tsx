@@ -1,5 +1,4 @@
 import { useState, useContext } from "react";
-import Button from "./Button";
 import logo from "./imgs/logo.png";
 import { CgMenu } from "react-icons/cg";
 import { Link } from "react-router-dom";
