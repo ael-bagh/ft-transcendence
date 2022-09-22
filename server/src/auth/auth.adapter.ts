@@ -1,13 +1,10 @@
 import { IoAdapter } from '@nestjs/platform-socket.io';
-// import { verify } from 'jsonwebtoken';
 import { Socket } from 'socket.io';
 import { User, Game } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '@/user/user.service';
 import { WsException } from '@nestjs/websockets';
-import { GameService } from '@/game/game.service';
-import { HttpService } from '@nestjs/axios';
 
 export interface CustomSocket extends Socket {
     user: User;
