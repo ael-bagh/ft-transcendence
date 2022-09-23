@@ -52,13 +52,13 @@ export class RoomController {
 	}
 
 
-	@Get("create_room")
+	@Post("create_room")
 	async createRoom(@CurrentUser() user: User, @Param() params: {name: string, is_private: string}): Promise<Room> {
 		const { name, is_private }:{name:string,is_private:string} = params;
 		return this.roomService.createRoom({room_name: name, room_creator_login: user.login, room_private: Boolean(is_private)});
 	}
 
-	@Get(":room_id")
+	@Delete(":room_id")
 	async deleteRoom(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<Room | null> {
 		if (!Number(room_id))
 			return null;
@@ -80,27 +80,37 @@ export class RoomController {
 			return this.roomService.joinRoom({room_id: Number(room_id)}, {login: user.login});
 	}
 	@Get(":room_id/leave_room")
-	async leaveRoom(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<Room | null> {
+	async leaveRoom(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<Room[]> {
 		if (!Number(room_id))
 			return null;
-		return this.roomService.leaveRoom({room_id: Number(room_id)}, {login: user.login});
+		this.roomService.leaveRoom({room_id: Number(room_id)}, {login: user.login});
+		return this.roomService.rooms({
+			where:{
+				room_users:{
+					some:{
+						login: user.login
+					}
+
+				},
+		}
+	});
 	}
-	@Get(":room_id/ban_user")
-	async banUser(@CurrentUser() user: User, @Param() params: {room_id: string}, @Body() user_to_ban:{user_login:string}): Promise<Room | null> {
-		const { room_id} = params;
+	@Get(":room_id/:user_login/ban_user")
+	async banUser(@CurrentUser() user: User, @Param() params: {room_id: string, user_login: string}): Promise<Room | null> {
+		const { room_id, user_login }:{room_id:string,user_login:string} = params;
 		if (!Number(room_id))
 			return null;
-		if (await (this.roomService.roomPermissions(user.login,'banFromRoom',{login: user_to_ban.user_login}, {room_id: Number(room_id)})) == false)
+		if (await (this.roomService.roomPermissions(user.login,'banFromRoom',{login: user_login}, {room_id: Number(room_id)})) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-		return this.roomService.banFromRoom({room_id: Number(room_id)}, {login: user_to_ban.user_login});
+		return this.roomService.banFromRoom({room_id: Number(room_id)}, {login: user_login});
 	}
-	@Get(":room_id/unban_user")
-	async unbanUser(@CurrentUser() user: User, @Param() params: {room_id: string}, @Body() user_to_unban:{user_login:string}): Promise<Room | null> {
-		const { room_id} = params;
+	@Get(":room_id/:user_login/unban_user")
+	async unbanUser(@CurrentUser() user: User, @Param() params: {room_id: string, user_login: string}): Promise<Room | null> {
+		const { room_id, user_login }:{room_id:string,user_login:string} = params;
 		if (!Number(room_id))
 			return null;
-		if (await (this.roomService.roomPermissions(user.login,'unbanFromRoom',{login: user_to_unban.user_login}, {room_id: Number(room_id)})) == false)
+		if (await (this.roomService.roomPermissions(user.login,'unbanFromRoom',{login: user_login}, {room_id: Number(room_id)})) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-		return this.roomService.unbanFromRoom({room_id: Number(room_id)}, {login: user_to_unban.user_login});
+		return this.roomService.unbanFromRoom({room_id: Number(room_id)}, {login: user_login});
 	}
 }
