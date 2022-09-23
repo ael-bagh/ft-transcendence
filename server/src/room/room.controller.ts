@@ -5,6 +5,7 @@ import {
 	HttpException,
 	HttpStatus,
 	Param,
+	Patch,
 	Post,
 	Query,
 	UseGuards,
@@ -29,8 +30,13 @@ export class RoomController {
 					some:{
 						login: user.login
 					}
-				}
-		}});
+
+				},
+		},
+		include:{
+			room_users: true,
+		}
+	});
 	}
 
 	@Get("create_room2")
@@ -79,8 +85,24 @@ export class RoomController {
 	async leaveRoom(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<Room | null> {
 		if (!Number(room_id))
 			return null;
-		if (await (this.roomService.roomPermissions(user.login,'leaveRoom',null, {room_id: Number(room_id)})) == false)
-			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		return this.roomService.leaveRoom({room_id: Number(room_id)}, {login: user.login});
+	}
+	@Delete(":room_id/ban_user")
+	async banUser(@CurrentUser() user: User, @Param() params: {room_id: string, user_login: string}): Promise<Room | null> {
+		const { room_id, user_login }:{room_id:string,user_login:string} = params;
+		if (!Number(room_id))
+			return null;
+		if (await (this.roomService.roomPermissions(user.login,'banFromRoom',{login: user_login}, {room_id: Number(room_id)})) == false)
+			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+		return this.roomService.banFromRoom({room_id: Number(room_id)}, {login: user_login});
+	}
+	@Post(":room_id/unban_user")
+	async unbanUser(@CurrentUser() user: User, @Param() params: {room_id: string, user_login: string}): Promise<Room | null> {
+		const { room_id, user_login }:{room_id:string,user_login:string} = params;
+		if (!Number(room_id))
+			return null;
+		if (await (this.roomService.roomPermissions(user.login,'unbanFromRoom',{login: user_login}, {room_id: Number(room_id)})) == false)
+			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+		return this.roomService.unbanFromRoom({room_id: Number(room_id)}, {login: user_login});
 	}
 }

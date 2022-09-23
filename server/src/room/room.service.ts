@@ -217,22 +217,20 @@ export class RoomService {
 		});
 	}
 
-	async updateRoom(params: {
-		where: Prisma.RoomWhereUniqueInput;
-		data: Prisma.RoomUpdateInput;
-	}): Promise<Room> {
-		const { data, where } = params;
-		return this.prisma.room.update({
-			data,
-			where,
-		});
-	}
+	// async updateRoom(
+	// 	where: Prisma.RoomWhereUniqueInput,
+	// 	data: Prisma.RoomUpdateInput
+	// ): Promise<Room> {
+	// 	return this.prisma.room.update({
+	// 		data,
+	// 		where,
+	// 	});
+	// }
 
-	async addMessage(params: {
-		where: Prisma.RoomWhereUniqueInput;
-		data: Prisma.MessageCreateInput;
-	}): Promise<Message> {
-		const { data, where } = params;
+	async addMessage(
+		where: Prisma.RoomWhereUniqueInput,
+		data: Prisma.MessageCreateInput,
+	): Promise<Message> {
 		const message = this.prisma.message.create({
 			data: {
 				...data,
@@ -246,10 +244,9 @@ export class RoomService {
 		return message;
 	}
 
-	async getMessages(params: {
-		where: Prisma.RoomWhereUniqueInput;
-	}): Promise<Message[]> {
-		const { where } = params;
+	async getMessages(
+		where: Prisma.RoomWhereUniqueInput
+	): Promise<Message[]> {
 		return this.prisma.message.findMany({
 			where: {
 				message_room_id: where.room_id
@@ -257,11 +254,10 @@ export class RoomService {
 		});
 	}
 
-	async addRoomUser(params: {
-		where: Prisma.RoomWhereUniqueInput;
-		data: Prisma.UserWhereUniqueInput;
-	}): Promise<Room> {
-		const { data, where } = params;
+	async addRoomUser(
+		where: Prisma.RoomWhereUniqueInput,
+		data: Prisma.UserWhereUniqueInput
+	): Promise<Room> {
 		return this.prisma.room.update({
 			data: {
 				room_users: {
@@ -272,11 +268,41 @@ export class RoomService {
 		});
 	}
 
-	async removeRoomUser(params: {
-		where: Prisma.RoomWhereUniqueInput;
-		data: Prisma.UserWhereUniqueInput;
-	}): Promise<Room> {
-		const { data, where } = params;
+	async banFromRoom(
+		where: Prisma.RoomWhereUniqueInput,
+		data: Prisma.UserWhereUniqueInput
+	): Promise<Room> {
+		return this.prisma.room.update({
+			data: {
+				room_banned_users: {
+					connect: data
+				},
+				room_users: {
+					disconnect: data
+				}
+			},
+			where,
+		});
+	}
+
+	async unbanFromRoom(
+		where: Prisma.RoomWhereUniqueInput,
+		data: Prisma.UserWhereUniqueInput
+	): Promise<Room> {
+		return this.prisma.room.update({
+			data: {
+				room_banned_users: {
+					disconnect: data
+				}
+			},
+			where,
+		});
+	}
+
+	async removeRoomUser(
+		where: Prisma.RoomWhereUniqueInput,
+		data: Prisma.UserWhereUniqueInput
+	): Promise<Room> {
 		return this.prisma.room.update({
 			data: {
 				room_users: {
@@ -287,10 +313,9 @@ export class RoomService {
 		});
 	}
 
-	async getRoomUsers(params: {
-		where: Prisma.RoomWhereUniqueInput;
-	}): Promise<User[]> {
-		const { where } = params;
+	async getRoomUsers(
+		where: Prisma.RoomWhereUniqueInput
+	): Promise<User[]> {
 		return this.prisma.room.findUnique({
 			where,
 		}).room_users();
