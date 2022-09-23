@@ -335,4 +335,12 @@ export class RoomService {
 			where,
 		}).room_users();
 	}
+
+	async getRoomBannedUsers(
+		where: Prisma.RoomWhereUniqueInput
+	): Promise<User[]> {
+		return this.prisma.room.findUnique({
+			where,
+		}).room_banned_users();
+	}
 }
