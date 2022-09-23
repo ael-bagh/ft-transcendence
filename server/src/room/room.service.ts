@@ -100,10 +100,8 @@ export class RoomService {
 							},
 							NOT:
 							{
-								room_creator: {
-										login: action_target?.login
-								},
-								OR: {
+								OR: [
+									{
 									room_banned_users: {
 										some:
 										{
@@ -111,7 +109,13 @@ export class RoomService {
 											login: action_target.login
 										}
 									}
+								},
+								{
+									room_creator: {
+										login: action_target?.login
+								},
 								}
+							]
 							},
 	
 						}
