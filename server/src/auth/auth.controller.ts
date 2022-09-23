@@ -24,6 +24,14 @@ export class AuthController {
 	}
 
 
+	@Get('logout')
+	ft_oauth_logout(@Res() response: Response) {
+		response.clearCookie("access_token",{path:'/',domain: '.transcendance.com'});
+		response.clearCookie("refresh_token",{path:'/auth/refresh',domain: '.transcendance.com'});
+		response.redirect(process.env.FRONTEND_URL);
+	}
+
+
 	@Get("callback")
 	// @Redirect(process.env.URL, 302)
 	async ft_callback(@Query() qw, @Res({ passthrough: false }) response: Response) {
