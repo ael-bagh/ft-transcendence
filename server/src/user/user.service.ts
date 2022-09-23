@@ -179,9 +179,32 @@ export class UserService {
 			data: {
 				chat_sockets_id:{
 					set: [...user.chat_sockets_id, socket_id],
-				}
+				},
+				status: Status.ONLINE,
 			}
 		});
+	}
+
+	async removeSocketIdFromUser(user_login: string, socket_id: string): Promise<User> {
+		let user = await this.user({ login: user_login });
+		this.prisma.user.update({
+			where: { login: user_login },
+			data: {
+				chat_sockets_id:{
+					set: user.chat_sockets_id.filter((id) => id != socket_id),
+				},
+			}
+		});
+		user = await this.user({ login: user_login });
+		if (user.chat_sockets_id.length == 0) {
+			return this.prisma.user.update({
+				where: { login: user_login },
+				data: {
+					status: Status.OFFLINE,
+				}
+			});
+		}
+		return await this.user({ login: user_login });
 	}
 
 	async generateUsers(number_wanted: number) {
