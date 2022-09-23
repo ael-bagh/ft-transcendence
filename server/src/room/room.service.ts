@@ -19,16 +19,38 @@ export class RoomService {
 	async joinRoom(
 		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
 		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+		password?: string,
+	): Promise<Room | null> {
+		const room = await this.prisma.room.findUnique({
+			where: roomWhereUniqueInput,
+		});
+		if (room.room_private === false || room.room_password === password) {
+			return this.prisma.room.update({
+				where: roomWhereUniqueInput,
+				data: {
+					room_users: {
+						connect: userWhereUniqueInput,
+					},
+				},
+			});
+		}
+		return null;
+	}
+
+	async leaveRoom(
+		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
+		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
 	): Promise<Room | null> {
 		return this.prisma.room.update({
 			where: roomWhereUniqueInput,
 			data: {
 				room_users: {
-					connect: userWhereUniqueInput,
+					disconnect: userWhereUniqueInput,
 				},
-			},
+			}
 		});
 	}
+
 	async roomPermissions(
 		action_perfomer: string,
 		action: string,
@@ -66,39 +88,53 @@ export class RoomService {
 					}
 				}).then((count) => count > 0);
 			// Check if user is creator of the room
-			case 'banFromRoom' || 'unbanFromRoom':
-				return await this.prisma.room.count({
-					where: {
-						room_id: action_room.room_id,
-						room_admins: {
-							some:
-							{
-								login: action_perfomer,
-							},
-						},
-						NOT:
-						{
+				case 'banFromRoom':
+					return await this.prisma.room.count({
+						where: {
+							room_id: action_room.room_id,
 							room_admins: {
-								some: {
-
-									login: action_target?.login
-								}
+								some:
+								{
+									login: action_perfomer,
+								},
 							},
-							OR:{
-								room_banned_users: {
-									some:
-									{
-										
+							NOT:
+							{
+								room_creator: {
+										login: action_target?.login
+								},
+								OR: {
+									room_banned_users: {
+										some:
+										{
+	
 											login: action_target.login
 										}
 									}
-							}
-							
-						},
-						
+								}
+							},
+	
+						}
+					}).then((count) => count > 0);
+				case 'unbanFromRoom':
+					return await this.prisma.room.count({
+						where: {
+							room_id: action_room.room_id,
+							room_admins: {
+								some:
+								{
+									login: action_perfomer,
+								},
+							},
+							room_banned_users: {
+								some:
+								{
 
-					}
-				}).then((count) => count > 0);
+									login: action_target?.login
+								}
+							}
+						}
+					}).then((count) => count > 0);
 			case 'deleteRoom':
 				return await this.prisma.room.count({
 					where: {
@@ -128,7 +164,7 @@ export class RoomService {
 								}
 							}
 						},
-						
+
 					}
 				}).then((count) => count > 0);
 
