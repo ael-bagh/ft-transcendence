@@ -46,11 +46,11 @@ export class AuthController {
 						const user = await this.userService.signupUser({
 							login: info.data.login,
 							nickname: info.data.login,
-							password: value.data.access_token,
+							// password: value.data.access_token,
 							avatar: info.data.image_url
 						});
 						// Prevent password from being sent out
-						delete user.password;
+						// delete user.password;
 						// Generate both refreshToken and accessToken
 						const refreshToken = await this.authService.loginAndGenerateRefreshToken(user);
 						const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);

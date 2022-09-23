@@ -83,7 +83,6 @@ export class UserController {
 	{
 		let login = user.login;
 		user['nickname'] = userData['nickname'] || user['nickname'];
-		user['password'] = userData['password'] || user['password'];
 		user['avatar'] = userData['avatar'] || user['avatar'];
 		user['two_factor_auth'] = userData['two_factor_auth'] || user['two_factor_auth'];
 		user['current_lobby'] = userData['current_lobby'] || user['current_lobby'];
