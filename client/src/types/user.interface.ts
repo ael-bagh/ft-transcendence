@@ -1,11 +1,13 @@
 export interface User {
-    id: number;
-    name: string;
-    avatar: string;
-    email: string;
-    password: string;
-    created_at: Date;
-    updated_at: Date;
+    user_id : number;
+	login : string;
+	nickname : string;
+	password : string;
+	avatar : string;
+	status : string;
+	creation_date : Date;
+	is_banned : boolean;
+	KDA : number;
 };
 
 export interface UserLeaderboard {
@@ -18,5 +20,92 @@ export interface UserLeaderboard {
     rank: number;
 };
 
+// model User {
+// 	user_id Int @id @default(autoincrement())
+// 	login String
+// 	nickname String
+// 	password String
+// 	avatar String?
+// 	status Status @default(OFFLINE)
+// 	two_factor_auth String?
+// 	creation_date DateTime?
+// 	current_lobby String?
+// 	is_banned Boolean?
+// 	KDA	Decimal?
+// 	games_lost Game[] @relation("winner")
+// 	games_won Game[] @relation ("loser")
+// 	achievements Achievement[] @relation("user_achievements")
+// 	friends User[] @relation("friends")
+// 	friends_relation User[] @relation("friends")
+// 	friend_requests User[] @relation("friend_request")
+// 	friends_request_relation User[] @relation("friend_request")
+// 	friend_requests_sent User[] @relation("friend_request_sent")
+// 	friends_request_sent_relation User[] @relation("friend_request_sent")
+// 	rooms_created Room[] @relation("room_creator")
+// 	messages_sent Message[] @relation("message_user")
+// 	rooms_member Room[] @relation("room_user")
+// 	banned_from Room[] @relation("room_banned_users")
+// 	admin_in Room[] @relation("room_admins")
+// 	player_level Float?
+// 	winrate Float?
 
+// 	@@unique([login])
+// 	@@unique([nickname])
+// }
+
+// model Game {
+// 	game_id Int @id @default(autoincrement())
+// 	game_date DateTime
+// 	game_winner_id Int
+// 	game_loser_id Int
+// 	game_winner User? @relation("winner", fields: [game_winner_id], references: [user_id])
+// 	game_loser User? @relation("loser", fields: [game_loser_id], references: [user_id])
+// 	game_winner_score Int?
+// 	game_loser_score Int?
+// }
+
+
+// model Achievement {
+// 	achievements_id Int @id @default(autoincrement())
+// 	achievement_name Achievements_name
+// 	achievement_image String
+// 	achievement_user User[] @relation("user_achievements")
+// }
+
+// model Room {
+// 	room_id Int @id @default(autoincrement())
+// 	room_password String?
+// 	room_name String
+// 	room_private Boolean
+// 	room_creation_date DateTime
+// 	room_creator_id Int
+// 	room_creator User @relation("room_creator", fields: [room_creator_id], references: [user_id])
+// 	room_admins User[] @relation("room_admins")
+// 	room_messages Message[] @relation("message_room")
+// 	room_users User[] @relation("room_user")
+// 	room_banned_users User[] @relation("room_banned_users")
+// }
+
+
+
+// model Message {
+// 	message_id Int @id @default(autoincrement())
+// 	message_content String
+// 	message_time DateTime
+// 	message_user_id Int
+// 	message_user User @relation("message_user", fields: [message_user_id], references: [user_id])
+// 	message_room_id Int
+// 	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id])
+// }
+
+// enum Status {
+// 	OFFLINE
+// 	ONLINE
+// 	INGAME
+// }
+
+// enum Achievements_name {
+// 	TheAddict
+// 	WinStreak
+// }
 

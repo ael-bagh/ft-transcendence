@@ -24,6 +24,14 @@ export class AuthController {
 	}
 
 
+	@Get('logout')
+	ft_oauth_logout(@Res() response: Response) {
+		response.clearCookie("access_token",{path:'/',domain: '.transcendance.com'});
+		response.clearCookie("refresh_token",{path:'/auth/refresh',domain: '.transcendance.com'});
+		response.redirect(process.env.FRONTEND_URL);
+	}
+
+
 	@Get("callback")
 	// @Redirect(process.env.URL, 302)
 	async ft_callback(@Query() qw, @Res({ passthrough: false }) response: Response) {
@@ -69,6 +77,7 @@ export class AuthController {
 						});
 						//send the token to be cookied
 						response.redirect(process.env.FRONTEND_URL);
+						// response.redirect(process.env.BACKEND_URL);
 					});
 			});
 	}
@@ -76,14 +85,22 @@ export class AuthController {
 	@Get("refresh")
 	async getRefreshTockenAndRegenerateAccessToken(@Req() req: Request, @Res() response: Response) {
 		const refreshToken = req.cookies.refresh_token;
-		const payload = jwt.verify(refreshToken, process.env.SECRET_TOKEN) as Record<string, any>;
-		const user = await this.userService.user({ login: payload.login })
-		const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
-		response.cookie("access_token", accessToken, {
-			httpOnly: true,
-			domain: '.transcendance.com',
-			path: '/'
-		});
-		response.json(req.cookies);
+		try
+		{
+			const payload = jwt.verify(refreshToken, process.env.SECRET_TOKEN) as Record<string, any>;
+			const user = await this.userService.user({ login: payload.login })
+			const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
+			response.cookie("access_token", accessToken, {
+				httpOnly: true,
+				domain: '.transcendance.com',
+				path: '/'
+			});
+			response.json(req.cookies);
+		}
+		catch(e)
+		{
+			// console.log(e, "oh no");
+             response.json({'authenticied':false});
+		}
 	}
 }
