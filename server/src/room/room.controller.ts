@@ -1,5 +1,6 @@
 import {
 	Controller,
+	Delete,
 	Get,
 	HttpException,
 	HttpStatus,
@@ -52,4 +53,24 @@ export class RoomController {
 		const { name, is_private }:{name:string,is_private:string} = params;
 		return this.roomService.createRoom({room_name: name, room_creator_login: user.login, room_private: Boolean(is_private)});
 	}
+
+	@Delete(":room_id")
+	async deleteRoom(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<Room | null> {
+		if (!Number(room_id))
+			return null;
+		if (await (this.roomService.roomPermissions(user.login,'deleteRoom',null, {room_id: Number(room_id)})) == false)
+			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+		return this.roomService.deleteRoom({room_id: Number(room_id)});
+	}
+
+	@Post(":room_id/join_room")
+	async joinRoom(@CurrentUser() user: User, @Param() params: {room_id: string, room_password: string}): Promise<Room | null> {
+		const { room_id }:{room_id:string} = params;
+		if (!Number(room_id))
+			return null;
+		if (await (this.roomService.roomPermissions(user.login,'joinRoom',null, {room_id: Number(room_id)})) == false)
+			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+		return this.roomService.joinRoom({room_id: Number(room_id)}, {login: user.login});
+	}
+
 }

@@ -8,7 +8,7 @@ export class RoomService {
 		prisma.$on<any>('query', (event: Prisma.QueryEvent) => {
 			console.log('Query: ' + event.query);
 			console.log('Duration: ' + event.duration + 'ms');
-		  });
+		});
 	}
 
 	// async prismaCreateRoom(data: Prisma.RoomCreateInput): Promise<Room> {
@@ -16,7 +16,19 @@ export class RoomService {
 	// 		data,
 	// 	});
 	// }
-
+	async joinRoom(
+		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
+		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+	): Promise<Room | null> {
+		return this.prisma.room.update({
+			where: roomWhereUniqueInput,
+			data: {
+				room_users: {
+					connect: userWhereUniqueInput,
+				},
+			},
+		});
+	}
 	async roomPermissions(
 		action_perfomer: string,
 		action: string,
@@ -26,64 +38,105 @@ export class RoomService {
 		switch (action) {
 			case 'viewRoom':
 				// Check if user is part of the room
-					return await this.prisma.room.count({
-						where: {
-							room_id: action_room.room_id,
-							room_users:{
+				return await this.prisma.room.count({
+					where: {
+						room_id: action_room.room_id,
+						room_users: {
+							some: {
+								login: action_perfomer
+							}
+						},
+						NOT: {
+							room_banned_users: {
 								some: {
 									login: action_perfomer
 								}
 							},
-							NOT: {
-								room_banned_users:{
+						}
+					}
+				}).then((count) => count > 0);
+			case ('addAdmin' || 'removeAdmin'):
+				// Check if user is creator of the room
+				return await this.prisma.room.count({
+					where: {
+						room_id: action_room.room_id,
+						room_creator: {
+							login: action_perfomer
+						}
+					}
+				}).then((count) => count > 0);
+			// Check if user is creator of the room
+			case 'banFromRoom' || 'unbanFromRoom':
+				return await this.prisma.room.count({
+					where: {
+						room_id: action_room.room_id,
+						room_admins: {
+							some:
+							{
+								login: action_perfomer,
+							},
+						},
+						NOT:
+						{
+							room_admins: {
+								some: {
+
+									login: action_target?.login
+								}
+							},
+							OR:{
+								room_banned_users: {
+									some:
+									{
+										
+											login: action_target.login
+										}
+									}
+							}
+							
+						},
+						
+
+					}
+				}).then((count) => count > 0);
+			case 'deleteRoom':
+				return await this.prisma.room.count({
+					where: {
+						room_id: action_room.room_id,
+						room_creator: {
+							login: action_perfomer
+						}
+					}
+				}).then((count) => count > 0);
+			case 'joinRoom':
+				return await this.prisma.room.count({
+					where: {
+						room_id: action_room.room_id,
+						NOT:
+						{
+							room_users: {
+								some: {
+									login: action_perfomer
+								}
+							},
+							OR:
+							{
+								room_banned_users: {
 									some: {
 										login: action_perfomer
 									}
-								},
-							}
-						}
-					}).then((count) => count > 0);
-			case ('addAdmin' || 'removeAdmin'):
-				// Check if user is creator of the room
-					return await this.prisma.room.count({
-						where: {
-							room_id: action_room.room_id,
-							room_creator: {
-								login: action_perfomer
-							}
-						}
-					}).then((count) => count > 0);
-				// Check if user is creator of the room
-			case 'banFromRoom' || 'unbanFromRoom':
-					return await this.prisma.room.count({
-						where: {
-							room_id: action_room.room_id,
-							room_admins: {
-								some:
-								{
-									login: action_perfomer,
-									NOT:
-									{
-										login: action_target?.login
-									}
-								}
-							},
-							room_banned_users: {
-								some:
-								{
-									NOT:
-									{
-										login: action_target.login
-									}
 								}
 							}
+						},
+						
+					}
+				}).then((count) => count > 0);
 
-						}
-					}).then((count) => count > 0);
+			default:
 				return false;
 		}
 	}
-	
+
 	async createRoom(
 		roomData: { room_password?: string; room_name: string; room_creator_login: string; room_private: boolean; }
 	): Promise<Room> {
@@ -92,13 +145,13 @@ export class RoomService {
 				connect: {
 					login: roomData['room_creator_login']
 				},
-			}, 
-			room_admins:{
+			},
+			room_admins: {
 				connect: {
 					login: roomData['room_creator_login']
 				}
 			}
-			,room_private: roomData['room_private'],
+			, room_private: roomData['room_private'],
 			room_creation_date: new Date(),
 			room_password: roomData['room_password'],
 			room_users: {

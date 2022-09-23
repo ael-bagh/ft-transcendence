@@ -207,17 +207,6 @@ export class UserService {
 		return await this.user({ login: user_login });
 	}
 
-	async generateUsers(number_wanted: number) {
-		for (let i = 0; i < number_wanted; i++) {
-			await this.prisma.user.create({
-				data: {
-					user_id: i,
-					login: 'user' + i,
-					nickname: 'user' + i,
-					KDA: i,
-				}
-			});
-		}
-	}
+
 
 }
