@@ -117,7 +117,7 @@ export class RoomController {
 	async getBannedUsers(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<User[]> {
 		if (!Number(room_id))
 			return null;
-		if (await (this.roomService.roomPermissions(user.login,'viewBannedUsers',null, {room_id: Number(room_id)})) == false)
+		if (await (this.roomService.roomPermissions(user.login,'viewRoom',null, {room_id: Number(room_id)})) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		return this.roomService.getRoomBannedUsers({room_id: Number(room_id)});
 	}

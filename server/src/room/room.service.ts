@@ -150,19 +150,24 @@ export class RoomService {
 						room_id: action_room.room_id,
 						NOT:
 						{
-							room_users: {
-								some: {
-									login: action_perfomer
-								}
-							},
+							
 							OR:
+							[
 							{
 								room_banned_users: {
 									some: {
 										login: action_perfomer
 									}
 								}
+							},
+							{
+								room_users: {
+									some: {
+										login: action_perfomer
+									}
+								},
 							}
+						]
 						},
 
 					}
