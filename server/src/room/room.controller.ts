@@ -32,9 +32,6 @@ export class RoomController {
 					}
 
 				},
-		},
-		include:{
-			room_users: true,
 		}
 	});
 	}

@@ -208,6 +208,21 @@ export class RoomService {
 	): Promise<Room | null> {
 		return this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
+			include:{
+				_count:{
+					select:{
+						room_users:true,
+					}
+				},
+				room_users:{
+					select:{
+						login:true,
+						nickname:true,
+						avatar:true,
+					}
+				},
+				
+			}
 		});
 	}
 
