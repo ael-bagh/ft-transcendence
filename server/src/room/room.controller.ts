@@ -1,4 +1,5 @@
 import {
+	Body,
 	Controller,
 	Delete,
 	Get,
@@ -67,14 +68,14 @@ export class RoomController {
 	}
 
 	@Post(":room_id/join_room")
-	async joinRoom(@CurrentUser() user: User, @Param() params: {room_id: string, room_password?: string}): Promise<Room | null> {
+	async joinRoom(@CurrentUser() user: User, @Param() params: {room_id: string}, @Body() password?:{password:string} ): Promise<Room | null> {
 		const { room_id }:{room_id:string} = params;
 		if (!Number(room_id))
 			return null;
 		if (await (this.roomService.roomPermissions(user.login,'joinRoom',null, {room_id: Number(room_id)})) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-		if (params.room_password)
-			return this.roomService.joinRoom({room_id: Number(room_id)}, {login: user.login}, params.room_password);
+		if (password.password)
+			return this.roomService.joinRoom({room_id: Number(room_id)}, {login: user.login}, password.password);
 		else
 			return this.roomService.joinRoom({room_id: Number(room_id)}, {login: user.login});
 	}
