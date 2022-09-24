@@ -15,11 +15,13 @@ import { useContext ,useEffect} from "react";
 import { AuthUserContext } from "./contexts/authUser.context";
 import useProfile from "./hooks/api/useProfile";
 import ErrorPage from "./components/errors/error_page";
+import { Flowbite } from "flowbite-react";
+import Home from "./components/layout/Home";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Header />,
+    element: <Home />,
     errorElement: <ErrorPage />,
   },
   {
@@ -42,8 +44,10 @@ const router = createBrowserRouter([
 function App() {
   return (
     <AuthUserProvider>
-      <GetAuthuser />
-      <RouterProvider router={router}/>
+      <Flowbite>
+        <GetAuthuser />
+        <RouterProvider router={router}/>
+      </Flowbite>
     </AuthUserProvider>
   );
 }

@@ -8,6 +8,7 @@ module.exports = {
     extend: {
       fontFamily: {
         'levi': ["Levibrush", "sans-serif"],
+        'minecraft': ["Minecraft", "sans-serif"],
       },
     },
   },

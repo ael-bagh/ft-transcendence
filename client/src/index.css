@@ -7,6 +7,10 @@
     font-family: 'Levibrush';
     src: url("/fonts/levibrush.ttf") format("truetype");
   }
+  @font-face {
+    font-family: 'Minecraft';
+    src: url("/fonts/Minecraft.ttf") format("truetype");
+  }
 }
 
 
