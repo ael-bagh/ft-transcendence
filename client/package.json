@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lottiefiles/react-lottie-player": "^3.4.7",
     "axios": "^0.27.2",
     "flowbite": "^1.5.3",
     "flowbite-react": "^0.1.11",
