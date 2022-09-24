@@ -127,8 +127,8 @@ export class RoomController {
 		const { room_id }:{room_id:string} = params;
 		if (!Number(room_id))
 			return null;
-		// if (await (this.roomService.roomPermissions(user.login,'addMessage',null, {room_id: Number(room_id)})) == false)
-		// 	throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+		if (await (this.roomService.roomPermissions(user.login,'viewRoom',null, {room_id: Number(room_id)})) == false)
+			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		this.roomService.addMessage(message, user.user_id, Number(room_id));
 		return this.roomService.room({room_id: Number(room_id)});
 	}
