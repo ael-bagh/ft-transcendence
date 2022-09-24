@@ -121,4 +121,15 @@ export class RoomController {
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		return this.roomService.getRoomBannedUsers({room_id: Number(room_id)});
 	}
+	@Get(":room_id/addMessage")
+	async addMessage(@CurrentUser() user: User, @Param() params: {room_id: string}): Promise<Room | null> {
+		let message = "hello from the other side";
+		const { room_id }:{room_id:string} = params;
+		if (!Number(room_id))
+			return null;
+		// if (await (this.roomService.roomPermissions(user.login,'addMessage',null, {room_id: Number(room_id)})) == false)
+		// 	throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+		this.roomService.addMessage(message, user.user_id, Number(room_id));
+		return this.roomService.room({room_id: Number(room_id)});
+	}
 }

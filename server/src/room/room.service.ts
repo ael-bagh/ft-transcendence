@@ -34,7 +34,7 @@ export class RoomService {
 				},
 			});
 		}
-		return null;
+		throw new Error('Wrong password');
 	}
 
 	async leaveRoom(
@@ -230,7 +230,17 @@ export class RoomService {
 						avatar:true,
 					}
 				},
-				
+				room_messages:{
+					select:{
+						message_content:true,
+						message_time:true,
+						message_user:{
+							select:{
+								login:true,
+							}
+						}
+					}
+				},
 			}
 		});
 	}
@@ -251,21 +261,28 @@ export class RoomService {
 	// 	});
 	// }
 
+
 	async addMessage(
-		where: Prisma.RoomWhereUniqueInput,
-		data: Prisma.MessageCreateInput,
+		message_content: string, 
+		message_user_id: number, 
+		message_room_id: number
 	): Promise<Message> {
-		const message = this.prisma.message.create({
+		return this.prisma.message.create({
 			data: {
-				...data,
+				message_content: message_content,
+				message_time: new Date(),
 				message_room: {
 					connect: {
-						room_id: where.room_id
-					}
+						room_id: message_room_id,
+					},
+				},
+				message_user: {
+					connect: {
+						user_id: message_user_id,
+					},
 				}
-			},
+			}
 		});
-		return message;
 	}
 
 	async getMessages(
@@ -274,10 +291,20 @@ export class RoomService {
 		return this.prisma.message.findMany({
 			where: {
 				message_room_id: where.room_id
+			},
+			include: {
+				message_user: {
+					select: {
+						nickname: true,
+					}
+				},
+			},
+			orderBy: {
+				message_time: 'asc'
 			}
+
 		});
 	}
-
 	async addRoomUser(
 		where: Prisma.RoomWhereUniqueInput,
 		data: Prisma.UserWhereUniqueInput
