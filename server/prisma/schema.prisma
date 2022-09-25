@@ -14,7 +14,6 @@ model User {
 	user_id Int @id @default(autoincrement())
 	login String
 	nickname String
-	chat_sockets_id String[]
 	avatar String?
 	status Status @default(OFFLINE)
 	two_factor_auth String?
