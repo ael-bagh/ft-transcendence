@@ -24,6 +24,14 @@ export class AuthController {
 	}
 
 
+	@Get('logout')
+	ft_oauth_logout(@Res() response: Response) {
+		response.clearCookie("access_token",{path:'/',domain: '.transcendance.com'});
+		response.clearCookie("refresh_token",{path:'/auth/refresh',domain: '.transcendance.com'});
+		response.redirect(process.env.FRONTEND_URL);
+	}
+
+
 	@Get("callback")
 	// @Redirect(process.env.URL, 302)
 	async ft_callback(@Query() qw, @Res({ passthrough: false }) response: Response) {
@@ -46,11 +54,11 @@ export class AuthController {
 						const user = await this.userService.signupUser({
 							login: info.data.login,
 							nickname: info.data.login,
-							password: value.data.access_token,
+							// password: value.data.access_token,
 							avatar: info.data.image_url
 						});
 						// Prevent password from being sent out
-						delete user.password;
+						// delete user.password;
 						// Generate both refreshToken and accessToken
 						const refreshToken = await this.authService.loginAndGenerateRefreshToken(user);
 						const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);

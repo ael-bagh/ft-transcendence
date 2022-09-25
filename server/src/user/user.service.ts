@@ -130,7 +130,7 @@ export class UserService {
 	}
 
 	async signupUser(
-		userData: { login: string; nickname: string; password: string; avatar: string; two_factor_auth?: string; creation_date?: Date; current_lobby?: string; KDA?: number },
+		userData: { login: string; nickname: string; avatar: string; two_factor_auth?: string; creation_date?: Date; current_lobby?: string; KDA?: number },
 	): Promise<User> {
 		const user_exists = await this.user({ login: userData['login'] });
 		if (user_exists != null) {
@@ -172,18 +172,41 @@ export class UserService {
 		return this.prisma.user.deleteMany({});
 	}
 
-	async generateUsers(number_wanted: number) {
-		for (let i = 0; i < number_wanted; i++) {
-			await this.prisma.user.create({
+	async addSocketIdToUser(user_login: string, socket_id: string): Promise<User> {
+		const user = await this.user({ login: user_login });
+		return this.prisma.user.update({
+			where: { login: user_login },
+			data: {
+				chat_sockets_id:{
+					set: [...user.chat_sockets_id, socket_id],
+				},
+				status: Status.ONLINE,
+			}
+		});
+	}
+
+	async removeSocketIdFromUser(user_login: string, socket_id: string): Promise<User> {
+		let user = await this.user({ login: user_login });
+		this.prisma.user.update({
+			where: { login: user_login },
+			data: {
+				chat_sockets_id:{
+					set: user.chat_sockets_id.filter((id) => id != socket_id),
+				},
+			}
+		});
+		user = await this.user({ login: user_login });
+		if (user.chat_sockets_id.length == 0) {
+			return this.prisma.user.update({
+				where: { login: user_login },
 				data: {
-					user_id: i,
-					login: 'user' + i,
-					nickname: 'user' + i,
-					password: 'user' + i,
-					KDA: i,
+					status: Status.OFFLINE,
 				}
 			});
 		}
+		return await this.user({ login: user_login });
 	}
+
+
 
 }

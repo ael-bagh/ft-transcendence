@@ -90,7 +90,6 @@ export class UserController {
 	{
 		let login = user.login;
 		user['nickname'] = userData['nickname'] || user['nickname'];
-		user['password'] = userData['password'] || user['password'];
 		user['avatar'] = userData['avatar'] || user['avatar'];
 		user['two_factor_auth'] = userData['two_factor_auth'] || user['two_factor_auth'];
 		user['current_lobby'] = userData['current_lobby'] || user['current_lobby'];
@@ -181,7 +180,7 @@ export class UserController {
 		// else add friends directly here
 		return (await this.userService.user({ login: (login) }));
 	}
-	@Patch('delete_friend_request')
+	@Delete('delete_friend_request')
 	async deleteFriendRequest(@CurrentUser() user: UserModel,@Body()userData: {friend_login: string;})
 	{
 		let login = user.login;
@@ -202,7 +201,7 @@ export class UserController {
 		});
 		return (await this.userService.user({ login: (login) }));
 	}
-	@Patch('delete_sent_friend_request')
+	@Delete('delete_sent_friend_request')
 	async deleteSentFriendRequest(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
 	{
 		let login = user.login
@@ -234,7 +233,7 @@ export class UserController {
 		return (await this.userService.user({ login: (login) }));
 	}
 
-	@Patch('delete_friend')
+	@Delete('delete_friend')
 	async deleteFriend(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
 	{
 		await this.userService.deleteFriends(user.login, userData['friend_login']);
@@ -266,14 +265,7 @@ export class UsersController {
 		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
 	}
 
-
-	@Post('/users/bulk')
-	async generateUsers()
-	{
-		this.userService.generateUsers(100);
-	}
-
-	@Post('/users/delete')
+	@Delete('/users/delete')
 	async deleteAllUsers()
 	{
 		this.userService.deleteAllUsers();
