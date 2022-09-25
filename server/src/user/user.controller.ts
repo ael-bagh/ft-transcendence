@@ -33,14 +33,16 @@ enum status {
 }
 
 @Controller('user')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 export class UserController {
 	constructor(private readonly userService: UserService, private readonly gameService : GameService, private readonly roomService: RoomService) {}
-
+	
 	@Get('me')
+	@UseGuards(JwtAuthGuard)
 	async getProfile(@CurrentUser() user: UserModel, @Res() res : Response) {
 		res.json(user);
 	}
+
 	@Get('rooms')
 	async getUserRooms(@CurrentUser() user: UserModel, ): Promise<Room[]>
 	{
@@ -57,10 +59,10 @@ export class UserController {
 			}
 		}));
 	}
-
+	// @UseGuards(JwtAuthGuard)
 	@Get(':login')
 	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {
-		console.log(!Number(login));
+		// console.log(!Number(login));
 		if (!Number(login)) {
 			return this.userService.user({login : login });
 		}
@@ -252,16 +254,17 @@ export class UsersController {
 	}
 
 	@Get('/leaderboard')
-	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
-		if (!Number(page))
-			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+	async getLeaderboard(): Promise<UserModel[]> {
 		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20});
 	}
 	
 	@Get('/leaderboard/:page')
 	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
-		if (!Number(page))
+		console.log(Number(page))
+		if (Number(page) == NaN)
 			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+		if (Number(page) * 20 > (await this.userService.users({})).length)
+			throw new HttpException('Page Not Found', HttpStatus.NOT_FOUND);
 		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
 	}
 

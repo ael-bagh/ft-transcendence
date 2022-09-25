@@ -108,9 +108,10 @@
 		}, 4000);
 
 
-		const socket = io('http://backend.transcendance.com/chat');
+		const socket = io('http://backend.transcendance.com/');
 		var form = document.getElementById('form');
 		var input = document.getElementById('input');
+		// var input = document.getElementById('select');
 		var messages = document.getElementById('messages');
 		socket.on('connect', function () {
 			console.log('Connected');
@@ -144,7 +145,9 @@
 			messages.appendChild(item);
 			window.scrollTo(0, document.body.scrollHeight);
 		});
-
+		socket.on('chiwa7edja', (who) => {
+			var item = document.createElement('li');
+		});
 	</script>
 </body>
 

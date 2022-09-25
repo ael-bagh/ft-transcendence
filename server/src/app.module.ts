@@ -8,6 +8,7 @@ import { UserModule } from '@/user/user.module';
 import { GameModule } from '@/game/game.module';
 import { RoomModule } from '@/room/room.module';
 import { EventsGateway } from '@/common/gateways/events.gateway'
+import { PrismaService } from '@/common/services/prisma.service';
 
 @Module({
 	imports: [
@@ -22,6 +23,6 @@ import { EventsGateway } from '@/common/gateways/events.gateway'
 		RoomModule
 	],
 	controllers: [],
-	providers: [EventsGateway],
+	providers: [EventsGateway, PrismaService],
 })
 export class AppModule { }

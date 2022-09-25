@@ -14,8 +14,8 @@ export interface CustomSocket extends Socket {
 
 export class AuthAdapter extends IoAdapter {
     constructor(app: any,
-        private configService: ConfigService,
-        private userService: UserService,) {
+        private readonly configService: ConfigService,
+        private readonly userService: UserService,) {
         super(app);
     }
 

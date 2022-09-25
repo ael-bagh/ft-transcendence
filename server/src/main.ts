@@ -5,7 +5,6 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AuthAdapter } from '@/auth/auth.adapter';
 import { UserService } from '@/user/user.service';
 import * as cookieParser from 'cookie-parser';
-import { PrismaService } from '@/common/services/prisma.service';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, {
@@ -14,8 +13,8 @@ async function bootstrap() {
 			credentials: true,
 		}
 	});
-	const conf = new ConfigService();
-	const user = new UserService(new PrismaService());
+	const conf = app.get(ConfigService);
+	const user = app.get(UserService);
 	const Adapter = new AuthAdapter(app, conf, user);
 	app.use(cookieParser());
 	app.useWebSocketAdapter(Adapter);
