@@ -155,11 +155,66 @@ export class UserService {
 		where: Prisma.UserWhereUniqueInput;
 		data: Prisma.UserUpdateInput;
 	}): Promise<User> {
+
 		const { where, data } = params;
 		return this.prisma.user.update({
 			data,
 			where,
 		});
+	}
+
+	async AcceptFriend(params :{
+		where: Prisma.UserWhereUniqueInput;
+		data: Prisma.UserUpdateInput;
+	}): Promise<User> {
+		return this.updateUser(params);
+	}
+
+	async sendFriendRequest(params: {
+		login: string;
+		friend_login: string;
+	}): Promise<User> {
+		const {login, friend_login} = params;
+		const friend = await this.user({ login: friend_login });
+		const user = await this.user({ login: login });
+		if (!user || !friend)
+			return null;
+		// if not mutual request
+		let mutual = await this.users({
+			where:{
+				friend_requests: {some: {login: friend_login}},
+				login: login
+			}
+		});
+		if (mutual.length == 0)
+		{
+
+			await this.updateUser({
+				where : {login: (friend_login)},
+				data : {
+					friend_requests: {
+						connect: {
+							login: login,
+						},
+					},
+				},
+			});
+		}
+		else
+		{
+			await this.addfriends(login, friend_login);
+			await this.updateUser({
+				where : {login: (login)},
+				data : {
+					friend_requests: {
+						disconnect: {
+							login: friend_login,
+						},
+					},
+				},
+			});
+		}
+		return this.user({ login: login });
 	}
 
 	async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
