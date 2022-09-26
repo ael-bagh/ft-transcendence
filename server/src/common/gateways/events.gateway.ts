@@ -28,7 +28,7 @@ export class EventsGateway {
 	async handleConnection(
 		client : CustomSocket
 	) {
-		client.join('__connected_' + client.user.user_id);
+		client.join('__connected_' + client.user.login);
 		await this.prisma.user.update({
 			where: { login: client.user.login },
 			data: {
@@ -41,8 +41,8 @@ export class EventsGateway {
 
 	async handleDisconnect(client: CustomSocket) {
 		console.log(this.server.sockets.adapter.rooms);
-		client.leave('__connected_' + client.user.user_id);
-		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.user_id])
+		client.leave('__connected_' + client.user.login);
+		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.login])
 		{
 			await this.prisma.user.update({
 				where: { login: client.user.login },
