@@ -102,6 +102,7 @@ model Message_Notification {
 	notification_id Int @id @default(autoincrement())
 	message_id Int
 	user_login String
+	room_id Int
 }
 
 enum Status {
