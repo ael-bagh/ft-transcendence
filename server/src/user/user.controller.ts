@@ -215,15 +215,9 @@ export class UsersController {
 	async getUsers(): Promise<UserModel[]> {
 		return this.userService.users({});
 	}
-
-	@Get('/leaderboard')
-	async getLeaderboard(): Promise<UserModel[]> {
-		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20});
-	}
 	
 	@Get('/leaderboard/:page')
 	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
-		console.log(Number(page))
 		if (Number(page) == NaN)
 			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
 		if (Number(page) * 20 > (await this.userService.users({})).length)

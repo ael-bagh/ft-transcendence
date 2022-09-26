@@ -42,6 +42,7 @@ model User {
 	@@unique([nickname])
 }
 
+
 model Notification {
 	notification_id Int @id @default(autoincrement())
 	notification_type Notification_type
@@ -90,10 +91,17 @@ model Message {
 	message_id Int @id @default(autoincrement())
 	message_content String
 	message_time DateTime
-	message_user_id Int
-	message_user User @relation("message_user", fields: [message_user_id], references: [user_id])
+	message_user_login String
+	message_user User @relation("message_user", fields: [message_user_login], references: [login])
 	message_room_id Int
-	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id])
+	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id]) 
+}
+
+
+model Message_Notification {
+	notification_id Int @id @default(autoincrement())
+	message_id Int
+	user_login String
 }
 
 enum Status {
