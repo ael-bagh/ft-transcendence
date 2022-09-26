@@ -8,7 +8,13 @@ import { Status, User } from "@prisma/client";
 import { Socket, Server } from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
 
-@WebSocketGateway()
+@WebSocketGateway({
+	transports: ["websocket"],
+	cors: {
+		origin: ['http://frontend.transcendance.com'],
+		credentials: true
+	}
+})
 export class EventsGateway {
 	constructor(
 		private readonly userService : UserService,
@@ -63,7 +69,7 @@ export class EventsGateway {
 	@SubscribeMessage('identity')
 	handleIdentity(
 		@MessageBody() data: string,
-		@ConnectedSocket() client: CustomSocket,
+		@ConnectedSocket() client: CustomSocket
 	): string {
 		console.log(data);
 		return data;
@@ -78,12 +84,20 @@ export class EventsGateway {
 		return data;
 	}
 	@SubscribeMessage('message')
-	handleMsg(
-		@MessageBody() data: string,
+	handleMessages(
+		@MessageBody() data: any,
 		@ConnectedSocket() client: CustomSocket,
 	): string {
 		this.server.emit("message", "Gest" + client.id + ": " + data);
 		console.log("Gest" + client.id + ": " + data);
 		return data;
 	}
+	
+	// handleNotifications(
+	// 	friend_login : string,
+	// 	message : string,
+	// 	@ConnectedSocket() client: CustomSocket
+	// ) : any {
+	// 	client.emit(sender_login,message);
+	// }
 }

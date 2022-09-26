@@ -42,6 +42,11 @@ model User {
 	@@unique([nickname])
 }
 
+model Notification {
+	notification_id Int @id @default(autoincrement())
+	notification_type Notification_type
+}
+
 model Game {
 	game_id Int @id @default(autoincrement())
 	game_date DateTime
@@ -96,4 +101,10 @@ enum Status {
 enum Achievements_name {
 	TheAddict
 	WinStreak
+}
+
+enum Notification_type {
+	GAME_INVIT
+	FRIEND_REQUEST
+	NEW_FRIEND
 }

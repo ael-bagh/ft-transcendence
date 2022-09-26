@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { User, Prisma, Game, Status } from '@prisma/client';
+import { EventsGateway } from '@/common/gateways/events.gateway';
 
 @Injectable()
 export class UserService {
-	constructor(private prisma: PrismaService) { }
+	constructor(private prisma: PrismaService, private eventGateaway: EventsGateway) { }
 
 
 	async user(
@@ -199,6 +200,7 @@ export class UserService {
 					},
 				},
 			});
+			// this.eventGateaway.handleNotifications(friend_login, 'request')
 		}
 		else
 		{
@@ -213,6 +215,7 @@ export class UserService {
 					},
 				},
 			});
+			// this.eventGateaway.handleNotifications(friend_login, 'friend')
 		}
 		return this.user({ login: login });
 	}
