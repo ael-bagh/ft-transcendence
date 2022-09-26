@@ -7,6 +7,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { UserModule } from '@/user/user.module';
 import { GameModule } from '@/game/game.module';
 import { RoomModule } from '@/room/room.module';
+import { ChatGateway } from './common/gateways/chat.gateway';
 import { EventsGateway } from '@/common/gateways/events.gateway'
 import { PrismaService } from '@/common/services/prisma.service';
 
@@ -23,6 +24,6 @@ import { PrismaService } from '@/common/services/prisma.service';
 		RoomModule
 	],
 	controllers: [],
-	providers: [EventsGateway, PrismaService],
+	providers: [EventsGateway, ChatGateway, PrismaService],
 })
 export class AppModule { }
