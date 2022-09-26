@@ -14,7 +14,6 @@ model User {
 	user_id Int @id @default(autoincrement())
 	login String
 	nickname String
-	chat_sockets_id String[]
 	avatar String?
 	status Status @default(OFFLINE)
 	two_factor_auth String?
@@ -41,6 +40,16 @@ model User {
 
 	@@unique([login])
 	@@unique([nickname])
+}
+
+
+model Notification {
+	notification_id Int @id @default(autoincrement())
+	notification_type Notification_type
+	notification_date DateTime
+	notification_receiver_login String
+	notification_sender_login String
+	notification_seen Boolean
 }
 
 model Game {
@@ -82,10 +91,17 @@ model Message {
 	message_id Int @id @default(autoincrement())
 	message_content String
 	message_time DateTime
-	message_user_id Int
-	message_user User @relation("message_user", fields: [message_user_id], references: [user_id])
+	message_user_login String
+	message_user User @relation("message_user", fields: [message_user_login], references: [login])
 	message_room_id Int
-	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id])
+	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id]) 
+}
+
+
+model Message_Notification {
+	notification_id Int @id @default(autoincrement())
+	message_id Int
+	user_login String
 }
 
 enum Status {
@@ -97,4 +113,10 @@ enum Status {
 enum Achievements_name {
 	TheAddict
 	WinStreak
+}
+
+enum Notification_type {
+	GAME_INVIT
+	FRIEND_REQUEST
+	NEW_FRIEND
 }

@@ -33,14 +33,16 @@ enum status {
 }
 
 @Controller('user')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 export class UserController {
 	constructor(private readonly userService: UserService, private readonly gameService : GameService, private readonly roomService: RoomService) {}
-
+	
 	@Get('me')
+	@UseGuards(JwtAuthGuard)
 	async getProfile(@CurrentUser() user: UserModel, @Res() res : Response) {
 		res.json(user);
 	}
+
 	@Get('rooms')
 	async getUserRooms(@CurrentUser() user: UserModel, ): Promise<Room[]>
 	{
@@ -57,10 +59,10 @@ export class UserController {
 			}
 		}));
 	}
-
+	// @UseGuards(JwtAuthGuard)
 	@Get(':login')
 	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {
-		console.log(!Number(login));
+		// console.log(!Number(login));
 		if (!Number(login)) {
 			return this.userService.user({login : login });
 		}
@@ -122,7 +124,7 @@ export class UserController {
 		if (!user || !friend)
 			return null;
 		await this.userService.addfriends(user.login, friend_login);
-		await this.userService.updateUser({
+		await this.userService.AcceptFriend({
 			where : {login: (user.login)},
 			data : {
 				friend_requests: {
@@ -134,51 +136,14 @@ export class UserController {
 		});
 		return (await this.userService.user({ login: (user.login) }));
 	}
+
 	@Patch('add_friend_request')
 	async sendFriendRequest(@CurrentUser() user: UserModel, @Body()userData: { friend_login: string;})
 	{
 		let login = user.login;
 		let friend_login = userData['friend_login'];
-		let friend = await this.userService.user({ login: (friend_login) });
-		if (!user || !friend)
-			return null;
-		// if not mutual request
-		let mutual = await this.userService.users({
-			where:{
-				friend_requests: {some: {login: friend_login}},
-				login: login
-			}
-		});
-		if (mutual.length == 0)
-		{
-
-			await this.userService.updateUser({
-				where : {login: (friend_login)},
-				data : {
-					friend_requests: {
-						connect: {
-							login: login,
-						},
-					},
-				},
-			});
-		}
-		else
-		{
-			await this.userService.addfriends(login, friend_login);
-			await this.userService.updateUser({
-				where : {login: (login)},
-				data : {
-					friend_requests: {
-						disconnect: {
-							login: friend_login,
-						},
-					},
-				},
-			});
-		}
+		return this.userService.sendFriendRequest({login, friend_login});
 		// else add friends directly here
-		return (await this.userService.user({ login: (login) }));
 	}
 	@Delete('delete_friend_request')
 	async deleteFriendRequest(@CurrentUser() user: UserModel,@Body()userData: {friend_login: string;})
@@ -250,18 +215,13 @@ export class UsersController {
 	async getUsers(): Promise<UserModel[]> {
 		return this.userService.users({});
 	}
-
-	@Get('/leaderboard')
-	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
-		if (!Number(page))
-			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20});
-	}
 	
 	@Get('/leaderboard/:page')
 	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
-		if (!Number(page))
+		if (Number(page) == NaN)
 			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+		if (Number(page) * 20 > (await this.userService.users({})).length)
+			throw new HttpException('Page Not Found', HttpStatus.NOT_FOUND);
 		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
 	}
 

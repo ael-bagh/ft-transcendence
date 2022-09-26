@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { User, Prisma, Game, Status } from '@prisma/client';
+import { EventsGateway } from '@/common/gateways/events.gateway';
 
 @Injectable()
 export class UserService {
-	constructor(private prisma: PrismaService) { }
+	constructor(private prisma: PrismaService, private eventGateaway: EventsGateway) { }
 
 
 	async user(
@@ -155,11 +156,68 @@ export class UserService {
 		where: Prisma.UserWhereUniqueInput;
 		data: Prisma.UserUpdateInput;
 	}): Promise<User> {
+
 		const { where, data } = params;
 		return this.prisma.user.update({
 			data,
 			where,
 		});
+	}
+
+	async AcceptFriend(params :{
+		where: Prisma.UserWhereUniqueInput;
+		data: Prisma.UserUpdateInput;
+	}): Promise<User> {
+		return this.updateUser(params);
+	}
+
+	async sendFriendRequest(params: {
+		login: string;
+		friend_login: string;
+	}): Promise<User> {
+		const {login, friend_login} = params;
+		const friend = await this.user({ login: friend_login });
+		const user = await this.user({ login: login });
+		if (!user || !friend)
+			return null;
+		// if not mutual request
+		let mutual = await this.users({
+			where:{
+				friend_requests: {some: {login: friend_login}},
+				login: login
+			}
+		});
+		if (mutual.length == 0)
+		{
+
+			await this.updateUser({
+				where : {login: (friend_login)},
+				data : {
+					friend_requests: {
+						connect: {
+							login: login,
+						},
+					},
+				},
+			});
+			// this.eventGateaway.handleNotifications(friend_login, 'request')
+		}
+		else
+		{
+			await this.addfriends(login, friend_login);
+			await this.updateUser({
+				where : {login: (login)},
+				data : {
+					friend_requests: {
+						disconnect: {
+							login: friend_login,
+						},
+					},
+				},
+			});
+			// this.eventGateaway.handleNotifications(friend_login, 'friend')
+		}
+		return this.user({ login: login });
 	}
 
 	async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
@@ -172,40 +230,6 @@ export class UserService {
 		return this.prisma.user.deleteMany({});
 	}
 
-	async addSocketIdToUser(user_login: string, socket_id: string): Promise<User> {
-		const user = await this.user({ login: user_login });
-		return this.prisma.user.update({
-			where: { login: user_login },
-			data: {
-				chat_sockets_id:{
-					set: [...user.chat_sockets_id, socket_id],
-				},
-				status: Status.ONLINE,
-			}
-		});
-	}
-
-	async removeSocketIdFromUser(user_login: string, socket_id: string): Promise<User> {
-		let user = await this.user({ login: user_login });
-		this.prisma.user.update({
-			where: { login: user_login },
-			data: {
-				chat_sockets_id:{
-					set: user.chat_sockets_id.filter((id) => id != socket_id),
-				},
-			}
-		});
-		user = await this.user({ login: user_login });
-		if (user.chat_sockets_id.length == 0) {
-			return this.prisma.user.update({
-				where: { login: user_login },
-				data: {
-					status: Status.OFFLINE,
-				}
-			});
-		}
-		return await this.user({ login: user_login });
-	}
 
 
 
