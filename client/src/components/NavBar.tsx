@@ -1,79 +1,174 @@
-import { useState, useContext } from "react";
+/* This example requires Tailwind CSS v2.0+ */
+import { Fragment, useState, useContext, useEffect } from "react";
+import { Disclosure, Menu, Transition } from "@headlessui/react";
+import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import logo from "./imgs/logo.png";
-import { CgMenu } from "react-icons/cg";
 import { Link } from "react-router-dom";
 import l42 from "./imgs/42_Logo.svg.png";
 import { AuthUserContext } from "../contexts/authUser.context";
 import UserAvatar from "./user/UserAvatar";
-import { User } from "../types/user.interface";
 
-function NavBar() {
-  const { authUser} = useContext(AuthUserContext);
-  const [show, setShow] = useState(false);
-  const ugh = "absolute w-0 sm:hidden text-white text-center gap-10 h-0 hidden";
-  return (
-    <div>
-      <div className="nav">
-        <div className="logo">
-          <img alt="logo" src={logo} width="200" />
-          <button onClick={() => setShow(!show)}>
-            <CgMenu className="menu" />
-          </button>
-        </div>
-        <ul>
-          <li>
-            <Link to="/">HOME</Link>
-          </li>
-          <li>
-            <Link to="/profile">TEAM</Link>
-          </li>
-          <li>
-            <Link to="/leaderboard">LEADERBORD</Link>
-          </li>
-        </ul>
-        {!authUser && <a
-          className="hidden sm:flex flex-row gap-2 bg-white text-black items-center justify-center p-2 hover:bg-purple-500"
-          href="http://backend.transcendance.com/auth/login"
-        >
-          <img src={l42} className="h-5 w-5" alt="" />
-          <p className=" font-levi">Login</p>
-        </a>}
-        {
-            authUser && <UserAvatar user={authUser} />
-        }
-        
-      </div>
+const navigation = [
+  { name: "Dashboard", href: "/", current: true },
+  { name: "Team", href: "/", current: false },
+  { name: "Chat Rooms", href: "/", current: false },
+];
 
-      <div
-        className={
-          show
-            ? "flex flex-col absolute w-screen top-16 sm:hidden bg-black text-white text-center gap-10 z-50"
-            : ugh
-        }
-      >
-        <ul className="mobileMenu">
-          <li>
-            <Link to="/Profile">HOME</Link>
-          </li>
-          <li>
-            <Link to="/allo">TEAM</Link>
-          </li>
-          <li>
-            <Link to="/allo">LEADERBORD</Link>
-          </li>
-          <li>
-            <a
-              className="flex flex-row gap-2 bg-white text-black items-center justify-center p-2 hover:bg-purple-500"
-              href="http://backend.transcendance.com/auth/login"
-            >
-              <img src={l42} className="h-5 w-5" alt="" />
-              <p className=" font-bold">Login</p>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  );
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(" ");
 }
 
-export default NavBar;
+export default function NavBar() {
+  const { authUser } = useContext(AuthUserContext);
+  return (
+    <Disclosure as="nav" className="bg-black">
+      {({ open }) => (
+        <>
+          <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+            <div className="relative flex h-16 items-center justify-between">
+              <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                {/* Mobile menu button*/}
+                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                  <span className="sr-only">Open main menu</span>
+                  {open ? (
+                    <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                  ) : (
+                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+                  )}
+                </Disclosure.Button>
+              </div>
+              <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+                <div className="flex flex-shrink-0 items-center">
+                  <img
+                    className="block h-8 w-auto lg:hidden"
+                    src={logo}
+                    alt="tranXend"
+                  />
+                  <img
+                    className="hidden h-8 w-auto lg:block"
+                    src={logo}
+                    alt="tranXend"
+                  />
+                </div>
+                <div className="hidden sm:ml-6 sm:block">
+                  <div className="flex space-x-4">
+                    {navigation.map((item) => (
+                      <Link
+                        to={item.href}
+                        key={item.name}
+                        className={classNames(
+                          item.current
+                            ? "bg-gray-900 text-white"
+                            : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                          "px-3 py-2 rounded-md text-sm font-medium hover:cursor-pointer"
+                        )}
+                        aria-current={item.current ? "page" : undefined}
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                <button
+                  type="button"
+                  className="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                >
+                  <span className="sr-only">View notifications</span>
+                  <BellIcon className="h-6 w-6" aria-hidden="true" />
+                </button>
+
+                {/* Profile dropdown */}
+                <Menu as="div" className="relative ml-3">
+                  <div>
+                    <Menu.Button className="flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                      <span className="sr-only">Open user menu</span>
+                      <img
+                        className="h-8 w-8 rounded-full"
+                        src={authUser?.avatar}
+                        alt=""
+                      />
+                    </Menu.Button>
+                  </div>
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            to={"/profile/" + authUser?.user_id}
+                            className={classNames(
+                              active ? "bg-gray-100" : "",
+                              "block px-4 py-2 text-sm text-gray-700"
+                            )}
+                          >
+                            Your Profile
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <a
+                            href="#"
+                            className={classNames(
+                              active ? "bg-gray-100" : "",
+                              "block px-4 py-2 text-sm text-gray-700"
+                            )}
+                          >
+                            Settings
+                          </a>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <a
+                            href="http://backend.transcendance.com/auth/logout"
+                            className={classNames(
+                              active ? "bg-gray-100" : "",
+                              "block px-4 py-2 text-sm text-gray-700"
+                            )}
+                          >
+                            Sign out
+                          </a>
+                        )}
+                      </Menu.Item>
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
+              </div>
+            </div>
+          </div>
+
+          <Disclosure.Panel className="sm:hidden">
+            <div className="space-y-1 px-2 pt-2 pb-3">
+              {navigation.map((item) => (
+                <Disclosure.Button
+                  key={item.name}
+                  as="a"
+                  href={item.href}
+                  className={classNames(
+                    item.current
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                    "block px-3 py-2 rounded-md text-base font-medium"
+                  )}
+                  aria-current={item.current ? "page" : undefined}
+                >
+                  {item.name}
+                </Disclosure.Button>
+              ))}
+            </div>
+          </Disclosure.Panel>
+        </>
+      )}
+    </Disclosure>
+  );
+}
