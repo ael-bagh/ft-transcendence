@@ -89,7 +89,7 @@ export class EventsGateway {
 		@ConnectedSocket() client: CustomSocket,
 	): string {
 		this.server.emit("message", "Gest" + client.id + ": " + data);
-		console.log("Gest" + client.id + ": " + data);
+		console.log("Gest" + client.id + ":",data);
 		return data;
 	}
 	
