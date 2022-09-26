@@ -45,6 +45,10 @@ model User {
 model Notification {
 	notification_id Int @id @default(autoincrement())
 	notification_type Notification_type
+	notification_date DateTime
+	notification_receiver_login String
+	notification_sender_login String
+	notification_seen Boolean
 }
 
 model Game {

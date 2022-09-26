@@ -31,8 +31,15 @@ export class RoomController {
 					some:{
 						login: user.login
 					}
-
 				},
+		},
+		include:{
+			room_messages:{
+				take: 1,
+				orderBy:{
+					message_time: 'desc';
+				}
+			}
 		}
 	});
 	}
