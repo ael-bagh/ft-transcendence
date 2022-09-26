@@ -33,4 +33,6 @@ export class ChatGateway {
 		console.log("test_me");
 		return data;
 	}
+
+	
 }

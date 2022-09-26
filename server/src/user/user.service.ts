@@ -163,18 +163,42 @@ export class UserService {
 		});
 	}
 
-	async AcceptFriend(params :{
-		where: Prisma.UserWhereUniqueInput;
-		data: Prisma.UserUpdateInput;
-	}): Promise<User> {
-		return this.updateUser(params);
+	async remove_request(params :{
+		login: string
+		friend_login: string;
+		onFinish? : (user: string, friend_login: string) => void;
+	},): Promise<User> {
+		params.onFinish && params.onFinish(params.login, params.friend_login);
+		await this.updateUser({
+			where :{login: (params.friend_login)},
+				data : {
+					friend_requests_sent: {
+						disconnect: {
+							login: params.login,
+						},
+					},
+				},
+		});
+		return await this.updateUser(
+			{
+				where : {login: (params.login)},
+				data : {
+					friend_requests: {
+						disconnect: {
+							login: params.friend_login,
+						},
+					},
+				},
+			}
+		);
 	}
 
 	async sendFriendRequest(params: {
 		login: string;
 		friend_login: string;
 		onFinish?: (user: User, friend_login: string, broadcast: boolean) => void;
-	}): Promise<User> {
+	}
+	): Promise<User> {
 		const {login, friend_login} = params;
 		const friend = await this.user({ login: friend_login });
 		const user = await this.user({ login: login });
@@ -199,6 +223,16 @@ export class UserService {
 					},
 				},
 			});
+			await this.updateUser({
+				where : {login: (login)},
+				data : {
+					friend_requests_sent: {
+						connect: {
+							login: friend_login,
+						},
+					},
+				},
+			});
 			params.onFinish && params.onFinish(user, friend_login, false);
 		}
 		else
@@ -210,6 +244,16 @@ export class UserService {
 					friend_requests: {
 						disconnect: {
 							login: friend_login,
+						},
+					},
+				},
+			});
+			await this.updateUser({
+				where : {login: (friend_login)},
+				data : {
+					friend_requests_sent: {
+						disconnect: {
+							login: login,
 						},
 					},
 				},
