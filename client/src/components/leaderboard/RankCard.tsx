@@ -1,6 +1,5 @@
 import { FaCrown } from "react-icons/fa";
 import PlayerData from "./PlayerData";
-import { UserLeaderboard } from "../../types/user.interface";
 
 export default function RankCard(props: {key: number, user: UserLeaderboard}) {
     const bg = props.key === 1 ? "rankCard flex flex-col md:flex-row bg-purple-500 p-3 shadow-inner shadow-black rounded-md sm:rounded-none" : "rankCard flex flex-col md:flex-row bg-gray-400 p-3 shadow-inner shadow-black rounded-md sm:rounded-none";

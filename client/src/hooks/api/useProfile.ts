@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import axiosInstance from "../../lib/axios";
-import { User } from "../../types/user.interface";
 
 interface returnObject {
   profile: User | undefined;
@@ -20,9 +19,6 @@ export default function useProfile():returnObject  {
       })
       .catch((err : Error) => {
         setError(err);
-        if (location.pathname !== "/") {
-          location.href = "/";
-        }
       })
       .finally(() => setIsAuthLoaded(true));
   }, []);

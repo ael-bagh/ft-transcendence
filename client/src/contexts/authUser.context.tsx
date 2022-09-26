@@ -1,5 +1,4 @@
 import React from "react";
-import { User } from "../types/user.interface";
 
 interface authUserContextInterface {
   authUser: User | undefined;

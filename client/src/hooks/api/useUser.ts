@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../lib/axios";
-import { User } from "../../types/user.interface";
 
 interface returnObject {
   user: User | undefined;
