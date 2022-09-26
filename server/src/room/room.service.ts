@@ -16,6 +16,18 @@ export class RoomService {
 	// 		data,
 	// 	});
 	// }
+
+	async seemessages(
+		room_id: number,
+		login: string
+	) {
+		this.prisma.message_Notification.deleteMany({
+			where: {
+				room_id: room_id,
+				user_login: login
+			}
+		})
+	}
 	async joinRoom(
 		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
 		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
@@ -178,7 +190,7 @@ export class RoomService {
 					}
 				}).then((count) => count > 0);
 			case 'deleteMessage':
-				return	(await this.prisma.message.count({
+				return (await this.prisma.message.count({
 					where: {
 						message_id: action_message.message_id,
 						message_room: {
@@ -188,17 +200,17 @@ export class RoomService {
 							login: action_perfomer
 						},
 					}
-				}).then((count) => count > 0) || 
-				await this.prisma.room.count({
-					where: {
-						room_id: action_room.room_id,
-						room_admins: {
-							some: {
-								login: action_perfomer
+				}).then((count) => count > 0) ||
+					await this.prisma.room.count({
+						where: {
+							room_id: action_room.room_id,
+							room_admins: {
+								some: {
+									login: action_perfomer
+								}
 							}
 						}
-					}
-				}).then((count) => count > 0));
+					}).then((count) => count > 0));
 
 
 
@@ -287,13 +299,24 @@ export class RoomService {
 	// 	});
 	// }
 
+	async unseenMessages(
+		room_id: number,
+		user: string,
+	): Promise<number> {
+		return this.prisma.message_Notification.count({
+			where: {
+				room_id: room_id,
+				user_login: user,
+			}
+		});
+	}
 
 	async addMessage(
 		message_content: string,
-		message_user_id: number,
+		message_user_login: string,
 		message_room_id: number
 	): Promise<Message> {
-		return this.prisma.message.create({
+		const message = await this.prisma.message.create({
 			data: {
 				message_content: message_content,
 				message_time: new Date(),
@@ -304,11 +327,19 @@ export class RoomService {
 				},
 				message_user: {
 					connect: {
-						user_id: message_user_id,
+						login: message_user_login,
 					},
 				}
 			}
 		});
+		await this.prisma.message_Notification.create({
+			data: {
+				message_id: message.message_id,
+				room_id: message_room_id,
+				user_login: message_user_login,
+			}
+		});
+		return message;
 	}
 
 	async deleteMessage(where: Prisma.MessageWhereUniqueInput): Promise<Message> {
@@ -426,7 +457,7 @@ export class RoomService {
 		});
 	}
 	async removeAdmin(
-		where: Prisma.RoomWhereUniqueInput,	
+		where: Prisma.RoomWhereUniqueInput,
 		data: Prisma.UserWhereUniqueInput
 	): Promise<Room> {
 		return this.prisma.room.update({
