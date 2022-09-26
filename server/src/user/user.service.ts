@@ -174,6 +174,7 @@ export class UserService {
 	async sendFriendRequest(params: {
 		login: string;
 		friend_login: string;
+		onFinish?: (user: User, friend_login: string, broadcast: boolean) => void;
 	}): Promise<User> {
 		const {login, friend_login} = params;
 		const friend = await this.user({ login: friend_login });
@@ -189,7 +190,6 @@ export class UserService {
 		});
 		if (mutual.length == 0)
 		{
-
 			await this.updateUser({
 				where : {login: (friend_login)},
 				data : {
@@ -200,7 +200,7 @@ export class UserService {
 					},
 				},
 			});
-			// this.eventGateaway.handleNotifications(friend_login, 'request')
+			params.onFinish && params.onFinish(user, friend_login, false);
 		}
 		else
 		{
@@ -215,7 +215,7 @@ export class UserService {
 					},
 				},
 			});
-			// this.eventGateaway.handleNotifications(friend_login, 'friend')
+			params.onFinish && params.onFinish(user, friend_login, true);
 		}
 		return this.user({ login: login });
 	}

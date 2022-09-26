@@ -25,7 +25,7 @@ export class RoomController {
 
 
 	@Get('')
-	async getRooms(@CurrentUser() user: User, @Query('page') page: number): Promise<(Room & {message_count: number})[]> {
+	async getRooms(@CurrentUser() user: User, @Query('page') page: number): Promise<(Room & {unread_message_count: number})[]> {
 		page = Number(page) || 0;
 		const rooms = await this.roomService.rooms({
 			where: {
@@ -39,7 +39,7 @@ export class RoomController {
 			skip: 10 * page,
 		});
 		return Promise.all(rooms.map(async room => Object.assign(room, {
-			message_count: await this.roomService.unseenMessages(room.room_id, user.login)
+			unread_message_count: await this.roomService.unseenMessages(room.room_id, user.login)
 		})));
 	}
 
