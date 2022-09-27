@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { User, Prisma, Game, Status } from '@prisma/client';
-import { EventsGateway } from '@/common/gateways/events.gateway';
 
 @Injectable()
 export class UserService {
-	constructor(private prisma: PrismaService, private eventGateaway: EventsGateway) { }
+	constructor(private prisma: PrismaService) { }
 
 
 	async user(
@@ -164,17 +163,42 @@ export class UserService {
 		});
 	}
 
-	async AcceptFriend(params :{
-		where: Prisma.UserWhereUniqueInput;
-		data: Prisma.UserUpdateInput;
-	}): Promise<User> {
-		return this.updateUser(params);
+	async remove_request(params :{
+		login: string
+		friend_login: string;
+		onFinish? : (user: string, friend_login: string) => void;
+	},): Promise<User> {
+		params.onFinish && params.onFinish(params.login, params.friend_login);
+		await this.updateUser({
+			where :{login: (params.friend_login)},
+				data : {
+					friend_requests_sent: {
+						disconnect: {
+							login: params.login,
+						},
+					},
+				},
+		});
+		return await this.updateUser(
+			{
+				where : {login: (params.login)},
+				data : {
+					friend_requests: {
+						disconnect: {
+							login: params.friend_login,
+						},
+					},
+				},
+			}
+		);
 	}
 
 	async sendFriendRequest(params: {
 		login: string;
 		friend_login: string;
-	}): Promise<User> {
+		onFinish?: (user: User, friend_login: string, broadcast: boolean) => void;
+	}
+	): Promise<User> {
 		const {login, friend_login} = params;
 		const friend = await this.user({ login: friend_login });
 		const user = await this.user({ login: login });
@@ -189,7 +213,6 @@ export class UserService {
 		});
 		if (mutual.length == 0)
 		{
-
 			await this.updateUser({
 				where : {login: (friend_login)},
 				data : {
@@ -200,7 +223,17 @@ export class UserService {
 					},
 				},
 			});
-			// this.eventGateaway.handleNotifications(friend_login, 'request')
+			await this.updateUser({
+				where : {login: (login)},
+				data : {
+					friend_requests_sent: {
+						connect: {
+							login: friend_login,
+						},
+					},
+				},
+			});
+			params.onFinish && params.onFinish(user, friend_login, false);
 		}
 		else
 		{
@@ -215,7 +248,17 @@ export class UserService {
 					},
 				},
 			});
-			// this.eventGateaway.handleNotifications(friend_login, 'friend')
+			await this.updateUser({
+				where : {login: (friend_login)},
+				data : {
+					friend_requests_sent: {
+						disconnect: {
+							login: login,
+						},
+					},
+				},
+			});
+			params.onFinish && params.onFinish(user, friend_login, true);
 		}
 		return this.user({ login: login });
 	}

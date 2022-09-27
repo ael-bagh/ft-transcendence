@@ -7,6 +7,7 @@ import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSo
 import { Status, User } from "@prisma/client";
 import { Socket, Server } from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
+import { chatGatewayService } from "../services/chat.gateway.service";
 
 @WebSocketGateway({
 	transports: ["websocket"],
@@ -19,7 +20,9 @@ export class EventsGateway {
 	constructor(
 		private readonly userService : UserService,
 		private readonly prisma : PrismaService,
-		private readonly roomServece : RoomService
+		private readonly roomServece : RoomService,
+		private readonly gateWayService : chatGatewayService
+
 	) {};
 
 	@WebSocketServer()
@@ -28,7 +31,7 @@ export class EventsGateway {
 	async handleConnection(
 		client : CustomSocket
 	) {
-		client.join('__connected_' + client.user.user_id);
+		client.join('__connected_' + client.user.login);
 		await this.prisma.user.update({
 			where: { login: client.user.login },
 			data: {
@@ -41,8 +44,8 @@ export class EventsGateway {
 
 	async handleDisconnect(client: CustomSocket) {
 		console.log(this.server.sockets.adapter.rooms);
-		client.leave('__connected_' + client.user.user_id);
-		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.user_id])
+		client.leave('__connected_' + client.user.login);
+		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.login])
 		{
 			await this.prisma.user.update({
 				where: { login: client.user.login },
@@ -89,10 +92,118 @@ export class EventsGateway {
 		@ConnectedSocket() client: CustomSocket,
 	): string {
 		this.server.emit("message", "Gest" + client.id + ": " + data);
-		console.log("Gest" + client.id + ": " + data);
+		console.log("Gest" + client.id + ":",data);
 		return data;
 	}
 	
+
+	// @SubscribeMessage('accept_friend')
+	
+
+
+	@SubscribeMessage('add_friend_request')
+	sendFriendRequest(
+		@MessageBody() userData: { friend_login: string },
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		let login = client.user.login;
+		let friend_login = userData['friend_login'];
+		return this.userService.sendFriendRequest({
+			login, friend_login, onFinish: (user, friend_login, broadcast) => {
+				// FIXME: REVISE THIS
+				if (broadcast) {
+					this.gateWayService.emitBroadcast(this.server, friend_login, login);
+					
+				} else {
+					this.server.to(`__connected_${friend_login}`).emit('friend_request', user.login);
+				}
+			}
+		});
+	}
+
+	@SubscribeMessage('accept_friend_request')
+	acceptFriendRequest(
+		@MessageBody() userData: { friend_login: string },
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		let login = client.user.login;
+		let friend_login = userData['friend_login'];
+		this.userService.remove_request({
+			login, friend_login, onFinish: (login: string, friend_login) => {
+				this.gateWayService.emitBroadcast(this.server, friend_login, login);
+			}
+		});
+		return this.userService.addfriends(login, friend_login);
+	}
+
+	@SubscribeMessage('delete_friend')
+	delete_friend(
+		@MessageBody() userData: { friend_login: string },
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		let login = client.user.login;
+		let friend_login = userData['friend_login'];
+		 this.userService.deleteFriends(login, userData['friend_login']);
+		return ( this.userService.user({ login: (login) }));
+	}
+
+	@SubscribeMessage('delete_friend_request')
+	delete_friend_request(
+		@MessageBody() userData: { friend_login: string },
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		let login = client.user.login;
+		let friend_login = userData['friend_login'];
+		let friend =  this.userService.user({ login: (friend_login) });
+		if (!client?.user || !friend)
+			return null;
+	
+		 this.userService.updateUser({
+			where : {login: (friend_login)},
+			data : {
+				friend_requests: {
+					disconnect: {
+						login: login,
+					},
+				},
+			},
+		});
+		return ( this.userService.user({ login: (login) }));
+	}
+
+	@SubscribeMessage('delete_sent_friend_request')
+	delete_sent_friend_request(
+		@MessageBody() userData: { friend_login: string },
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		let login = client.user.login;
+		let friend_login = userData['friend_login'];
+		let friend =  this.userService.user({ login: (friend_login) });
+		if (!client?.user || !friend)
+			return null;
+		 this.userService.updateUser({
+			where : {login: (login)},
+			data : {
+				friend_requests_sent: {
+					disconnect: {
+						login: login,
+					},
+				},
+			},
+		});
+		 this.userService.updateUser({
+			where : {login: (friend_login)},
+			data : {
+				friend_requests: {
+					disconnect: {
+						login: login,
+					},
+				}
+			}
+		});
+
+		return ( this.userService.user({ login: (login) }));
+	}
 	// handleNotifications(
 	// 	friend_login : string,
 	// 	message : string,

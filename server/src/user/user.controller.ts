@@ -104,106 +104,87 @@ export class UserController {
 		});
 		return user;
 	}
-	@Patch('add_friend')
-	async addFriend(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
-	{
-		let login = user.login;
-		let friend_login = userData['friend_login'];
-		let friend = await this.userService.user({ login: (friend_login) });
-		if (!user || !friend)
-			return null;
-		this.userService.addfriends(login, friend_login);
-		return (await this.userService.user({ login: (user.login) }));
-	}
+
 	
-	@Post('accept_friend')
-	async acceptFriend(@CurrentUser() user: UserModel, @Body()userData: {sender_login: string;})
-	{
-		let friend_login = userData['sender_login'];
-		let friend = await this.userService.user({ login: (friend_login) });
-		if (!user || !friend)
-			return null;
-		await this.userService.addfriends(user.login, friend_login);
-		await this.userService.AcceptFriend({
-			where : {login: (user.login)},
-			data : {
-				friend_requests: {
-					disconnect: {
-						login: friend_login,
-					},
-				},
-			},
-		});
-		return (await this.userService.user({ login: (user.login) }));
-	}
+	// @Post('accept_friend')
+	// async acceptFriend(@CurrentUser() user: UserModel, @Body()userData: {sender_login: string;})
+	// {
+	// 	let friend_login = userData['sender_login'];
+	// 	let friend = await this.userService.user({ login: (friend_login) });
+	// 	if (!user || !friend)
+	// 		return null;
+	// 	await this.userService.addfriends(user.login, friend_login);
+	// 	await this.userService.AcceptFriend({login: user.login, friend_login});
+	// 	return (await this.userService.user({ login: (user.login) }));
+	// }
 
-	@Patch('add_friend_request')
-	async sendFriendRequest(@CurrentUser() user: UserModel, @Body()userData: { friend_login: string;})
-	{
-		let login = user.login;
-		let friend_login = userData['friend_login'];
-		return this.userService.sendFriendRequest({login, friend_login});
-		// else add friends directly here
-	}
-	@Delete('delete_friend_request')
-	async deleteFriendRequest(@CurrentUser() user: UserModel,@Body()userData: {friend_login: string;})
-	{
-		let login = user.login;
-		let friend_login = userData['friend_login'];
-		let friend = await this.userService.user({ login: (friend_login) });
-		if (!user || !friend)
-			return null;
+	// @Patch('add_friend_request')
+	// async sendFriendRequest(@CurrentUser() user: UserModel, @Body()userData: { friend_login: string;})
+	// {
+	// 	let login = user.login;
+	// 	let friend_login = userData['friend_login'];
+	// 	return this.userService.sendFriendRequest({login, friend_login});
+	// 	// else add friends directly here
+	// }
+	// @Delete('delete_friend_request')
+	// async deleteFriendRequest(@CurrentUser() user: UserModel,@Body()userData: {friend_login: string;})
+	// {
+	// 	let login = user.login;
+	// 	let friend_login = userData['friend_login'];
+	// 	let friend = await this.userService.user({ login: (friend_login) });
+	// 	if (!user || !friend)
+	// 		return null;
 	
-		await this.userService.updateUser({
-			where : {login: (friend_login)},
-			data : {
-				friend_requests: {
-					disconnect: {
-						login: login,
-					},
-				},
-			},
-		});
-		return (await this.userService.user({ login: (login) }));
-	}
-	@Delete('delete_sent_friend_request')
-	async deleteSentFriendRequest(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
-	{
-		let login = user.login
-		let friend_login = userData['friend_login'];
-		let friend = await this.userService.user({ login: (friend_login) });
-		if (!user || !friend)
-		return null;
-		await this.userService.updateUser({
-			where : {login: (login)},
-			data : {
-				friend_requests_sent: {
-					disconnect: {
-						login: login,
-					},
-				},
-			},
-		});
-		await this.userService.updateUser({
-			where : {login: (friend_login)},
-			data : {
-				friend_requests: {
-					disconnect: {
-						login: login,
-					},
-				}
-			}
-		});
+	// 	await this.userService.updateUser({
+	// 		where : {login: (friend_login)},
+	// 		data : {
+	// 			friend_requests: {
+	// 				disconnect: {
+	// 					login: login,
+	// 				},
+	// 			},
+	// 		},
+	// 	});
+	// 	return (await this.userService.user({ login: (login) }));
+	// }
+	// @Delete('delete_sent_friend_request')
+	// async deleteSentFriendRequest(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
+	// {
+	// 	let login = user.login
+	// 	let friend_login = userData['friend_login'];
+	// 	let friend = await this.userService.user({ login: (friend_login) });
+	// 	if (!user || !friend)
+	// 	return null;
+	// 	await this.userService.updateUser({
+	// 		where : {login: (login)},
+	// 		data : {
+	// 			friend_requests_sent: {
+	// 				disconnect: {
+	// 					login: login,
+	// 				},
+	// 			},
+	// 		},
+	// 	});
+	// 	await this.userService.updateUser({
+	// 		where : {login: (friend_login)},
+	// 		data : {
+	// 			friend_requests: {
+	// 				disconnect: {
+	// 					login: login,
+	// 				},
+	// 			}
+	// 		}
+	// 	});
 
-		return (await this.userService.user({ login: (login) }));
-	}
+	// 	return (await this.userService.user({ login: (login) }));
+	// }
 
-	@Delete('delete_friend')
-	async deleteFriend(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
-	{
-		await this.userService.deleteFriends(user.login, userData['friend_login']);
-		return (await this.userService.user({ login: (user.login) }));
-	}
+	// @Delete('delete_friend')
+	// async deleteFriend(@CurrentUser() user: UserModel, @Body()userData: {friend_login: string;})
+	// {
+	// 	await this.userService.deleteFriends(user.login, userData['friend_login']);
+	// 	return (await this.userService.user({ login: (user.login) }));
+	// }
 
 }
 
