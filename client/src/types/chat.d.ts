@@ -1,7 +1,7 @@
 interface Message {
   currentRoom: string;
-  user_id?: string;
+  user_login?: string;
   message: string;
-  time?: Date;
+  time: Date;
   user?: string;
 }
