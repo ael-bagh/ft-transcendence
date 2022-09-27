@@ -1,3 +1,10 @@
+interface Count {
+  friends: number;
+  games_lost: number;
+  games_won: number;
+  friend_requests: number;
+}
+
 interface User {
   user_id: string;
   login: string;
@@ -8,6 +15,25 @@ interface User {
   creation_date: Date;
   is_banned: boolean;
   KDA: number;
+  _count : Count;
+  player_level: number;
+}
+
+interface GamePlayer {
+  login: string;
+  nickname: string;
+  avatar: string;
+}
+
+interface History {
+  game_id: string;
+  game_date: Date;
+  game_winner_login: string;
+  game_loser_login: string;
+  game_winner_score: number;
+  game_loser_score: number;
+  game_winner: GamePlayer;
+  game_loser: GamePlayer;
 }
 
 interface UserLeaderboard {

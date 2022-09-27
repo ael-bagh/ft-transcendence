@@ -6,7 +6,7 @@ import i5 from '../../imgs/5.png';
 
 function Badges (){
     return (
-        <div>
+        <div className='flex flex-col'>
             <h1 className='text-3xl font-sans text-center mb-4 font-extrabold'>Badges</h1>
             <div className='achievements'>
                 <div className='badge'>

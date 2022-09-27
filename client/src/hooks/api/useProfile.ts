@@ -16,11 +16,14 @@ export default function useProfile():returnObject  {
       .get("/user/me")
       .then((res) => {
         setProfile(res.data);
+        setIsAuthLoaded(true);
       })
       .catch((err : Error) => {
         setError(err);
-      })
-      .finally(() => setIsAuthLoaded(true));
+        if (location.pathname !== "/") {
+          location.href = "/";
+        }
+      });
   }, []);
   return { profile, error };
 }
