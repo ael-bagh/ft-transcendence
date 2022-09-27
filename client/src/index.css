@@ -123,7 +123,7 @@ code {
 }
 
 .matchHistory {
-  @apply flex flex-col w-screen bg-purple-500 divide-y-2 divide-gray-200 p-5 gap-2 md:w-3/4 md:m-auto;
+  @apply flex flex-col w-screen divide-y-2 divide-gray-200 p-5 gap-2 md:w-3/4 md:m-auto;
 }
 
 .match {
