@@ -1,6 +1,5 @@
 import React from "react";
 import "./App.css";
-import Header from "./components/Header";
 import {
   createBrowserRouter,
   RouterProvider,
@@ -17,6 +16,7 @@ import useProfile from "./hooks/api/useProfile";
 import ErrorPage from "./components/errors/error_page";
 import { Flowbite } from "flowbite-react";
 import Home from "./components/layout/Home";
+import { useSocket } from "./hooks/api/useSocket";
 
 const router = createBrowserRouter([
   {
@@ -54,7 +54,9 @@ function App() {
 
 function GetAuthuser() {
   const { authUser, setAuthUser } = useContext(AuthUserContext);
-  const { profile, error } = useProfile();
+  const { profile } = useProfile();
+  useSocket();
+
   useEffect(() => {  
     if (!authUser) {
       if (profile) {
