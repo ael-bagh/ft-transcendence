@@ -14,23 +14,6 @@ const friendsList = [
   { label: "Jane", value: "2" },
   { label: "hamid whoever", value: "3" },
   { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
-  { label: "someone else", value: "4" },
 ];
 
 export default function NewConversationModal() {
@@ -43,7 +26,6 @@ export default function NewConversationModal() {
   } = useForm<Inputs>();
   /* once i submit the data the response gotta return the id of the conversation created */
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log(data)
     setCurrentGroup && setCurrentGroup("1")
   };
   return (
