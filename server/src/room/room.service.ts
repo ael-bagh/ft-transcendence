@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { Room, User, Prisma, Message } from '@prisma/client';
+import { genSalt, hash } from "bcrypt";
 
 @Injectable()
 export class RoomService {
@@ -222,7 +223,7 @@ export class RoomService {
 
 	async createRoom(
 		roomData: { room_password?: string; room_name: string; room_creator_login: string; room_private: boolean; }
-	): Promise<Room> {
+	): Promise<Partial<Room>> {
 		let data: Prisma.RoomCreateInput = {
 			room_name: roomData['room_name'], room_creator: {
 				connect: {
@@ -236,14 +237,17 @@ export class RoomService {
 			}
 			, room_private: roomData['room_private'],
 			room_creation_date: new Date(),
-			room_password: roomData['room_password'],
+			room_password: await hash(roomData['room_password'], 12),
 			room_users: {
 				connect: {
 					login: roomData['room_creator_login']
 				}
 			}
 		};
-		return this.prisma.room.create({ data })
+		return this.prisma.room.create({ data, select: {
+			room_id: true,
+			room_name:true
+		} })
 	}
 
 	async rooms(params: Prisma.RoomFindManyArgs): Promise<Room[]> {
@@ -283,8 +287,15 @@ export class RoomService {
 		});
 	}
 
-	async deleteRoom(where: Prisma.RoomWhereUniqueInput): Promise<Room> {
-		return this.prisma.room.delete({
+	async deleteRooms(where: Prisma.RoomWhereUniqueInput)
+	{
+		this.prisma.room.deleteMany({
+			where,
+		})
+	}
+
+	async deleteRoom(where: Prisma.RoomWhereUniqueInput){
+		this.prisma.room.delete({
 			where,
 		});
 	}

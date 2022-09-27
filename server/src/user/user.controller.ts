@@ -12,10 +12,10 @@ import {
 	Res,
 	HttpException,
 	HttpStatus
-  } from '@nestjs/common';
+} from '@nestjs/common';
 
 import { UserService } from '@/user/user.service';
-import { User as UserModel, Game as GameModel, Status, prisma, Room} from '@prisma/client';
+import { User as UserModel, Game as GameModel, Status, prisma, Room } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime';
 import { GameService } from '@/game/game.service';
 import { timeStamp } from 'console';
@@ -25,6 +25,7 @@ import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RoomService } from '@/room/room.service';
 import { CurrentUser } from './user.decorator';
 import { HttpService } from '@nestjs/axios';
+import { NOTFOUND } from 'dns';
 
 enum status {
 	'OFFLINE' = 0,
@@ -32,20 +33,24 @@ enum status {
 	'INGAME'
 }
 
+function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
+
+
 @Controller('user')
 // @UseGuards(JwtAuthGuard)
 export class UserController {
-	constructor(private readonly userService: UserService, private readonly gameService : GameService, private readonly roomService: RoomService) {}
-	
+	constructor(private readonly userService: UserService, private readonly gameService: GameService, private readonly roomService: RoomService) { }
+
 	@Get('me')
 	@UseGuards(JwtAuthGuard)
-	async getProfile(@CurrentUser() user: UserModel, @Res() res : Response) {
+	async getProfile(@CurrentUser() user: UserModel, @Res() res: Response) {
 		res.json(user);
 	}
 
 	@Get('rooms')
-	async getUserRooms(@CurrentUser() user: UserModel, ): Promise<Room[]>
-	{
+	async getUserRooms(@CurrentUser() user: UserModel,): Promise<Room[]> {
 		return (await this.roomService.rooms({
 			where:
 			{
@@ -63,33 +68,63 @@ export class UserController {
 	@Get(':login')
 	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {
 		// console.log(!Number(login));
+		let user: UserModel | null;
 		if (!Number(login)) {
-			return this.userService.user({login : login });
+		 user = await this.userService.user({ login: login });
 		}
-		return this.userService.user({ user_id: Number(login)});
+		else
+			user = await this.userService.user({ user_id: Number(login) });
+		if (user == null)
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		return user;
 	}
 	@Get(':login/history')
 	async getUserGames(@Param('login') login: string): Promise<GameModel[]> {
-		return  (await this.gameService.games({where: 
-			{OR: [{game_winner: {login: login}}, {game_loser: {login: login}}]},
-			orderBy: {game_date: 'desc'},
-		}));
+		let user: UserModel | null
+		if (!Number(login)) {
+			user = await this.userService.user({ login: login });
+		}
+		else
+			user = await this.userService.user({ user_id: Number(login) });
+		if (user == null)
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		const games = (await this.gameService.games({
+			where:
+				{ OR: [{ game_winner: { login: user.login } }, { game_loser: { login: user.login } }] },
+			orderBy: { game_date: 'desc' },
+			include:{
+				game_winner:{
+					select:{
+						login: true,
+						nickname: true,
+						avatar: true,
+					}
+				},
+				game_loser:{
+					select:{
+						login: true,
+						nickname: true,
+						avatar: true,
+					}
+			}
+		},
+	}));
+	return games;
 	}
 	@Get('friend_requests')
-		async getUserFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-			return (await this.userService.users({where: {friend_requests: {some: {login: user.login}}}}));
+	async getUserFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
+		return (await this.userService.users({ where: { friend_requests: { some: { login: user.login } } } }));
 	}
 	@Get('sent_friend_requests')
-		async getUserSentFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-			return (await this.userService.users({where: {friend_requests_sent: {some: {login: user.login}}}}));
+	async getUserSentFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
+		return (await this.userService.users({ where: { friend_requests_sent: { some: { login: user.login } } } }));
 	}
 	@Get('friends')
 	async getUserFriends(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-			return (await this.userService.users({where: {friends: {some: {login: user.login}}}}));
+		return (await this.userService.users({ where: { friends: { some: { login: user.login } } } }));
 	}
 	@Patch('update')
-	async updateUser(@CurrentUser() user: UserModel, @Body()userData: {nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby? : string; status? : Status},)
-	{
+	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
 		let login = user.login;
 		user['nickname'] = userData['nickname'] || user['nickname'];
 		user['avatar'] = userData['avatar'] || user['avatar'];
@@ -99,13 +134,23 @@ export class UserController {
 		if (userData['is_banned'] != undefined)
 			user['is_banned'] = userData['is_banned'];
 		this.userService.updateUser({
-			where : {login: (login)},
-			data : user
+			where: { login: (login) },
+			data: user
 		});
 		return user;
 	}
 
-	
+	// @Delete('/:id/delete')
+	// async deleteUser(@CurrentUser() user: UserModel, @Body() userData: {login: string})
+	// {
+	// 	const login = userData.login;
+	// 	this.userService.user({login: login});
+	// 	let rooms = this.roomService.rooms({
+	// 		where:{
+	// 			room_creator_login: login
+	// 		}
+	// 	})
+	// }
 	// @Post('accept_friend')
 	// async acceptFriend(@CurrentUser() user: UserModel, @Body()userData: {sender_login: string;})
 	// {
@@ -134,7 +179,7 @@ export class UserController {
 	// 	let friend = await this.userService.user({ login: (friend_login) });
 	// 	if (!user || !friend)
 	// 		return null;
-	
+
 	// 	await this.userService.updateUser({
 	// 		where : {login: (friend_login)},
 	// 		data : {
@@ -190,27 +235,25 @@ export class UserController {
 
 @Controller()
 export class UsersController {
-	constructor(private readonly userService: UserService, private readonly gameService : GameService) {}
-	
+	constructor(private readonly userService: UserService, private readonly gameService: GameService, private readonly roomService: RoomService) { }
+
 	@Get('users')
 	async getUsers(): Promise<UserModel[]> {
 		return this.userService.users({});
 	}
-	
+
 	@Get('/leaderboard/:page')
 	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
 		if (Number(page) == NaN)
 			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
 		if (Number(page) * 20 > (await this.userService.users({})).length)
 			throw new HttpException('Page Not Found', HttpStatus.NOT_FOUND);
-		return this.userService.users({orderBy: {KDA: 'desc'}, take: 20, skip : page * 20});
+		return this.userService.users({ orderBy: { KDA: 'desc' }, take: 20, skip: page * 20 });
 	}
 
 	@Delete('/users/delete')
-	async deleteAllUsers()
-	{
+	async deleteAllUsers() {
+		this.roomService.deleteRooms({});
 		this.userService.deleteAllUsers();
 	}
-	
-
 }

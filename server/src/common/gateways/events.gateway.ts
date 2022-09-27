@@ -7,7 +7,7 @@ import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSo
 import { Status, User } from "@prisma/client";
 import { Socket, Server } from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
-import { chatGatewayService } from "../services/chat.gateway.service";
+import { ChatGatewayService } from "../services/chat.gateway.service";
 
 @WebSocketGateway({
 	transports: ["websocket"],
@@ -21,7 +21,7 @@ export class EventsGateway {
 		private readonly userService : UserService,
 		private readonly prisma : PrismaService,
 		private readonly roomServece : RoomService,
-		private readonly gateWayService : chatGatewayService
+		private readonly gateWayService : ChatGatewayService
 
 	) {};
 
@@ -57,24 +57,12 @@ export class EventsGateway {
 		console.log("a user disconnected",client.user.login);
 	}
 
-	@SubscribeMessage('search_rooms')
-	searchForRoom(@MessageBody() query: string, @ConnectedSocket() client: CustomSocket,) {
-		/// prisma.rooms.find(name contains query)
-		client.emit('hello');
-
-	}
-	@SubscribeMessage('join_room')
-	joinRoom(@ConnectedSocket() client: CustomSocket,) {
-		/// prisma.rooms.find(name contains query)
-		client.emit('hello');
-
-	}
 	@SubscribeMessage('identity')
 	handleIdentity(
 		@MessageBody() data: string,
 		@ConnectedSocket() client: CustomSocket
 	): string {
-		console.log(data);
+		console.log(data, client.user.login);
 		return data;
 	}
 
@@ -86,19 +74,9 @@ export class EventsGateway {
 		console.log(data);
 		return data;
 	}
-	@SubscribeMessage('message')
-	handleMessages(
-		@MessageBody() data: any,
-		@ConnectedSocket() client: CustomSocket,
-	): string {
-		this.server.emit("message", "Gest" + client.id + ": " + data);
-		console.log("Gest" + client.id + ":",data);
-		return data;
-	}
 	
 
 	// @SubscribeMessage('accept_friend')
-	
 
 
 	@SubscribeMessage('add_friend_request')

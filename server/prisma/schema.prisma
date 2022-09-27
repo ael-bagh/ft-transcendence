@@ -94,7 +94,8 @@ model Message {
 	message_user_login String
 	message_user User @relation("message_user", fields: [message_user_login], references: [login])
 	message_room_id Int
-	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id]) 
+	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id])
+	message_type Message_type
 }
 
 
@@ -120,4 +121,9 @@ enum Notification_type {
 	GAME_INVIT
 	FRIEND_REQUEST
 	NEW_FRIEND
+}
+
+enum Message_type {
+	USER
+	SYSTEM
 }
