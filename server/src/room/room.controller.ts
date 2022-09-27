@@ -11,7 +11,7 @@ import {
 	Query,
 	UseGuards,
 } from '@nestjs/common';
-import { Room, User, Prisma, Message_Notification} from '@prisma/client';
+import { Room, User, Prisma, Message_Notification, Message} from '@prisma/client';
 import { RoomService } from '@/room/room.service';
 import { CurrentUser } from '@/user/user.decorator';
 import { UserModule } from '@/user/user.module';
@@ -23,6 +23,11 @@ import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 export class RoomController {
 	constructor(private readonly roomService: RoomService) { }
 
+	@Get('messages')
+	async getAllMessages(): Promise<Message[]>
+	{
+		return await this.roomService.getMessages();
+	}
 
 	@Get('')
 	async getRooms(@CurrentUser() user: User, @Query('page') page: number): Promise<(Room & {unread_messages_count: number})[]> {
@@ -158,17 +163,17 @@ export class RoomController {
 		return this.roomService.getRoomBannedUsers({ room_id: Number(room_id) });
 	}
 
-	@Post(":room_id/addMessage")
-	async addMessage(@CurrentUser() user: User, @Param() params: { room_id: string }): Promise<Room | null> {
-		let message = "hello from the other side";
-		const { room_id }: { room_id: string } = params;
-		if (Number(room_id) == NaN)
-			return null;
-		if (await (this.roomService.roomPermissions(user.login, 'viewRoom', null, { room_id: Number(room_id) },)) == false)
-			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-		this.roomService.addMessage(message, user.login, Number(room_id));
-		return this.roomService.room({ room_id: Number(room_id) });
-	}
+	// @Post(":room_id/addMessage")
+	// async addMessage(@CurrentUser() user: User, @Param() params: { room_id: string }): Promise<Room | null> {
+	// 	let message = "hello from the other side";
+	// 	const { room_id }: { room_id: string } = params;
+	// 	if (Number(room_id) == NaN)
+	// 		return null;
+	// 	if (await (this.roomService.roomPermissions(user.login, 'viewRoom', null, { room_id: Number(room_id) },)) == false)
+	// 		throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+	// 	this.roomService.addMessage(message, user.login, Number(room_id));
+	// 	return this.roomService.room({ room_id: Number(room_id) });
+	// }
 
 	@Delete(":room_id/removemessages")
 	async removeMessages(@CurrentUser() user: User, @Param() params: { room_id: string, message_id: string }): Promise<Room | null> {
@@ -202,5 +207,19 @@ export class RoomController {
 		this.roomService.removeAdmin({ room_id: Number(room_id) }, { login: user_login });
 		return this.roomService.room({ room_id: Number(room_id) });
 	}
+
+	// @SubscribeMessage('search_rooms')
+	// searchForRoom(@MessageBody() segment: string, @ConnectedSocket() client: CustomSocket) {
+	// 	/// prisma.rooms.find(name contains query)
+	// 	const result = this.prisma.room.findMany({
+	// 		where: {
+	// 			room_name: {
+	// 				contains: segment,
+	// 			}
+	// 		}
+	// 	})
+	// 	client.emit('found_rooms', result);
+
+	// }
 
 }

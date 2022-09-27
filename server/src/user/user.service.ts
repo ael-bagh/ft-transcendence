@@ -10,6 +10,8 @@ export class UserService {
 	async user(
 		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
 	): Promise<User | null> {
+		if (!userWhereUniqueInput)
+			return null;
 		return this.prisma.user.findUnique({
 			where: userWhereUniqueInput,
 			include:
@@ -26,6 +28,12 @@ export class UserService {
 		});
 	}
 
+	async getFriendBool(
+		where,
+	): Promise<boolean>
+	{
+		return ((await this.prisma.user.count(where)) > 0) ;
+	}
 	async userWins(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<number> {
 		{
 			return this.prisma.user.findUnique({
@@ -200,17 +208,20 @@ export class UserService {
 	}
 	): Promise<User> {
 		const {login, friend_login} = params;
+		console.log( login, friend_login);
 		const friend = await this.user({ login: friend_login });
 		const user = await this.user({ login: login });
 		if (!user || !friend)
 			return null;
 		// if not mutual request
+		console.log('survived')
 		let mutual = await this.users({
 			where:{
-				friend_requests: {some: {login: friend_login}},
-				login: login
+				friend_requests: {some: {login: login}},
+				login: friend_login
 			}
 		});
+		console.log('mutual:', mutual);
 		if (mutual.length == 0)
 		{
 			await this.updateUser({

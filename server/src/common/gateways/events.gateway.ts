@@ -80,12 +80,13 @@ export class EventsGateway {
 
 
 	@SubscribeMessage('add_friend_request')
-	sendFriendRequest(
+	sendRequest(
 		@MessageBody() userData: { friend_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
 		let friend_login = userData['friend_login'];
+		console.log(userData)
 		return this.userService.sendFriendRequest({
 			login, friend_login, onFinish: (user, friend_login, broadcast) => {
 				// FIXME: REVISE THIS

@@ -19,7 +19,7 @@ export class RoomsGateway {
 	constructor(
 		private readonly userService: UserService,
 		private readonly prisma: PrismaService,
-		private readonly roomServece: RoomService
+		private readonly roomService: RoomService
 	) { };
 
 	@WebSocketServer()
@@ -36,8 +36,31 @@ export class RoomsGateway {
 		if ((result.room_private && room_password == (result.room_password)) || !result.room_private) {
 			client.join(result.room_name);
 			client.emit('joined_room');
+			let message = this.roomService.addSystemMessage("joined_room", room_id)
+			this.server.to(String(room_id)).emit("message", message);
 		}
 		else
 			client.emit('wrong_password');
+	}
+	@SubscribeMessage('leave_room')
+	async leaveRoom(@ConnectedSocket() client: CustomSocket, @MessageBody() { room_id, room_password }: { room_id: number, room_password?: string }) {
+		const result = await this.prisma.room.findMany({
+			where: {
+				room_id,
+				room_users:{
+					some:{
+						login: client.user.login,
+					}
+				}
+			}
+		});
+		if (result.length > 0) {
+			client.join(result[0].room_name);
+			client.emit('left_room');
+			let message = this.roomService.addSystemMessage("left_room", room_id)
+			this.server.to(String(room_id)).emit("message", message);
+		}
+		else
+			client.emit('not in room');
 	}
 }
