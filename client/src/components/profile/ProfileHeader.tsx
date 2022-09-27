@@ -10,9 +10,8 @@ function ProfileHeader() {
   const [requestSent, setRequestSent] = useState(false);
   const onRequestSent = () => {
     sendFriendRequest({
-    friend_login: authUser?.login,
-      }).finally(() => onRequestSent())
-    setRequestSent(true);
+    friend_login: user?.login,
+      }).finally(() => setRequestSent(true));
   };
   const divStyle = {
     backgroundImage: "url(" + user?.avatar + ")",
