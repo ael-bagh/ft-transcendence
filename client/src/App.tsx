@@ -1,11 +1,8 @@
-import React from "react";
 import "./App.css";
 import {
   createBrowserRouter,
   RouterProvider,
-  Route,
 } from "react-router-dom";
-import { BrowserRouter, Routes} from "react-router-dom";
 import Profile from "./routes/Profile";
 import LeaderBoard from "./routes/LeaderBoard";
 import Chat from "./routes/Chat";
@@ -13,10 +10,11 @@ import AuthUserProvider from "./contexts/authUser.context";
 import { useContext ,useEffect} from "react";
 import { AuthUserContext } from "./contexts/authUser.context";
 import useProfile from "./hooks/api/useProfile";
-import ErrorPage from "./components/errors/error_page";
+import {ErrorPage, UserNotFound} from "./components/errors/error_page";
 import { Flowbite } from "flowbite-react";
 import Home from "./components/layout/Home";
 import { useSocket } from "./hooks/api/useSocket";
+import  axiosInstance from "./lib/axios"
 
 const router = createBrowserRouter([
   {
@@ -27,7 +25,10 @@ const router = createBrowserRouter([
   {
     path: "/profile/:id",
     element: <Profile />,
-    errorElement: <ErrorPage />,
+    loader: async ({ params }) => {
+      return axiosInstance.get("/user/" + params.id)
+    },
+    errorElement: <UserNotFound />,
   },
   {
     path: "/chat",
@@ -60,7 +61,6 @@ function GetAuthuser() {
   useEffect(() => {  
     if (!authUser) {
       if (profile) {
-        console.log(profile);
         setAuthUser(profile);
       }
     }
