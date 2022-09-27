@@ -1,51 +1,49 @@
-import {useContext, useState, ChangeEvent} from "react";
+import {useContext, useState, ChangeEvent, useEffect} from "react";
 import { ChatContext } from "../../contexts/chat.context";
 import TextMessage from "./TextMessage"
 import {GiCrossedSwords} from 'react-icons/gi'
 import {BiLeftArrow} from 'react-icons/bi'
 import UserStatus from "../user/UserStatus";
 import UserAvatar from "../user/UserAvatar";
+import {AuthUserContext} from '../../contexts/authUser.context'
+import { useSocket } from "../../hooks/api/useSocket";
+import { useRoom } from "../../hooks/api/useRoom";
 
-interface Message 
-{
-    id: string;
-    message: string;
-    time: string;
-    user: string;
-}
+const MessageDefaultValue : Message[] = 
+[]
 
 export default function Conversation () {
-    const authUser:string = 'KHAY SSERGHINI'
     const { setCurrentGroup ,currentGroup } = useContext(ChatContext);
-        /* get conversationid where id = currentGroup */
+    const { authUser } = useContext(AuthUserContext);
+    const [conversation, setConversation] = useState<Message[]>(MessageDefaultValue);
     const [message, setMessage] = useState('');
-    const onChangeHandler = (e: ChangeEvent<HTMLInputElement>)=> {
-            setMessage(e.currentTarget.value)
-          };
+    const { sendMessage } = useSocket();
+    const { room } = useRoom(currentGroup);
+
+    const onMessageSent = (message: Message) => {
+        if (message) setConversation([...conversation, message]);
+        setMessage('');
+    }
+    const avatar: string | undefined = (room?.room_direct_message) ? room?.room_users.find(user => user.user_id !== authUser?.user_id)?.avatar : `https://ui-avatars.com/api/?length=1?name=${room?.room_name}`;
+
+    const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => setMessage(e.currentTarget.value);
     const onSubmitHandler = (e: React.SyntheticEvent)=> {
         e.preventDefault();
-        if (message?.trim()) {
-            const newMessage: Message = {
-                id: '1',
-                message: message,
-                time: '10:00',
-                user: authUser
-            }
-            setConversation([...conversation, newMessage])
+        const messageObject: Message = {
+            currentRoom: currentGroup,
+            message,
+            user: authUser?.login,
+            user_login: authUser?.login,
+            time: new Date()
         }
-        setMessage('')
+        sendMessage(messageObject, currentGroup).finally(() => onMessageSent(messageObject));
     }
-    const [conversation, setConversation] = useState<Message[]>([{id:'1',  message : '3refti a khay sserghini',time: '10:00',user: 'Hamid nef7a' },
-    {id:'2',  message : 'bghaw yrawdouni',time: '10:00',user: 'Hamid nef7A' },
-    {id:'3',  message : 'Ewa XDERTI ?',time: '10:01',user: 'KHAY SSERGHINI' },
-    {id:'4',  message : '3refti a khay sserghini NEDDT LBESST JELLABA D CHAMAL',time: '10:02',user: 'Hamid nef7a' },
-    {id:'5',  message : 'bash tala dderbouni mayssewrou mni taaaa le3ba',time: '10:03',user: 'Hamid nef7A' },]);
     return (
-        <div className={(!currentGroup)?"absolute w-0 md:w-3/4 h-0 md:h-full hidden pt-16" : "flex flex-col w-screen md:w-3/4 h-full pt-16"}>
+        <div className={(!currentGroup)?"absolute w-0 md:w-3/4 h-0 md:h-full hidden" : "flex flex-col w-screen md:w-3/4 h-full"}>
             <div className="flex flex-row justify-between items-center border-b border-gray-200 p-4">
                 <div className="flex flex-row gap-2 items-center">
                     <div className={(currentGroup)?"md:invisible md:w-0 hover:cursor-pointer":"invisible w-0"} onClick={()=> setCurrentGroup('')}><BiLeftArrow  className="w-10 h-10 text-purple-500"  /></div>
-                    <UserAvatar username="Hamid" id={1235}/>
+                    <UserAvatar avatar={avatar}/>
                     <div className="flex flex-col">
                         <div>Conversation "{currentGroup}"</div>
                         <UserStatus username="Hamid nef7a" id={1}/>

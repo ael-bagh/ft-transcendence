@@ -1,6 +1,7 @@
 import React from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import NavBar from "../NavBar";
+import { useSocket } from "../../hooks/api/useSocket";
 
 export default function MainLayout({
   children,
@@ -11,9 +12,9 @@ export default function MainLayout({
   return (
     <>
       {isAuthLoaded && (
-        <div className="text-white h-screen">
+        <div className="text-white flex flex-col h-screen">
           <NavBar />
-          <div className="flex flex-col md:flex-row h-screen w-screen border-t-2 border-gray-300">
+          <div className="flex grow w-screen">
             {children}
           </div>
         </div>

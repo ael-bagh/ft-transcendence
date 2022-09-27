@@ -3,149 +3,11 @@ import { useContext, useState } from "react";
 import { ChatContext } from "../../contexts/chat.context";
 import { BsChatRightTextFill } from "react-icons/bs";
 import NewConversationModal from "./NewConversationModal";
+import {useRooms} from "../../hooks/api/useRoom";
 
 export default function ChatHistory() {
-  const conversations = [
-    {
-      id: "1",
-      users: [
-        { name: "John", id: 1 },
-        { name: "Jane", id: 2 },
-      ],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 1,
-      time: "10:00",
-    },
-    {
-      id: "2",
-      users: [
-        { name: "John", id: 1 },
-        { name: "Jane", id: 2 },
-      ],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 1,
-      time: "10:00",
-    },
-    {
-      id: "3",
-      users: [
-        { name: "John", id: 1 },
-        { name: "Jane", id: 2 },
-        { name: "Jane", id: 2 },
-        { name: "Jane", id: 2 },
-      ],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 1,
-      time: "10:00",
-    },
-    {
-      id: "4",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 10,
-      time: "10:00",
-    },
-    {
-      id: "5",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 10,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-    {
-      id: "6",
-      users: [{ name: "John", id: 1 }],
-      lastMessage: { name: "John", message: "Lorem ipsum down for a game ?" },
-      messages: 0,
-      time: "10:00",
-    },
-  ];
   const { currentGroup } = useContext(ChatContext);
+  const {rooms, setRooms} = useRooms();
   const [showNewConversation, setShowNewConversation] = useState(false);
   const newConversation = () => {
     setShowNewConversation(!showNewConversation);
@@ -154,8 +16,8 @@ export default function ChatHistory() {
       <div
         className={
           !currentGroup
-            ? "flex flex-col h-full md:w-1/4 md:shrink-0 justify-between pt-16 md:border-r border-gray-200"
-            : "invisible h-0 w-0 md:visible md:flex md:flex-col md:h-full md:w-1/4 md:shrink-0 md:min-w-1/4 pt-16 md:border-r border-gray-200"
+            ? "flex flex-col grow h-full md:w-1/4 md:shrink-0 justify-between md:border-r border-gray-200"
+            : "hidden md:flex  md:flex-col md:h-full md:w-1/4 md:shrink-0 md:min-w-1/4 md:border-r border-gray-200"
         }
       >
         <div className="w-full p-4">
@@ -172,10 +34,12 @@ export default function ChatHistory() {
           <div className="p-4 overflow-x-auto h-24 grow">
             <h1 className="pt-4 font-bold text-gray-100">Messages</h1>
             <div className="pt-4">
-              {conversations.map((conversation) => (
-                <MessageCard key={conversation.id} id={conversation.id} Lastmessage={conversation.lastMessage} users={conversation.users} messages={conversation.messages} time={conversation.time} />
+              {rooms?.map((room : Room, idx: Number) => (
+                <MessageCard key={room.room_id + '-' + idx} room={room} setRoom={(_room) => {
+                  setRooms(rooms.map((r) => (r.room_id === _room.room_id) ? _room : r));
+                }}/>
               ))}
-            </div>
+            </div>  
           </div>
         </div>
         <div className=" bg-purple-600 flex flex-col justify-center text-center items-center gap-2 pt-2">
@@ -185,6 +49,6 @@ export default function ChatHistory() {
           </div>
           {(showNewConversation) && <NewConversationModal />}
         </div>
-      </div>
+      </div>       
   );
 }
