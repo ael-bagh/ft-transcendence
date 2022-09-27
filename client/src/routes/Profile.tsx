@@ -1,16 +1,19 @@
-
-import NavBar from '../components/NavBar';
-import ProfileHeader from '../components/profile/ProfileHeader';
-import Badges from '../components/profile/Badges';
-import MatchHistory from '../components/profile/MatchHistory';
-function Profile() {
+import NavBar from "../components/NavBar";
+import ProfileHeader from "../components/profile/ProfileHeader";
+import Badges from "../components/profile/Badges";
+import MatchHistory from "../components/profile/MatchHistory";
+import MainLayout from "../components/layout/MainLayout";
+import { useParams } from "react-router-dom";
+function  Profile() {
+  const {id} = useParams<{id: string | undefined}>()
   return (
-    <div className='text-white'>
-    <NavBar />
-    <ProfileHeader />
+    <MainLayout>
+      <div className="flex flex-col h-full w-screen">
+        <ProfileHeader />
         <Badges />
         <MatchHistory />
-    </div>
+      </div>
+    </MainLayout>
   );
 }
 
