@@ -40,7 +40,7 @@ export class AuthAdapter extends IoAdapter {
                 socket.user = user;
                 socket.token_expire_at = payload.exp * 1000;
             } catch (e) {
-                // console.log(e, "oh no");
+                console.log("oh no");
                 return next(new WsException('Invalid token'));
             }
 

@@ -19,19 +19,21 @@ export class ChatGateway {
 	constructor(
 		private readonly userService : UserService,
 		private readonly prisma : PrismaService,
-		private readonly roomServece : RoomService
+		private readonly roomService : RoomService
 	) {};
 
 	@WebSocketServer()
 	server: Server;
 
-	@SubscribeMessage('test_me')
+	@SubscribeMessage('send_message')
 	handleMessages(
 		@MessageBody() data: any,
 		@ConnectedSocket() client: CustomSocket,
-	): string {
-		console.log("test_me");
-		return data;
+	): any {
+		const message = this.roomService.addMessage(data.message,client.user.login,data.room_id)
+		this.server.to(data.room_id).emit("message", message);
+		console.log("test_me ", message);
+		return message;
 	}
 
 	

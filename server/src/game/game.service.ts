@@ -27,18 +27,18 @@ export class GameService {
 	}
 
 	async saveGame(
-		gameData: { game_winner_id: number; game_loser_id: number; game_winner_score: number; game_loser_score: number },
+		gameData: { game_winner_login: string; game_loser_login: string; game_winner_score: number; game_loser_score: number },
 	): Promise<Game> {
 		let data: Prisma.GameCreateInput = { game_date: new Date() };
 		data['game_date'] = new Date();
 		data['game_winner'] = {
 			connect: {
-				user_id: Number(gameData['game_winner_id'])
+				login: gameData['game_winner_login']
 			},
 		}
 		data['game_loser'] = {
 			connect: {
-				user_id: Number(gameData['game_loser_id'])
+				login: gameData['game_loser_login']
 			},
 		}
 		data['game_loser_score'] = Number(gameData['game_loser_score']);
