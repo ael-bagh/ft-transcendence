@@ -55,7 +55,7 @@ export class AuthController {
 							login: info.data.login,
 							nickname: info.data.login,
 							// password: value.data.access_token,
-							avatar: info.data.image_url
+							avatar: `https://avatars.dicebear.com/api/jdenticon/${info.data.login}.svg`
 						});
 						// Prevent password from being sent out
 						// delete user.password;
@@ -99,7 +99,7 @@ export class AuthController {
 		}
 		catch(e)
 		{
-			// console.log(e, "oh no");
+			console.log(e, "oh no");
              response.json({'authenticied':false});
 		}
 	}

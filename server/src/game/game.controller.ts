@@ -22,4 +22,9 @@ export class GameController {
 	  async getGames(): Promise<GameModel[]> {
 		  return this.gameService.games({});
 	  }
+	  @Get('makegame')
+	  async createGame()
+	  {
+		this.gameService.saveGame({game_winner_login:'arhallab', game_loser_login:'ael-bagh', game_winner_score:8,game_loser_score: 0});
+	  }
 	}
