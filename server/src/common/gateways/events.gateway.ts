@@ -77,7 +77,6 @@ export class EventsGateway {
 	
 
 	// @SubscribeMessage('accept_friend')
-	
 
 
 	@SubscribeMessage('add_friend_request')

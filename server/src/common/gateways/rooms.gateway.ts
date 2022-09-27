@@ -25,19 +25,6 @@ export class RoomsGateway {
 	@WebSocketServer()
 	server: Server;
 
-	@SubscribeMessage('search_rooms')
-	searchForRoom(@MessageBody() segment: string, @ConnectedSocket() client: CustomSocket) {
-		/// prisma.rooms.find(name contains query)
-		const result = this.prisma.room.findMany({
-			where: {
-				room_name: {
-					contains: segment,
-				}
-			}
-		})
-		client.emit('found_rooms', result);
-
-	}
 
 	@SubscribeMessage('join_room')
 	async joinRoom(@ConnectedSocket() client: CustomSocket, @MessageBody() { room_id, room_password }: { room_id: number, room_password?: string }) {
