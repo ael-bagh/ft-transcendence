@@ -34,18 +34,19 @@ enum status {
 }
 
 function delay(ms: number) {
-    return new Promise( resolve => setTimeout(resolve, ms) );
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
 @Controller('user')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class UserController {
 	constructor(private readonly userService: UserService, private readonly gameService: GameService, private readonly roomService: RoomService) { }
 
 	@Get('me')
-	@UseGuards(JwtAuthGuard)
+	// @UseGuards(JwtAuthGuard)
 	async getProfile(@CurrentUser() user: UserModel, @Res() res: Response) {
+		console.log(user)
 		res.json(user);
 	}
 
@@ -65,20 +66,9 @@ export class UserController {
 		}));
 	}
 	// @UseGuards(JwtAuthGuard)
-	@Get(':login')
-	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {
-		// console.log(!Number(login));
-		let user: UserModel | null;
-		if (!Number(login)) {
-		 user = await this.userService.user({ login: login });
-		}
-		else
-			user = await this.userService.user({ user_id: Number(login) });
-		if (user == null)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		return user;
-	}
+
 	@Get(':login/history')
+
 	async getUserGames(@Param('login') login: string): Promise<GameModel[]> {
 		let user: UserModel | null
 		if (!Number(login)) {
@@ -92,24 +82,24 @@ export class UserController {
 			where:
 				{ OR: [{ game_winner: { login: user.login } }, { game_loser: { login: user.login } }] },
 			orderBy: { game_date: 'desc' },
-			include:{
-				game_winner:{
-					select:{
+			include: {
+				game_winner: {
+					select: {
 						login: true,
 						nickname: true,
 						avatar: true,
 					}
 				},
-				game_loser:{
-					select:{
+				game_loser: {
+					select: {
 						login: true,
 						nickname: true,
 						avatar: true,
 					}
-			}
-		},
-	}));
-	return games;
+				}
+			},
+		}));
+		return games;
 	}
 	@Get('friend_requests')
 	async getUserFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
@@ -121,7 +111,29 @@ export class UserController {
 	}
 	@Get('friends')
 	async getUserFriends(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-		return (await this.userService.users({ where: { friends: { some: { login: user.login } } } }));
+		return (await this.userService.users({
+			where: {
+				friends: {
+					some: {
+						login: user.login
+					}
+				}
+			}
+		}));
+	}
+
+	@Get('friend')
+	async getFriendBool(@CurrentUser() user: UserModel, @Body() userData: { friend_login: string }): Promise<Boolean> {
+		return await this.userService.getFriendBool({
+			where: {
+				login: user.login,
+				friends: {
+					some: {
+						login: userData.friend_login,
+					}
+				}
+			}
+		})
 	}
 	@Patch('update')
 	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
@@ -139,6 +151,32 @@ export class UserController {
 		});
 		return user;
 	}
+	@Get(':login')
+	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {
+		// console.log(!Number(login));
+		let user: UserModel | null;
+		if (!Number(login)) {
+			user = await this.userService.user({ login: login });
+		}
+		else
+			user = await this.userService.user({ user_id: Number(login) });
+		if (user == null)
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		return user;
+	}
+	// @SubscribeMessage('search_user')
+	// searchUser(
+	// 	@MessageBody() login: string
+	// ) {
+	// 	const result = this.prisma.room.findMany({
+	// 		where: {
+	// 			room_name: {
+	// 				contains: login,
+	// 			}
+	// 		}
+	// 	})
+	// 	client.emit('found_rooms', result);
+	// }
 
 	// @Delete('/:id/delete')
 	// async deleteUser(@CurrentUser() user: UserModel, @Body() userData: {login: string})
@@ -253,6 +291,8 @@ export class UsersController {
 
 	@Delete('/users/delete')
 	async deleteAllUsers() {
+		this.gameService.deleteGames();
+		this.roomService.deleteMessages({});
 		this.roomService.deleteRooms({});
 		this.userService.deleteAllUsers();
 	}

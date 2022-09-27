@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
-import { Room, User, Prisma, Message } from '@prisma/client';
+import { Room, User, Prisma, Message, Message_type } from '@prisma/client';
 import { genSalt, hash } from "bcrypt";
 
 @Injectable()
@@ -322,10 +322,35 @@ export class RoomService {
 		});
 	}
 
-	async addMessage(
+	async addSystemMessage(
+		message_content: string,
+		message_room_id: number,
+	): Promise<Message> {
+		const message = await this.prisma.message.create({
+			data: {
+				message_content: message_content,
+				message_time: new Date(),
+				message_room: {
+					connect: {
+						room_id: message_room_id,
+					},
+				},
+				message_type: Message_type.SYSTEM
+			}
+		});
+		await this.prisma.message_Notification.create({
+			data: {
+				message_id: message.message_id,
+				room_id: message_room_id,
+			}
+		});
+		return message;
+	}
+
+	async addUserMessage(
 		message_content: string,
 		message_user_login: string,
-		message_room_id: number
+		message_room_id: number,
 	): Promise<Message> {
 		const message = await this.prisma.message.create({
 			data: {
@@ -340,7 +365,8 @@ export class RoomService {
 					connect: {
 						login: message_user_login,
 					},
-				}
+				},
+				message_type: Message_type.USER
 			}
 		});
 		await this.prisma.message_Notification.create({
@@ -359,8 +385,13 @@ export class RoomService {
 		});
 	}
 
+	async getMessages(): Promise<Message[]>
+	{
+		return this.prisma.message.findMany({});
+	}
 
-	async getMessages(
+
+	async getRoomMessages(
 		where: Prisma.RoomWhereUniqueInput
 	): Promise<Message[]> {
 		return this.prisma.message.findMany({
@@ -479,5 +510,10 @@ export class RoomService {
 			},
 			where,
 		});
+	}
+	async deleteMessages(
+		where: Prisma.RoomWhereUniqueInput,
+	){
+		return this.prisma.message.deleteMany({})
 	}
 }

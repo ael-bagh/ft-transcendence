@@ -21,8 +21,8 @@ model User {
 	current_lobby String?
 	is_banned Boolean?
 	KDA	Decimal?
-	games_lost Game[] @relation("winner")
-	games_won Game[] @relation ("loser")
+	games_won Game[] @relation("winner")
+	games_lost Game[] @relation ("loser")
 	achievements Achievement[] @relation("user_achievements")
 	friends User[] @relation("friends")
 	friends_relation User[] @relation("friends")
@@ -55,10 +55,10 @@ model Notification {
 model Game {
 	game_id Int @id @default(autoincrement())
 	game_date DateTime
-	game_winner_id Int
-	game_loser_id Int
-	game_winner User? @relation("winner", fields: [game_winner_id], references: [user_id])
-	game_loser User? @relation("loser", fields: [game_loser_id], references: [user_id])
+	game_winner_login String
+	game_loser_login String
+	game_winner User? @relation("winner", fields: [game_winner_login], references: [login])
+	game_loser User? @relation("loser", fields: [game_loser_login], references: [login])
 	game_winner_score Int?
 	game_loser_score Int?
 }
@@ -77,8 +77,8 @@ model Room {
 	room_name String
 	room_private Boolean
 	room_creation_date DateTime
-	room_creator_id Int
-	room_creator User @relation("room_creator", fields: [room_creator_id], references: [user_id])
+	room_creator_login String
+	room_creator User @relation("room_creator", fields: [room_creator_login], references: [login])
 	room_admins User[] @relation("room_admins")
 	room_messages Message[] @relation("message_room")
 	room_users User[] @relation("room_user")
@@ -91,18 +91,18 @@ model Message {
 	message_id Int @id @default(autoincrement())
 	message_content String
 	message_time DateTime
-	message_user_login String
-	message_user User @relation("message_user", fields: [message_user_login], references: [login])
+	message_user_login String?
+	message_user User? @relation("message_user", fields: [message_user_login], references: [login])
 	message_room_id Int
-	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id])
-	message_type Message_type
+	message_room Room @relation("message_room", fields: [message_room_id], references: [room_id]) 
+	message_type Message_type @default(USER)
 }
 
 
 model Message_Notification {
 	notification_id Int @id @default(autoincrement())
 	message_id Int
-	user_login String
+	user_login String?
 	room_id Int
 }
 

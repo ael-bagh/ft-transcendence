@@ -62,4 +62,9 @@ export class GameService {
 			where,
 		});
 	}
+
+	async deleteGames()
+	{
+		return this.prisma.game.deleteMany({});
+	}
 }
