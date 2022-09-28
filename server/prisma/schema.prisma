@@ -30,6 +30,8 @@ model User {
 	friends_request_relation User[] @relation("friend_request")
 	friend_requests_sent User[] @relation("friend_request_sent")
 	friends_request_sent_relation User[] @relation("friend_request_sent")
+	blocked_users User[] @relation("blocked")
+	blocked_by_users User[] @relation("blocked")
 	rooms_created Room[] @relation("room_creator")
 	messages_sent Message[] @relation("message_user")
 	rooms_member Room[] @relation("room_user")

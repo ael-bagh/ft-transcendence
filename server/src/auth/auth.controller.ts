@@ -99,7 +99,7 @@ export class AuthController {
 		}
 		catch(e)
 		{
-			console.log(e, "oh no");
+			console.log(e, "oh noo");
              response.json({'authenticied':false});
 		}
 	}

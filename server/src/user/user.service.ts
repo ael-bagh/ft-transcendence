@@ -284,7 +284,31 @@ export class UserService {
 		return this.prisma.user.deleteMany({});
 	}
 
-
-
-
+	async searchUsers(segment : string, user: User): Promise<User[]> {
+		return (await this.prisma.user.findMany({
+			where: {
+					login: {
+						contains: segment,
+					},
+					NOT: {
+						OR: [
+								{
+							blocked_users: {
+								some:{
+									login: user.login
+								}
+							},
+						},
+						{
+							blocked_by_users: {
+								some:{
+									login: user.login
+								}
+							}
+						}
+					]
+				}
+			}
+		}));
+	}
 }

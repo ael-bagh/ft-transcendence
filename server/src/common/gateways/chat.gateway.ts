@@ -27,14 +27,14 @@ export class ChatGateway {
 
 	@SubscribeMessage('send_user_message')
 	async handleUserMessages(
-		@MessageBody() data: any,
+		@MessageBody() data: {currentRoom:string, time: Date, user_login:string, message:string,  },
 		@ConnectedSocket() client: CustomSocket,
 	): Promise<Message> {
 		console.log(data);
-		if (await (this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id: Number(data.room_id) },)) == false)
+		if (await (this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id: parseInt(data.currentRoom) },)) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-		const message = await this.roomService.addUserMessage(data.message,client.user.login,data.room_id)
-		this.server.to(data.room_id).emit("message", message);
+		const message = await this.roomService.addUserMessage(data.message,client.user.login,data.currentRoom)
+		this.server.to(data.currentRoom).emit("message", message);
 		console.log("test_me ", message);
 		return message;
 	}
