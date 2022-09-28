@@ -26,6 +26,7 @@ import { RoomService } from '@/room/room.service';
 import { CurrentUser } from './user.decorator';
 import { HttpService } from '@nestjs/axios';
 import { NOTFOUND } from 'dns';
+import { MessageBody } from '@nestjs/websockets';
 
 enum status {
 	'OFFLINE' = 0,
@@ -41,7 +42,11 @@ function delay(ms: number) {
 @Controller('user')
 @UseGuards(JwtAuthGuard)
 export class UserController {
-	constructor(private readonly userService: UserService, private readonly gameService: GameService, private readonly roomService: RoomService) { }
+	constructor(
+		private readonly userService: UserService,
+		private readonly gameService: GameService,
+		private readonly roomService: RoomService
+		) { }
 
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
@@ -164,19 +169,15 @@ export class UserController {
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		return user;
 	}
-	// @SubscribeMessage('search_user')
-	// searchUser(
-	// 	@MessageBody() login: string
-	// ) {
-	// 	const result = this.prisma.room.findMany({
-	// 		where: {
-	// 			room_name: {
-	// 				contains: login,
-	// 			}
-	// 		}
-	// 	})
-	// 	client.emit('found_rooms', result);
-	// }
+
+	@Post('search_user')
+	searchUser(
+		@MessageBody() login: string,
+		@CurrentUser() user: UserModel
+	) {
+		const result = this.userService.searchUsers(login, user)
+		return(result);
+	}
 
 	// @Delete('/:id/delete')
 	// async deleteUser(@CurrentUser() user: UserModel, @Body() userData: {login: string})
@@ -292,7 +293,7 @@ export class UsersController {
 	@Delete('/users/delete')
 	async deleteAllUsers() {
 		this.gameService.deleteGames();
-		this.roomService.deleteMessages({});
+		// this.roomService.deleteMessages({});
 		this.roomService.deleteRooms({});
 		this.userService.deleteAllUsers();
 	}
