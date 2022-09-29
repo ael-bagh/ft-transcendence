@@ -361,8 +361,8 @@ export class UserService {
 		console.log('survived')
 		let mutual = await this.users({
 			where: {
-				friend_requests: { some: { login: login } },
-				login: friend_login
+				friend_requests: { some: { login: friend_login } },
+				login: login
 			}
 		});
 		console.log('mutual:', mutual);
