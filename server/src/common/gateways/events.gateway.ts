@@ -38,12 +38,12 @@ export class EventsGateway {
 				status: Status.ONLINE,
 			}
 		});
-		console.log(this.server.sockets.adapter.rooms);
+		// console.log(this.server.sockets.adapter.rooms);
 		console.log("a user connected", client.user.login);
 	}
 
 	async handleDisconnect(client: CustomSocket) {
-		console.log(this.server.sockets.adapter.rooms);
+		// console.log(this.server.sockets.adapter.rooms);
 		client.leave('__connected_' + client.user.login);
 		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.login])
 		{
@@ -84,17 +84,18 @@ export class EventsGateway {
 		@MessageBody() userData: { friend_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
+		console.log(userData);
 		let login = client.user.login;
 		let friend_login = userData.friend_login;
 		if (!friend_login)
 		{
 			return null;
 		}
-		let blocked = await this.userService.permissionToDoAction({
+		let allowed = await this.userService.permissionToDoAction({
 			action_performer: login,
 			action_target: friend_login,
 		});
-		if (blocked)
+		if (!allowed)
 			return null;
 		return this.userService.sendFriendRequest({
 			login, friend_login, onFinish: (user, friend_login, broadcast) => {
@@ -120,11 +121,11 @@ export class EventsGateway {
 		{
 			return null;
 		}
-		let blocked = await this.userService.permissionToDoAction({
+		let allowed = await this.userService.permissionToDoAction({
 			action_performer: login,
 			action_target: friend_login,
 		});
-		if (blocked)
+		if (!allowed)
 			return null;
 		this.userService.remove_request({
 			login, friend_login, onFinish: (login: string, friend_login) => {
