@@ -129,7 +129,9 @@ export class UserController {
 	}
 
 	@Get('friend/:friend_login')
-	async getFriendBool(@CurrentUser() user: UserModel, @Param('friend_login') friend_login: string): Promise<string> {
+	async getFriendBool(@CurrentUser() user: UserModel, @Param('friend_login') friend_login: string): Promise<{
+		is_friend: boolean, is_request_sent:boolean,is_request_received: boolean, is_blocked: boolean}> {
+		let relationships = {is_request_sent: false, is_request_received: false, is_friend: false, is_blocked: false};
 		// console.log(friend_login);
 		if (!this.userService.permissionToDoAction({action_performer: user.login, action_target: friend_login}))
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
@@ -143,7 +145,7 @@ export class UserController {
 				}
 			}
 		}) )
-			return 'friends';
+			relationships['is_friend'] = true;
 		if ( await this.userService.getFriendBool({
 			where: {
 				login: user.login,
@@ -154,8 +156,31 @@ export class UserController {
 				}
 			}
 		}))
-			return 'friend_request_sent'
-		return 'not_friends'
+			relationships['is_request_sent'] = true;
+		if ( await this.userService.getFriendBool({
+			where: {
+				login: user.login,
+				friend_requests_received: {
+					some: {
+						login: friend_login,
+					}
+				}
+			}
+		}))
+			relationships['is_request_received'] = true;
+		// is blocked
+		if ( await this.userService.getFriendBool({
+			where: {
+				login: user.login,
+				blocked_users: {
+					some: {
+						login: friend_login,
+					}
+				}
+			}
+		}))
+			relationships['is_blocked'] = true;
+		return relationships;
 	}
 	@Patch('update')
 	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
