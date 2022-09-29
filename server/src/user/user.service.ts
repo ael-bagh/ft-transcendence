@@ -206,12 +206,12 @@ export class UserService {
 	}
 
 	async permissionToDoAction(params: {
-		action_performer: Prisma.UserWhereUniqueInput,
-		action_target: Prisma.UserWhereUniqueInput,
+		action_performer: string,
+		action_target: string,
 	}) {
 		const { action_performer, action_target } = params;
-		const action_performer_user = await this.user(action_performer);
-		const action_target_user = await this.user(action_target);
+		const action_performer_user = await this.user({login: action_performer});
+		const action_target_user = await this.user({login: action_target});
 		if (action_performer_user == null || action_target_user == null)
 			return false;
 		if (action_performer_user.login == action_target_user.login)
@@ -220,18 +220,18 @@ export class UserService {
 			where: {
 				OR: [
 					{
-						login: action_performer_user.login,
+						login: action_performer,
 						blocked_users: {
 							some: {
-								login: action_target_user.login,
+								login: action_target,
 							}
 						}
 					},
 					{
-						login: action_target_user.login,
+						login: action_target,
 						blocked_by_users: {
 							some: {
-								login : action_performer.login,
+								login : action_performer,
 							}
 						}
 					}
