@@ -109,11 +109,11 @@ export class UserController {
 	}
 	@Get('friend_requests')
 	async getUserFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-		return (await this.userService.users({ where: { friend_requests: { some: { login: user.login } } } }));
+		return (await this.userService.userFields(user.login, 'received_requests'));
 	}
 	@Get('sent_friend_requests')
 	async getUserSentFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-		return (await this.userService.userFields(user.login))
+		return (await this.userService.userFields(user.login, 'sent_requests'));
 	}
 	@Get('friends')
 	async getUserFriends(@CurrentUser() user: UserModel): Promise<UserModel[]> {
@@ -143,7 +143,7 @@ export class UserController {
 				}
 			}
 		}) )
-			return 'friend';
+			return 'friends';
 		if ( await this.userService.getFriendBool({
 			where: {
 				login: user.login,
