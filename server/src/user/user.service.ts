@@ -33,7 +33,7 @@ export class UserService {
 		login: string,
 	)
 		: Promise<User[] | null> {
-		let user = this.prisma.user.findMany({
+		let users = this.prisma.user.findMany({
 			where:{
 				login: login
 			},
@@ -42,7 +42,8 @@ export class UserService {
 			}
 		
 		});
-		return user[0].sent_friend_requests;
+		console.log(users)
+		return null;
 	}
 	async getFriendBool(
 		where,
