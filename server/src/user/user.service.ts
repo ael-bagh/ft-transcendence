@@ -28,6 +28,22 @@ export class UserService {
 		});
 	}
 
+
+	async userFields(
+		login: string,
+	)
+		: Promise<User[] | null> {
+		let user = this.prisma.user.findMany({
+			where:{
+				login: login
+			},
+			select: {
+				friend_requests_sent: true,
+			}
+		
+		});
+		return user[0].sent_friend_requests;
+	}
 	async getFriendBool(
 		where,
 	): Promise<boolean> {
@@ -57,16 +73,16 @@ export class UserService {
 		}
 	}
 
-	async userPermissions(
-		action_perfomer: Prisma.UserWhereUniqueInput,
-		action: string,
-		action_target: Prisma.UserWhereUniqueInput,
-	): Promise<Boolean> {
-		switch (action) {
-			// add user permissions here.
-		}
-		return false;
-	}
+	// async userPermissions(
+	// 	action_perfomer: Prisma.UserWhereUniqueInput,
+	// 	action: string,
+	// 	action_target: Prisma.UserWhereUniqueInput,
+	// ): Promise<Boolean> {
+	// 	switch (action) {
+	// 		// add user permissions here.
+	// 	}
+	// 	return false;
+	// }
 
 	async deleteFriends(user_login: string, friend_login: string) {
 		await this.prisma.user.update({
@@ -208,7 +224,7 @@ export class UserService {
 	async permissionToDoAction(params: {
 		action_performer: string,
 		action_target: string,
-	}) {
+	}): Promise<boolean> {
 		const { action_performer, action_target } = params;
 		const action_performer_user = await this.user({login: action_performer});
 		const action_target_user = await this.user({login: action_target});
