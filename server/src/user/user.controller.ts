@@ -11,7 +11,8 @@ import {
 	Req,
 	Res,
 	HttpException,
-	HttpStatus
+	HttpStatus,
+	Query
 } from '@nestjs/common';
 
 import { UserService } from '@/user/user.service';
@@ -26,6 +27,7 @@ import { RoomService } from '@/room/room.service';
 import { CurrentUser } from './user.decorator';
 import { HttpService } from '@nestjs/axios';
 import { NOTFOUND } from 'dns';
+import { MessageBody } from '@nestjs/websockets';
 
 enum status {
 	'OFFLINE' = 0,
@@ -41,7 +43,11 @@ function delay(ms: number) {
 @Controller('user')
 @UseGuards(JwtAuthGuard)
 export class UserController {
-	constructor(private readonly userService: UserService, private readonly gameService: GameService, private readonly roomService: RoomService) { }
+	constructor(
+		private readonly userService: UserService,
+		private readonly gameService: GameService,
+		private readonly roomService: RoomService
+		) { }
 
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
@@ -103,11 +109,11 @@ export class UserController {
 	}
 	@Get('friend_requests')
 	async getUserFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-		return (await this.userService.users({ where: { friend_requests: { some: { login: user.login } } } }));
+		return (await this.userService.userFields(user.login, 'received_requests'));
 	}
 	@Get('sent_friend_requests')
 	async getUserSentFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-		return (await this.userService.users({ where: { friend_requests_sent: { some: { login: user.login } } } }));
+		return (await this.userService.userFields(user.login, 'sent_requests'));
 	}
 	@Get('friends')
 	async getUserFriends(@CurrentUser() user: UserModel): Promise<UserModel[]> {
@@ -122,18 +128,62 @@ export class UserController {
 		}));
 	}
 
-	@Get('friend')
-	async getFriendBool(@CurrentUser() user: UserModel, @Body() userData: { friend_login: string }): Promise<Boolean> {
-		return await this.userService.getFriendBool({
+	@Get('friend/:friend_login')
+	async getFriendRelationship(@CurrentUser() user: UserModel, @Param('friend_login') friend_login: string): Promise<{
+		is_friend: boolean, is_request_sent:boolean,is_request_received: boolean, is_blocked: boolean}> {
+		let relationships = {is_request_sent: false, is_request_received: false, is_friend: false, is_blocked: false};
+		console.log( 'friend relationship : ', user.login, friend_login)
+		if (user.login == friend_login)
+			return relationships;
+		// console.log(friend_login);
+		if (!this.userService.permissionToDoAction({action_performer: user.login, action_target: friend_login}))
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		if( await this.userService.getFriendBool({
 			where: {
 				login: user.login,
 				friends: {
 					some: {
-						login: userData.friend_login,
+						login: friend_login,
 					}
 				}
 			}
-		})
+		}) )
+			relationships['is_friend'] = true;
+		if ( await this.userService.getFriendBool({
+			where: {
+				login: user.login,
+				friend_requests_sent: {
+					some: {
+						login: friend_login,
+					}
+				}
+			}
+		}))
+			relationships['is_request_sent'] = true;
+		if ( await this.userService.getFriendBool({
+			where: {
+				login: user.login,
+				friend_requests: {
+					some: {
+						login: friend_login,
+					}
+				}
+			}
+		}))
+			relationships['is_request_received'] = true;
+		// is blocked
+		if ( await this.userService.getFriendBool({
+			where: {
+				login: user.login,
+				blocked_users: {
+					some: {
+						login: friend_login,
+					}
+				}
+			}
+		}))
+			relationships['is_blocked'] = true;
+		return relationships;
 	}
 	@Patch('update')
 	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
@@ -164,19 +214,15 @@ export class UserController {
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		return user;
 	}
-	// @SubscribeMessage('search_user')
-	// searchUser(
-	// 	@MessageBody() login: string
-	// ) {
-	// 	const result = this.prisma.room.findMany({
-	// 		where: {
-	// 			room_name: {
-	// 				contains: login,
-	// 			}
-	// 		}
-	// 	})
-	// 	client.emit('found_rooms', result);
-	// }
+
+	@Post('search_user')
+	searchUser(
+		@MessageBody() login: string,
+		@CurrentUser() user: UserModel
+	) {
+		const result = this.userService.searchUsers(login, user)
+		return(result);
+	}
 
 	// @Delete('/:id/delete')
 	// async deleteUser(@CurrentUser() user: UserModel, @Body() userData: {login: string})
@@ -292,7 +338,7 @@ export class UsersController {
 	@Delete('/users/delete')
 	async deleteAllUsers() {
 		this.gameService.deleteGames();
-		this.roomService.deleteMessages({});
+		// this.roomService.deleteMessages({});
 		this.roomService.deleteRooms({});
 		this.userService.deleteAllUsers();
 	}

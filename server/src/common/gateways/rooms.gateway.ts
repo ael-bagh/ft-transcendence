@@ -25,7 +25,6 @@ export class RoomsGateway {
 	@WebSocketServer()
 	server: Server;
 
-
 	@SubscribeMessage('join_room')
 	async joinRoom(@ConnectedSocket() client: CustomSocket, @MessageBody() { room_id, room_password }: { room_id: number, room_password?: string }) {
 		const result = await this.prisma.room.findUnique({

@@ -38,12 +38,12 @@ export class EventsGateway {
 				status: Status.ONLINE,
 			}
 		});
-		console.log(this.server.sockets.adapter.rooms);
+		// console.log(this.server.sockets.adapter.rooms);
 		console.log("a user connected", client.user.login);
 	}
 
 	async handleDisconnect(client: CustomSocket) {
-		console.log(this.server.sockets.adapter.rooms);
+		// console.log(this.server.sockets.adapter.rooms);
 		client.leave('__connected_' + client.user.login);
 		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.login])
 		{
@@ -80,13 +80,23 @@ export class EventsGateway {
 
 
 	@SubscribeMessage('add_friend_request')
-	sendRequest(
+	async sendRequest(
 		@MessageBody() userData: { friend_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
+		console.log(userData);
 		let login = client.user.login;
-		let friend_login = userData['friend_login'];
-		console.log(userData)
+		let friend_login = userData.friend_login;
+		if (!friend_login)
+		{
+			return null;
+		}
+		let allowed = await this.userService.permissionToDoAction({
+			action_performer: login,
+			action_target: friend_login,
+		});
+		if (!allowed)
+			return null;
 		return this.userService.sendFriendRequest({
 			login, friend_login, onFinish: (user, friend_login, broadcast) => {
 				// FIXME: REVISE THIS
@@ -101,12 +111,22 @@ export class EventsGateway {
 	}
 
 	@SubscribeMessage('accept_friend_request')
-	acceptFriendRequest(
+	async acceptFriendRequest(
 		@MessageBody() userData: { friend_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
-		let friend_login = userData['friend_login'];
+		let friend_login = userData?.friend_login
+		if (!friend_login)
+		{
+			return null;
+		}
+		let allowed = await this.userService.permissionToDoAction({
+			action_performer: login,
+			action_target: friend_login,
+		});
+		if (!allowed)
+			return null;
 		this.userService.remove_request({
 			login, friend_login, onFinish: (login: string, friend_login) => {
 				this.gateWayService.emitBroadcast(this.server, friend_login, login);
@@ -121,8 +141,7 @@ export class EventsGateway {
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
-		let friend_login = userData['friend_login'];
-		 this.userService.deleteFriends(login, userData['friend_login']);
+		 this.userService.deleteFriends(login, userData?.friend_login);
 		return ( this.userService.user({ login: (login) }));
 	}
 
@@ -132,20 +151,17 @@ export class EventsGateway {
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
-		let friend_login = userData['friend_login'];
+		let friend_login = userData?.friend_login
+		if (!friend_login)
+		{
+			return null;
+		}
 		let friend =  this.userService.user({ login: (friend_login) });
 		if (!client?.user || !friend)
 			return null;
 	
-		 this.userService.updateUser({
-			where : {login: (friend_login)},
-			data : {
-				friend_requests: {
-					disconnect: {
-						login: login,
-					},
-				},
-			},
+		this.userService.remove_request({
+			login, friend_login, 
 		});
 		return ( this.userService.user({ login: (login) }));
 	}
@@ -160,28 +176,41 @@ export class EventsGateway {
 		let friend =  this.userService.user({ login: (friend_login) });
 		if (!client?.user || !friend)
 			return null;
-		 this.userService.updateUser({
-			where : {login: (login)},
-			data : {
-				friend_requests_sent: {
-					disconnect: {
-						login: login,
-					},
-				},
-			},
+		 
+		this.userService.remove_request({
+			login: friend_login, friend_login: login, 
 		});
-		 this.userService.updateUser({
-			where : {login: (friend_login)},
-			data : {
-				friend_requests: {
-					disconnect: {
-						login: login,
-					},
-				}
-			}
-		});
-
 		return ( this.userService.user({ login: (login) }));
+	}
+
+	@SubscribeMessage('block_user')
+	block_user(
+		@MessageBody() userData : { login_to_block: string},
+		@ConnectedSocket() client: CustomSocket,
+	)
+	{
+		let login = client.user.login;
+		let user_to_block_login = userData?.login_to_block
+		if (!user_to_block_login)
+			return (null);
+		if (!this.userService.user({login: user_to_block_login}))
+			return null;
+		this.userService.block_user({login, user_to_block_login})
+	}
+
+	@SubscribeMessage('unblock_user')
+	unblock_user(
+		@MessageBody() userData : { login_to_unblock: string},
+		@ConnectedSocket() client: CustomSocket,
+	)
+	{
+		let login = client.user.login;
+		let user_to_unblock_login = userData?.login_to_unblock
+		if (!user_to_unblock_login)
+			return (null);
+		if (!this.userService.user({login: user_to_unblock_login}))
+			return null;
+		this.userService.unblock_user({login, user_to_unblock_login});
 	}
 	// handleNotifications(
 	// 	friend_login : string,

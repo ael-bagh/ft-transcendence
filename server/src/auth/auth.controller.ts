@@ -26,8 +26,8 @@ export class AuthController {
 
 	@Get('logout')
 	ft_oauth_logout(@Res() response: Response) {
-		response.clearCookie("access_token",{path:'/',domain: '.transcendance.com'});
-		response.clearCookie("refresh_token",{path:'/auth/refresh',domain: '.transcendance.com'});
+		response.clearCookie("access_token",{path:'/',domain: process.env.DOMAIN});
+		response.clearCookie("refresh_token",{path:'/auth/refresh',domain: process.env.DOMAIN});
 		response.redirect(process.env.FRONTEND_URL);
 	}
 
@@ -66,12 +66,12 @@ export class AuthController {
 						// refreshExpires.setSeconds(refreshExpires.getSeconds() + 2);
 						response.cookie("refresh_token", refreshToken, {
 							httpOnly: true,
-							domain: '.transcendance.com',
+							domain: process.env.DOMAIN,
 							path: '/auth/refresh'
 						});
 						response.cookie("access_token", accessToken, {
 							httpOnly: true,
-							domain: '.transcendance.com',
+							domain: process.env.DOMAIN,
 							// expires: refreshExpires,
 							path: '/'
 						});
@@ -92,14 +92,14 @@ export class AuthController {
 			const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
 			response.cookie("access_token", accessToken, {
 				httpOnly: true,
-				domain: '.transcendance.com',
+				domain: process.env.DOMAIN,
 				path: '/'
 			});
 			response.json(req.cookies);
 		}
 		catch(e)
 		{
-			console.log(e, "oh no");
+			console.log(e, "oh noo");
              response.json({'authenticied':false});
 		}
 	}

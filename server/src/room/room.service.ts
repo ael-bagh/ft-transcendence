@@ -350,7 +350,7 @@ export class RoomService {
 	async addUserMessage(
 		message_content: string,
 		message_user_login: string,
-		message_room_id: number,
+		message_room_id: string,
 	): Promise<Message> {
 		const message = await this.prisma.message.create({
 			data: {
@@ -358,7 +358,7 @@ export class RoomService {
 				message_time: new Date(),
 				message_room: {
 					connect: {
-						room_id: message_room_id,
+						room_id: Number(message_room_id),
 					},
 				},
 				message_user: {
@@ -369,13 +369,24 @@ export class RoomService {
 				message_type: Message_type.USER
 			}
 		});
-		await this.prisma.message_Notification.create({
-			data: {
-				message_id: message.message_id,
-				room_id: message_room_id,
-				user_login: message_user_login,
-			}
-		});
+		const users = (await this.prisma.user.findMany({
+			where:{
+					rooms_member:{
+						some:{
+							room_id:Number(message_room_id)
+						}
+					}
+				}
+		}));
+		Promise.all(users.map(async user =>{
+			this.prisma.message_Notification.create({
+				data: {
+					message_id: message.message_id,
+					room_id: Number(message_room_id),
+					user_login: user.login,
+				}
+			});
+		}));
 		return message;
 	}
 
