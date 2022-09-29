@@ -37,7 +37,7 @@ export class UserService {
 			where:{
 				login: login
 			},
-			select: {
+			include: {
 				friend_requests_sent: true,
 			}
 		
