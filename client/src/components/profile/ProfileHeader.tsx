@@ -1,34 +1,25 @@
 import { GiRank1, GiPodiumWinner, GiDeathJuice } from "react-icons/gi";
-import { IoMdPersonAdd } from "react-icons/io";
-import { AuthUserContext } from "../../contexts/authUser.context";
-import { useContext, useState } from "react";
 import { useLoaderData } from "react-router-dom";
-import { useSocket } from "../../hooks/api/useSocket";
+import { useRelation } from "../../hooks/api/useUser";
+import Relationship from "./Relationship";
 
 function ProfileHeader() {
   const { data: user } = useLoaderData() as { data: User | null };
-  const [requestSent, setRequestSent] = useState(false);
-  const onRequestSent = () => {
-    sendFriendRequest({
-    friend_login: user?.login,
-      }).finally(() => setRequestSent(true));
-  };
+
   const divStyle = {
     backgroundImage: "url(" + user?.avatar + ")",
   };
-  const { sendFriendRequest } = useSocket();
-  const { authUser } = useContext(AuthUserContext);
   return (
-    <div className="flex flex-col w-screen">
-      <div className="sm:h-96 flex justify-center items-center">
-        <div className="bg-repeat sm:w-full sm:h-full" style={divStyle}></div>
+    <div className="flex flex-col w-full">
+      <div className="sm:h-96 w-full flex justify-center items-center">
+        <div className="sm:bg-repeat sm:w-full sm:h-full overflow-clip" style={divStyle}></div>
         <img
           src={`https://avatars.dicebear.com/api/pixel-art-neutral/${user?.login}.svg`}
           alt="avatar"
-          className="sm:absolute sm:h-44 sm:w-44 h-96  sm:rounded-full w-screen sm:object-contain"
+          className="sm:absolute sm:h-44 sm:w-44 h-full  sm:rounded-full w-screen sm:object-contain"
         />
       </div>
-      <div className="flex flex-row justify-between items-center bg-purple-500 p-2">
+      <div className="flex flex-row justify-between items-center bg-purple-500 p-2 pl-4 pr-4">
         <p>
           <GiRank1 className="inline text-3xl font-extrabold" />
           {user?.player_level}
@@ -41,14 +32,7 @@ function ProfileHeader() {
           <GiDeathJuice className="inline text-3xl font-extrabold" />{" "}
           {user?._count?.games_lost}
         </p>
-
-        {!requestSent && authUser?.login !== user?.login && <button
-          className="bg-purple-600 p-2 rounded-3xl flex-none text-center font-normal border-2 border-white inline items-center"
-          onClick={onRequestSent}
-        >
-          {" "}
-          <IoMdPersonAdd className="inline" /> Add friend
-        </button>}
+        <Relationship user={user}/>
       </div>
       <div className="playerInfo">
         <h1 className="text-2xl font-sans font-bold">{user?.login}</h1>
