@@ -31,19 +31,41 @@ export class UserService {
 
 	async userFields(
 		login: string,
+		includename: string
 	)
 		: Promise<User[] | null> {
-		let users = this.prisma.user.findMany({
-			where:{
-				login: login
-			},
-			include: {
-				friend_requests_sent: true,
-			}
-		
-		});
-		console.log(users)
-		return null;
+		if (includename == 'sent_requests')
+		{
+
+			let users = await this.prisma.user.findUnique({
+				where:{
+					login: login
+				},
+				select: {
+					friend_requests_sent: true,
+				}
+				
+			});
+			console.log(users)
+			return users.friend_requests_sent;
+		}
+		else if (includename == 'received_requests')
+		{
+			let users = await this.prisma.user.findUnique({
+				where:{
+					login: login
+				},
+				select: {
+					friend_requests: true,
+				}
+				
+			});
+			console.log(users)
+			return users.friend_requests;
+		}
+		else
+			return null;
+
 	}
 	async getFriendBool(
 		where,
