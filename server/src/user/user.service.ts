@@ -34,6 +34,7 @@ export class UserService {
 	{
 		return ((await this.prisma.user.count(where)) > 0) ;
 	}
+
 	async userWins(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<number> {
 		{
 			return this.prisma.user.findUnique({
@@ -135,6 +136,76 @@ export class UserService {
 		return this.prisma.user.create({
 			data
 		});
+	}
+
+	async block_user(params:{
+		login: string, 
+		user_to_block_login:string
+	})
+	{
+		const {login, user_to_block_login} = params;
+		const user_exists = await this.user({login:user_to_block_login})
+		if (user_exists == null)
+			return null;
+		this.remove_request({login: login, friend_login: user_to_block_login})
+		this.remove_request({login: user_to_block_login, friend_login:login})
+		this.deleteFriends(login, user_to_block_login);
+		this.updateUser({
+			where:{
+				login: login,
+			},
+			data:{
+				blocked_users:{
+					connect:{
+						login: user_to_block_login,
+					}
+				}
+			}
+		})
+		this.updateUser({
+			where:{
+				login:user_to_block_login,
+			},
+			data:{
+				blocked_by_users:{
+					connect:{
+						login:login
+					}
+				}
+			}
+		})
+	}
+
+	async unblock_user(params:{
+			login: string,
+			user_to_unblock_login: string,
+	})
+	{
+		const {login, user_to_unblock_login} = params;
+		this.updateUser({
+			where:{
+				login:login
+			},
+			data:{
+				blocked_users:{
+					disconnect:{
+						login:user_to_unblock_login,
+					}
+				}
+			}
+		});
+		this.updateUser({
+			where:{
+				login:user_to_unblock_login,
+			},
+			data:{
+				blocked_by_users:{
+					disconnect:{
+						login: login,
+					}
+				}
+			}
+		})
 	}
 
 	async signupUser(

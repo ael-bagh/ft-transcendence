@@ -11,7 +11,8 @@ import {
 	Req,
 	Res,
 	HttpException,
-	HttpStatus
+	HttpStatus,
+	Query
 } from '@nestjs/common';
 
 import { UserService } from '@/user/user.service';
@@ -128,8 +129,31 @@ export class UserController {
 	}
 
 	@Get('friend')
-	async getFriendBool(@CurrentUser() user: UserModel, @Body() userData: { friend_login: string }): Promise<Boolean> {
-		return await this.userService.getFriendBool({
+	async getFriendBool(@CurrentUser() user: UserModel, @Query() userData: { friend_login: string }): Promise<string> {
+		console.log(userData, user);
+		if ( await this.userService.getFriendBool({
+			where: {
+				login: user.login,
+				OR: [
+						{
+						blocked_users: {
+							some:{
+								login: userData.friend_login,
+							}
+						},
+					},
+					{
+						blocked_by_users: {
+							some: {
+								login: userData.friend_login,
+							}
+						}
+					}
+				]
+			}
+		}))
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		if( await this.userService.getFriendBool({
 			where: {
 				login: user.login,
 				friends: {
@@ -138,7 +162,20 @@ export class UserController {
 					}
 				}
 			}
-		})
+		}) )
+			return 'friend';
+		if ( await this.userService.getFriendBool({
+			where: {
+				login: user.login,
+				friend_requests_sent: {
+					some: {
+						login: userData.friend_login,
+					}
+				}
+			}
+		}))
+			return 'friend_request_sent'
+		return 'not_friends'
 	}
 	@Patch('update')
 	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
