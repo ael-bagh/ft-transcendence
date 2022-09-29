@@ -1,0 +1,21 @@
+{
+  "name": "pong",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "vite": "^2.9.9"
+  },
+  "dependencies": {
+    "@types/matter-js": "^0.18.1",
+    "@types/p5": "^1.4.2",
+    "matter-js": "^0.18.0",
+    "p5": "^1.4.1",
+    "socket.io-client": "^4.5.1"
+  }
+}
