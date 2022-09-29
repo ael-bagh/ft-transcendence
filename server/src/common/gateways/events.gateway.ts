@@ -80,7 +80,7 @@ export class EventsGateway {
 
 
 	@SubscribeMessage('add_friend_request')
-	sendRequest(
+	async sendRequest(
 		@MessageBody() userData: { friend_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
@@ -90,6 +90,12 @@ export class EventsGateway {
 		{
 			return null;
 		}
+		let blocked = await this.userService.permissionToDoAction({
+			action_performer: login,
+			action_target: friend_login,
+		});
+		if (blocked)
+			return null;
 		return this.userService.sendFriendRequest({
 			login, friend_login, onFinish: (user, friend_login, broadcast) => {
 				// FIXME: REVISE THIS
@@ -104,7 +110,7 @@ export class EventsGateway {
 	}
 
 	@SubscribeMessage('accept_friend_request')
-	acceptFriendRequest(
+	async acceptFriendRequest(
 		@MessageBody() userData: { friend_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
@@ -114,6 +120,12 @@ export class EventsGateway {
 		{
 			return null;
 		}
+		let blocked = await this.userService.permissionToDoAction({
+			action_performer: login,
+			action_target: friend_login,
+		});
+		if (blocked)
+			return null;
 		this.userService.remove_request({
 			login, friend_login, onFinish: (login: string, friend_login) => {
 				this.gateWayService.emitBroadcast(this.server, friend_login, login);
