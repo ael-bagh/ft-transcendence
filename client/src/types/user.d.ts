@@ -15,7 +15,7 @@ interface User {
   creation_date: Date;
   is_banned: boolean;
   KDA: number;
-  _count : Count;
+  _count: Count;
   player_level: number;
 }
 
@@ -46,6 +46,12 @@ interface UserLeaderboard {
   rank: number;
 }
 
+interface Relation {
+  is_request_sent: boolean;
+  is_request_received: boolean;
+  is_friend: boolean;
+  is_blocked: boolean;
+}
 // model User {
 // 	user_id Int @id @default(autoincrement())
 // 	login String
