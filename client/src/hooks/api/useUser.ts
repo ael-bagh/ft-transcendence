@@ -57,3 +57,21 @@ export function useHistory(id: string | undefined) {
   }, []);
   return { history, loading, error, mutate };
 }
+
+export function useRelation(id: string | undefined) {
+  const [relation, setRelation] = useState<Relation>({is_blocked: false, is_friend:false, is_request_received:false, is_request_sent:false});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | undefined>(undefined);
+    useEffect(() => {
+    axiosInstance
+      .get("/user/friend/" + id)
+      .then((res) => {
+        setRelation(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, []);
+  return { relation, loading, error};
+}
