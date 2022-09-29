@@ -3,7 +3,7 @@ import { RoomService } from "@/room/room.service";
 import { CurrentUser } from "@/user/user.decorator";
 import { UserService } from "@/user/user.service";
 import { HttpException, HttpStatus, Query, Req } from "@nestjs/common";
-import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from "@nestjs/websockets"
+import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer, WsException } from "@nestjs/websockets"
 import { Message, Message_type, Status, User } from "@prisma/client";
 import { Socket, Server } from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
@@ -32,7 +32,7 @@ export class ChatGateway {
 	): Promise<Message> {
 		console.log(data);
 		if (await (this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id: parseInt(data.currentRoom) },)) == false)
-			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+			throw new WsException('Not found');
 		const message = await this.roomService.addUserMessage(data.message,client.user.login,data.currentRoom)
 		this.server.to(data.currentRoom).emit("message", message);
 		console.log("test_me ", message);
