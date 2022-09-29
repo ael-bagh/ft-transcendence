@@ -130,7 +130,7 @@ export class UserController {
 
 	@Get('friend/:friend_login')
 	async getFriendBool(@CurrentUser() user: UserModel, @Param('friend_login') friend_login: string): Promise<string> {
-		console.log(friend_login);
+		// console.log(friend_login);
 		if (!this.userService.permissionToDoAction({action_performer: user.login, action_target: friend_login}))
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		if( await this.userService.getFriendBool({
