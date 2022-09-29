@@ -129,9 +129,12 @@ export class UserController {
 	}
 
 	@Get('friend/:friend_login')
-	async getFriendBool(@CurrentUser() user: UserModel, @Param('friend_login') friend_login: string): Promise<{
+	async getFriendRelationship(@CurrentUser() user: UserModel, @Param('friend_login') friend_login: string): Promise<{
 		is_friend: boolean, is_request_sent:boolean,is_request_received: boolean, is_blocked: boolean}> {
 		let relationships = {is_request_sent: false, is_request_received: false, is_friend: false, is_blocked: false};
+		console.log( 'friend relationship : ', user.login, friend_login)
+		if (user.login == friend_login)
+			return relationships;
 		// console.log(friend_login);
 		if (!this.userService.permissionToDoAction({action_performer: user.login, action_target: friend_login}))
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
@@ -160,7 +163,7 @@ export class UserController {
 		if ( await this.userService.getFriendBool({
 			where: {
 				login: user.login,
-				friend_requests_received: {
+				friend_requests: {
 					some: {
 						login: friend_login,
 					}
