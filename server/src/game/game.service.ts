@@ -69,3 +69,4 @@ export class GameService {
 		return this.prisma.game.deleteMany({});
 	}
 }
+
