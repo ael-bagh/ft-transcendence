@@ -66,6 +66,7 @@ export class EventsGateway {
 		return data;
 	}
 
+
 	@SubscribeMessage('events')
 	handleEvent(
 		@MessageBody() data: string,
@@ -81,30 +82,30 @@ export class EventsGateway {
 
 	@SubscribeMessage('add_friend_request')
 	async sendRequest(
-		@MessageBody() userData: { friend_login: string },
+		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		console.log(userData);
 		let login = client.user.login;
-		let friend_login = userData.friend_login;
-		if (!friend_login)
+		let target_login = userData.target_login;
+		if (!target_login)
 		{
 			return null;
 		}
 		let allowed = await this.userService.permissionToDoAction({
 			action_performer: login,
-			action_target: friend_login,
+			action_target: target_login,
 		});
 		if (!allowed)
 			return null;
 		return this.userService.sendFriendRequest({
-			login, friend_login, onFinish: (user, friend_login, broadcast) => {
+			login, friend_login: target_login, onFinish: (user, target_login, broadcast) => {
 				// FIXME: REVISE THIS
 				if (broadcast) {
-					this.gateWayService.emitBroadcast(this.server, friend_login, login);
+					this.gateWayService.emitBroadcast(this.server, target_login, login);
 					
 				} else {
-					this.server.to(`__connected_${friend_login}`).emit('friend_request', user.login);
+					this.server.to(`__connected_${target_login}`).emit('friend_request', user.login);
 				}
 			}
 		});
@@ -112,85 +113,85 @@ export class EventsGateway {
 
 	@SubscribeMessage('accept_friend_request')
 	async acceptFriendRequest(
-		@MessageBody() userData: { friend_login: string },
+		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
-		let friend_login = userData?.friend_login
-		if (!friend_login)
+		let target_login = userData?.target_login
+		if (!target_login)
 		{
 			return null;
 		}
 		let allowed = await this.userService.permissionToDoAction({
 			action_performer: login,
-			action_target: friend_login,
+			action_target: target_login,
 		});
 		if (!allowed)
 			return null;
 		this.userService.remove_request({
-			login, friend_login, onFinish: (login: string, friend_login) => {
-				this.gateWayService.emitBroadcast(this.server, friend_login, login);
+			login, friend_login: target_login, onFinish: (login: string, target_login) => {
+				this.gateWayService.emitBroadcast(this.server, target_login, login);
 			}
 		});
-		return this.userService.addfriends(login, friend_login);
+		return this.userService.addfriends(login, target_login);
 	}
 
 	@SubscribeMessage('delete_friend')
 	delete_friend(
-		@MessageBody() userData: { friend_login: string },
+		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
-		 this.userService.deleteFriends(login, userData?.friend_login);
+		 this.userService.deleteFriends(login, userData?.target_login);
 		return ( this.userService.user({ login: (login) }));
 	}
 
 	@SubscribeMessage('delete_friend_request')
 	delete_friend_request(
-		@MessageBody() userData: { friend_login: string },
+		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
-		let friend_login = userData?.friend_login
-		if (!friend_login)
+		let target_login = userData?.target_login
+		if (!target_login)
 		{
 			return null;
 		}
-		let friend =  this.userService.user({ login: (friend_login) });
+		let friend =  this.userService.user({ login: (target_login) });
 		if (!client?.user || !friend)
 			return null;
 	
 		this.userService.remove_request({
-			login, friend_login, 
+			login, friend_login:target_login, 
 		});
 		return ( this.userService.user({ login: (login) }));
 	}
 
 	@SubscribeMessage('delete_sent_friend_request')
 	delete_sent_friend_request(
-		@MessageBody() userData: { friend_login: string },
+		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
-		let friend_login = userData['friend_login'];
-		let friend =  this.userService.user({ login: (friend_login) });
+		let target_login = userData['target_login'];
+		let friend =  this.userService.user({ login: (target_login) });
 		if (!client?.user || !friend)
 			return null;
 		 
 		this.userService.remove_request({
-			login: friend_login, friend_login: login, 
+			login: target_login, friend_login: login, 
 		});
 		return ( this.userService.user({ login: (login) }));
 	}
 
 	@SubscribeMessage('block_user')
 	block_user(
-		@MessageBody() userData : { login_to_block: string},
+		@MessageBody() userData : { target_login: string},
 		@ConnectedSocket() client: CustomSocket,
 	)
 	{
 		let login = client.user.login;
-		let user_to_block_login = userData?.login_to_block
+		let user_to_block_login = userData?.target_login
 		if (!user_to_block_login)
 			return (null);
 		if (!this.userService.user({login: user_to_block_login}))
@@ -200,12 +201,12 @@ export class EventsGateway {
 
 	@SubscribeMessage('unblock_user')
 	unblock_user(
-		@MessageBody() userData : { login_to_unblock: string},
+		@MessageBody() userData : { target_login: string},
 		@ConnectedSocket() client: CustomSocket,
 	)
 	{
 		let login = client.user.login;
-		let user_to_unblock_login = userData?.login_to_unblock
+		let user_to_unblock_login = userData?.target_login
 		if (!user_to_unblock_login)
 			return (null);
 		if (!this.userService.user({login: user_to_unblock_login}))
@@ -213,7 +214,7 @@ export class EventsGateway {
 		this.userService.unblock_user({login, user_to_unblock_login});
 	}
 	// handleNotifications(
-	// 	friend_login : string,
+	// 	target_login : string,
 	// 	message : string,
 	// 	@ConnectedSocket() client: CustomSocket
 	// ) : any {

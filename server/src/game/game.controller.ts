@@ -13,6 +13,7 @@ import { GameService } from '@/game/game.service';
 import { Game as GameModel, User as UserModel, Prisma} from '@prisma/client';
 import { UserModule } from '@/user/user.module';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { CurrentUser } from '@/user/user.decorator';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -22,10 +23,8 @@ export class GameController {
 	  async getGames(): Promise<GameModel[]> {
 		  return this.gameService.games({});
 	  }
-	  @Get('makegame')
-	  async createGame()
-	  {
-		this.gameService.saveGame({game_winner_login:'arhallab', game_loser_login:'ael-bagh', game_winner_score:8,game_loser_score: 0});
+	  @Get('/games/:id')
+	  async getGame(@Param('id') id: string): Promise<GameModel> {
+		  return this.gameService.game({ game_id: Number(id) });
 	  }
-
 	}
