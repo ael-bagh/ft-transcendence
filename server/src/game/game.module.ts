@@ -7,5 +7,6 @@ import { GameService } from "@/game/game.service";
 	imports: [],
 	controllers: [GameController],
 	providers: [GameService,  PrismaService],
+	exports : [GameService]
 })
 export class GameModule {}
