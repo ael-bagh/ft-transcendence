@@ -25,6 +25,6 @@ export class GameController {
 	  }
 	  @Get('/games/:id')
 	  async getGame(@Param('id') id: string): Promise<GameModel> {
-		  return this.gameService.game({ game_id: Number(id) });
+		  return this.gameService.game({ game_id: id });
 	  }
 	}

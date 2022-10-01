@@ -58,16 +58,6 @@ export class GameObject {
 			});
 		});
 
-		// return new Promise(resolve => {
-		//     function checkFlag(runner : Runner) {
-		//       if (runner.enabled == false)
-		//       {
-		//         resolve(1);
-		//       }
-		//     }
-		//     return checkFlag(this.runner);
-		//   });
-		// return (this.score);
 	}
 	reset() {
 		Body.setVelocity(this.ball, { x: 4, y: 6 });
@@ -88,22 +78,15 @@ export class GameObject {
 				}
 				else if (pair.bodyA === this.walls["left"] || pair.bodyB === this.walls["left"]) {
 					console.log("left player 2 goaal");
-					Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
+					// Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
+					this.reset();
 					++this.score[1];
 				}
 				else if (pair.bodyA === this.walls["right"] || pair.bodyB === this.walls["right"]) {
 					console.log("right player 1 goaal");
+					this.reset();
 					++this.score[0];
-					// console.log(this.runner.enabled);
-					Runner.stop(this.runner);
-					this.runner.enabled = false;
-					// console.log(this.runner.enabled);
-					this.gameEvents.next({
-						event: 'GAME_FINISHED',
-						payload: null
-					});
-
-					Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
+					// Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
 				}
 				else {
 					console.log("bar");
@@ -117,6 +100,14 @@ export class GameObject {
 				}
 			}
 
+		}
+		if (this.score[0] == 1 || this.score[1] == 1)
+		{
+			Runner.stop(this.runner);
+			this.gameEvents.next({
+				event: 'GAME_FINISHED',
+				payload: this.score
+			});
 		}
 	}
 	private twin_projector(height: number) {
@@ -157,6 +148,8 @@ export class GameObject {
 			const pair = pairs[i];
 			if (pair.bodyA === this.ball || pair.bodyB === this.ball) {
 				console.log('velocity', this.ball.velocity);
+				console.log('pos', this.ball.position);
+				
 				if (pair.bodyA === this.walls["top"] || pair.bodyB === this.walls["top"]) {
 					console.log("top");
 
