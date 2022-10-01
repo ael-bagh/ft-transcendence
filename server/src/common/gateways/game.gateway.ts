@@ -66,8 +66,8 @@ export class GameGateway {
 		matching_opp.join(game_lobby);
 
 		this.server.to(game_lobby).emit('match_found', "mebrouk")
-		// game.run();
-		// console.log(score);
+		await game.run();
+		console.log("!!!!!!!!!!!!!!scores");
 		// let game_room_id = client.id+matching_opp[Symbol('id')]
 		// client.join(String(game.game_id));
 		// matching_opp[Symbol('game_lobby')] = game; // game lobby object
