@@ -51,6 +51,7 @@ interface Relation {
   is_request_received: boolean;
   is_friend: boolean;
   is_blocked: boolean;
+  is_self: boolean;
 }
 // model User {
 // 	user_id Int @id @default(autoincrement())

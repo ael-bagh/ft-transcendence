@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../lib/axios";
+import { useSocket } from "./useSocket";
 
 interface returnObject {
   user: User | undefined;
@@ -59,9 +60,10 @@ export function useHistory(id: string | undefined) {
 }
 
 export function useRelation(id: string | undefined) {
-  const [relation, setRelation] = useState<Relation>({is_blocked: false, is_friend:false, is_request_received:false, is_request_sent:false});
+  const [relation, setRelation] = useState<Relation>({is_blocked: false, is_friend:false, is_request_received:false, is_request_sent:false, is_self:false});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | undefined>(undefined);
+    const {} = useSocket();
     useEffect(() => {
     axiosInstance
       .get("/user/friend/" + id)

@@ -3,6 +3,7 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
+import Game from "./routes/Game";
 import Profile from "./routes/Profile";
 import LeaderBoard from "./routes/LeaderBoard";
 import Chat from "./routes/Chat";
@@ -38,6 +39,14 @@ const router = createBrowserRouter([
   {
     path: "/leaderboard/:page",
     element: <LeaderBoard />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/game/:id",
+    loader : async ({params}) => {
+      return axiosInstance.get("/game/" + params.id)
+    },
+    element: <Game />,
     errorElement: <ErrorPage />,
   },
 ]);

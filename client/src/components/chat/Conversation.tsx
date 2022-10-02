@@ -19,24 +19,22 @@ export default function Conversation () {
     const [message, setMessage] = useState('');
     const { sendMessage } = useSocket();
     const { room } = useRoom(currentGroup);
-
-    const onMessageSent = (message: Message) => {
-        if (message) setConversation([...conversation, message]);
+    const avatar: string | undefined = (room?.room_direct_message) ? room?.room_users.find(user => user.user_id !== authUser?.user_id)?.avatar : `https://ui-avatars.com/api/?length=1?name=${room?.room_name}`;
+    
+    const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => setMessage(e.currentTarget.value);
+    const onMessageSent = (m: Message) => {
+        if (m) setConversation([...conversation, m]);
         setMessage('');
     }
-    const avatar: string | undefined = (room?.room_direct_message) ? room?.room_users.find(user => user.user_id !== authUser?.user_id)?.avatar : `https://ui-avatars.com/api/?length=1?name=${room?.room_name}`;
-
-    const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => setMessage(e.currentTarget.value);
     const onSubmitHandler = (e: React.SyntheticEvent)=> {
         e.preventDefault();
         const messageObject: Message = {
             currentRoom: currentGroup,
             message,
-            user: authUser?.login,
             user_login: authUser?.login,
             time: new Date()
         }
-        sendMessage(messageObject, currentGroup).finally(() => onMessageSent(messageObject));
+        messageObject.message.trim() && sendMessage(messageObject).finally(() =>onMessageSent(messageObject));
     }
     return (
         <div className={(!currentGroup)?"absolute w-0 md:w-3/4 h-0 md:h-full hidden" : "flex flex-col w-screen md:w-3/4 h-full"}>
@@ -54,8 +52,8 @@ export default function Conversation () {
                 </div>
             </div>
             <div className="flex flex-col-reverse h-24 overflow-x-auto grow p-4">
-                {conversation.slice(0).reverse().map((message, index) => (
-                    <TextMessage key={index} user={message.user} message={message.message} isOwnMessage={(authUser === message.user)? true : false}/>
+                {conversation.reverse().map((message, index) => (
+                    <TextMessage key={index} user={message.user_login} message={message.message} isOwnMessage={(authUser === message.user_login)? true : false}/>
                 ))}
             </div>
             <form className="p-4 flex flex-row relative bottom-0 w-full gap-2 mr-4 bg-black">

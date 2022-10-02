@@ -1,4 +1,5 @@
 import io from "socket.io-client";
+import { useEffect, useState } from "react";
 
 const socket = io("ws://backend.transcendance.com/", {
   transports: ["websocket"],
@@ -10,62 +11,109 @@ const socket = io("ws://backend.transcendance.com/", {
 
 (window as any).aymane_socket = socket;
 
+socket.on("exception", (data: any) => {
+  console.log("exception", data);
+});
+
 export function useSocket() {
-  const sendMessage = (message: Message, currentGroup: string) => {
+  const relation = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-      if (message.message.trim() && currentGroup) {
-        socket.emit("message", message, (message: Message, err: any) => {
+        socket.emit("relationship", object);
+        socket.on("relationship_sent", (obj, err) => {
           if (err) return reject(err);
-          resolve(message);
+          resolve(obj);
         });
+      }
+    );
+  };
+  const sendMessage = (message: Message) => {
+    return new Promise((resolve, reject) => {
+      if (message.message.trim() !== "") {
+        socket.emit(
+          "send_user_message",
+          message,
+          (message: Message, err: any) => {
+            if (err) return reject(err);
+            resolve(message);
+          }
+        );
       }
     });
   };
-  const sendFriendRequest = (object: { friend_login?: string }) => {
+  // human relationships are just like sockets...so complicated
+  const sendFriendRequest = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-      socket.emit(
-        "add_friend_request",
-        object,
-        (object: { friend_login: string }, err: any) => {
-          if (err) return reject(err);
-          resolve(object);
-        }
-      );
-    });
-  };
-  const acceptFriendRequest = (object: { sender_login: string }) => {
-    return new Promise((resolve, reject) => {
-      socket.emit("accept_friend_request", object, (object: any, err: any) => {
+      socket.emit("add_friend_request",object);
+      socket.on("friend_request_sent", (obj, err) => {
         if (err) return reject(err);
-        resolve(object);
+        resolve(obj);
       });
     });
   };
-  const deleteFriendRequest = (object: { sender_login: string }) => {
+  const acceptFriendRequest = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-      socket.emit("delete_friend_request", object, (object: any, err: any) => {
+      socket.emit("accept_friend_request", object);
+      socket.on("friend_request_accepted", (obj, err) => {
         if (err) return reject(err);
-        resolve(object);
+        resolve(obj);
       });
     });
   };
-  const deleteFriend = (object: { friend_login: string }) => {
+  const deleteFriendRequest = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-      socket.emit("delete_friend", object, (object: any, err: any) => {
+      socket.emit("delete_friend_request", object);
+      socket.on("decline_friend_request", (obj, err) => {
         if (err) return reject(err);
-        resolve(object);
+        resolve(obj);
       });
     });
   };
-  const delete_sent_friend_request = (object: { receiver_login: string }) => {
+  const deleteFriend = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-      socket.emit(
-        "delete_sent_friend_request", object, (object: any, err: any) => {
-          if (err) return reject(err);
-          resolve(object);
-        }
-      );
+      socket.emit("delete_friend", object);
+      socket.on("friend_deleted", (obj, err) => {
+        if (err) return reject(err);
+        resolve(obj);
+      });
     });
   };
-  return { socket, sendMessage, sendFriendRequest, acceptFriendRequest, deleteFriendRequest, deleteFriend, delete_sent_friend_request };
+  const deleteSentFriendRequest = (object: { target_login?: string }) => {
+    return new Promise((resolve, reject) => {
+      socket.emit("delete_sent_friend_request", object);
+      socket.on("cancel_friend_request", (obj, err) => {
+        if (err) return reject(err);
+        resolve(obj);
+      });
+    });
+  };
+  const blockUser = (object: { target_login?: string }) => {
+    return new Promise((resolve, reject) => {
+      socket.emit("block_user", object);
+      socket.on("blocked", (obj, err) => {
+        if (err) return reject(err);
+        resolve(obj);
+      });
+    });
+  };
+  const unblockUser = (object: { target_login?: string }) => {
+    return new Promise((resolve, reject) => {
+      socket.emit("unblock_user", object);
+      socket.on("unblocked", (obj, err) => {
+        if (err) return reject(err);
+        resolve(obj);
+      });
+    });
+  };
+  return {
+    socket,
+    sendMessage,
+    sendFriendRequest,
+    acceptFriendRequest,
+    blockUser,
+    unblockUser,
+    deleteFriendRequest,
+    deleteFriend,
+    deleteSentFriendRequest,
+    relation
+  };
 }
