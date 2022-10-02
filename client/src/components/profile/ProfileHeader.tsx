@@ -36,6 +36,7 @@ function ProfileHeader() {
       </div>
       <div className="playerInfo">
         <h1 className="text-2xl font-sans font-bold">{user?.login}</h1>
+        <h1 className=" text-base font-sans font-bold">{user?.nickname}</h1>
         <p>{user?.status}</p>
       </div>
     </div>
