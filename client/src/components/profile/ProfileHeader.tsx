@@ -1,11 +1,19 @@
 import { GiRank1, GiPodiumWinner, GiDeathJuice } from "react-icons/gi";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import { useRelation } from "../../hooks/api/useUser";
 import Relationship from "./Relationship";
+import { useSocket } from "../../hooks/api/useSocket";
 
 function ProfileHeader() {
   const { data: user } = useLoaderData() as { data: User | null };
-
+  const {queueUp} = useSocket();
+  let navigate = useNavigate();
+  const handleClick = () => {
+    queueUp().then((data)=> {
+    const url = "/game/" + data;
+    navigate(url);
+  })
+  };
   const divStyle = {
     backgroundImage: "url(" + user?.avatar + ")",
   };
@@ -33,6 +41,7 @@ function ProfileHeader() {
           {user?._count?.games_lost}
         </p>
         <Relationship user={user}/>
+        <button className="bg-black text-white p-2 rounded-md" onClick={handleClick}>Queue up</button>
       </div>
       <div className="playerInfo">
         <h1 className="text-2xl font-sans font-bold">{user?.login}</h1>

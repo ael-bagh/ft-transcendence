@@ -1,5 +1,6 @@
 import io from "socket.io-client";
 import { useEffect, useState } from "react";
+import { Body } from "matter-js";
 
 const socket = io("ws://backend.transcendance.com/", {
   transports: ["websocket"],
@@ -104,6 +105,31 @@ export function useSocket() {
       });
     });
   };
+  const queueUp = () => {
+    return new Promise((resolve, reject) => {
+      socket.emit("join_game_queue");
+      socket.on("match_found", (data, err) => {
+        if (err) return reject(err);
+        resolve(data);
+      });
+    });
+  };
+  const Move = (m :number) => {
+    socket.emit('move', m);
+  };
+  const Correction = (bar1: Body, bar2 : Body, myball: Body, score1: React.Dispatch<React.SetStateAction<number>>, score2: React.Dispatch<React.SetStateAction<number>>) => {
+    socket.on('correction', (bar_1: [number, number], bar_2: [number, number], ball: [number, number], score :[number, number]) => {
+      Body.setPosition(bar1, {x: bar_1[0], y: bar_1[1]});
+      Body.setPosition(bar2, {x: bar_2[0], y: bar_2[1]});
+      Body.setPosition(myball, {x: ball[0], y: ball[1]});
+      score1(score[0]);
+      score2(score[1]);
+      // console.log(score);
+    });
+  }
+  const CorrectionOff = () => {
+    socket.off('correction');
+  }
   return {
     socket,
     sendMessage,
@@ -114,6 +140,10 @@ export function useSocket() {
     deleteFriendRequest,
     deleteFriend,
     deleteSentFriendRequest,
-    relation
+    relation,
+    queueUp,
+    Move,
+    Correction,
+    CorrectionOff
   };
 }
