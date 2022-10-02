@@ -30,7 +30,7 @@ export function useUpdateUser(oldUserData: Record<string, any>) {
   const [error, setError] = useState(null);
   const updateUser = (data: Record<string, any>) =>
     axiosInstance
-      .post("/users/update", data)
+      .patch("/user/update", data)
       .then((res) => setUserData(res.data))
       .catch(setError);
   return { updateUser, userData, error };
