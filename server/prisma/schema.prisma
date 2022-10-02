@@ -78,6 +78,7 @@ model Room {
 	room_password String?
 	room_name String
 	room_private Boolean
+	room_direct_message Boolean @default(false)
 	room_creation_date DateTime
 	room_creator_login String
 	room_creator User @relation("room_creator", fields: [room_creator_login], references: [login])

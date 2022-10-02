@@ -222,7 +222,7 @@ export class RoomService {
 	}
 
 	async createRoom(
-		roomData: { room_password?: string; room_name: string; room_creator_login: string; room_private: boolean; }
+		roomData: { room_password?: string; room_name: string; room_creator_login: string; room_private: boolean;room_direct_message : boolean }
 	): Promise<Partial<Room>> {
 		let data: Prisma.RoomCreateInput = {
 			room_name: roomData['room_name'], room_creator: {
@@ -234,8 +234,9 @@ export class RoomService {
 				connect: {
 					login: roomData['room_creator_login']
 				}
-			}
-			, room_private: roomData['room_private'],
+			},
+			room_private: roomData['room_private'],
+			room_direct_message: roomData['room_direct_message'],
 			room_creation_date: new Date(),
 			room_password: await hash(roomData['room_password'], 12),
 			room_users: {

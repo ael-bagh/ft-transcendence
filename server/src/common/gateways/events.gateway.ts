@@ -2,7 +2,7 @@ import { CustomSocket } from "@/auth/auth.adapter";
 import { RoomService } from "@/room/room.service";
 import { CurrentUser } from "@/user/user.decorator";
 import { UserService } from "@/user/user.service";
-import { Query, Req } from "@nestjs/common";
+import { HttpException, HttpStatus} from "@nestjs/common";
 import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from "@nestjs/websockets"
 import { Status, User } from "@prisma/client";
 import { Socket, Server } from "socket.io"
@@ -67,6 +67,7 @@ export class EventsGateway {
 	}
 
 
+
 	@SubscribeMessage('events')
 	handleEvent(
 		@MessageBody() data: string,
@@ -79,7 +80,16 @@ export class EventsGateway {
 
 	// @SubscribeMessage('accept_friend')
 
+	@SubscribeMessage('relationship')
+	async friendRelationship(
+		@MessageBody() userData: {target_login: string},
+		@ConnectedSocket() client: CustomSocket,
+	)
+	{
+		const relationship = await this.userService.getRelationship(client.user.login, userData.target_login)
 
+		client.emit('relationship_sent', relationship);
+	}
 	@SubscribeMessage('add_friend_request')
 	async sendRequest(
 		@MessageBody() userData: { target_login: string },
@@ -90,15 +100,16 @@ export class EventsGateway {
 		let target_login = userData.target_login;
 		if (!target_login)
 		{
-			return null;
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		}
 		let allowed = await this.userService.permissionToDoAction({
 			action_performer: login,
 			action_target: target_login,
+			action_mutual: true
 		});
 		if (!allowed)
-			return null;
-		return this.userService.sendFriendRequest({
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		const mutual = await this.userService.sendFriendRequest({
 			login, friend_login: target_login, onFinish: (user, target_login, broadcast) => {
 				// FIXME: REVISE THIS
 				if (broadcast) {
@@ -109,6 +120,7 @@ export class EventsGateway {
 				}
 			}
 		});
+		client.emit('friend_request_sent', mutual)
 	}
 
 	@SubscribeMessage('accept_friend_request')
@@ -120,20 +132,22 @@ export class EventsGateway {
 		let target_login = userData?.target_login
 		if (!target_login)
 		{
-			return null;
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		}
 		let allowed = await this.userService.permissionToDoAction({
 			action_performer: login,
 			action_target: target_login,
+			action_mutual: true
 		});
 		if (!allowed)
-			return null;
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		this.userService.remove_request({
 			login, friend_login: target_login, onFinish: (login: string, target_login) => {
 				this.gateWayService.emitBroadcast(this.server, target_login, login);
 			}
 		});
-		return this.userService.addfriends(login, target_login);
+		this.userService.addfriends(login, target_login);
+		client.emit('friend_request_accepted', userData?.target_login)
 	}
 
 	@SubscribeMessage('delete_friend')
@@ -143,7 +157,7 @@ export class EventsGateway {
 	) {
 		let login = client.user.login;
 		 this.userService.deleteFriends(login, userData?.target_login);
-		return ( this.userService.user({ login: (login) }));
+		 client.emit('friend_deleted', userData?.target_login)
 	}
 
 	@SubscribeMessage('delete_friend_request')
@@ -155,16 +169,16 @@ export class EventsGateway {
 		let target_login = userData?.target_login
 		if (!target_login)
 		{
-			return null;
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		}
 		let friend =  this.userService.user({ login: (target_login) });
 		if (!client?.user || !friend)
-			return null;
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 	
 		this.userService.remove_request({
 			login, friend_login:target_login, 
 		});
-		return ( this.userService.user({ login: (login) }));
+		client.emit('decline_friend_request', target_login)
 	}
 
 	@SubscribeMessage('delete_sent_friend_request')
@@ -176,12 +190,12 @@ export class EventsGateway {
 		let target_login = userData['target_login'];
 		let friend =  this.userService.user({ login: (target_login) });
 		if (!client?.user || !friend)
-			return null;
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		 
 		this.userService.remove_request({
 			login: target_login, friend_login: login, 
 		});
-		return ( this.userService.user({ login: (login) }));
+		client.emit('cancel_friend_request', target_login)
 	}
 
 	@SubscribeMessage('block_user')
@@ -193,10 +207,11 @@ export class EventsGateway {
 		let login = client.user.login;
 		let user_to_block_login = userData?.target_login
 		if (!user_to_block_login)
-			return (null);
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		if (!this.userService.user({login: user_to_block_login}))
-			return null;
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		this.userService.block_user({login, user_to_block_login})
+		client.emit('blocked', user_to_block_login)
 	}
 
 	@SubscribeMessage('unblock_user')
@@ -208,10 +223,11 @@ export class EventsGateway {
 		let login = client.user.login;
 		let user_to_unblock_login = userData?.target_login
 		if (!user_to_unblock_login)
-			return (null);
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		if (!this.userService.user({login: user_to_unblock_login}))
-			return null;
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		this.userService.unblock_user({login, user_to_unblock_login});
+		client.emit('unblocked', user_to_unblock_login)
 	}
 	// handleNotifications(
 	// 	target_login : string,

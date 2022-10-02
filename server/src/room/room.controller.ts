@@ -66,23 +66,27 @@ export class RoomController {
 	// }
 
 	@Get(':room_id')
-	async getRoom(@CurrentUser() action_perfomer: User, @Param('room_id') room_id: string): Promise<Room | null> {
+	async getRoom(@CurrentUser() action_performer: User, @Param('room_id') room_id: string): Promise<Room | null> {
 		if (Number(room_id) == NaN)
 			return null;
-		if (await (this.roomService.roomPermissions(action_perfomer.login, 'viewRoom', null, { room_id: Number(room_id) })) == false)
+		if (await (this.roomService.roomPermissions(action_performer.login, 'viewRoom', null, { room_id: Number(room_id) })) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		let room = await this.roomService.room({ room_id: Number(room_id) });
+		if (room.room_direct_message){
+			const room_users = this.roomService.getRoomUsers({room_id: Number(room_id)});
+			room.room_name = (action_performer.login == room_users[0].login?room_users[1].login : room_users[0].login)
+		}
 		delete (room).room_password;
 		return room;
 	}
 
 
 	@Post("create_room")
-	async createRoom(@CurrentUser() user: User, @Body() { name, is_private , password}: { name: string, is_private: boolean , password ?: string}) {
+	async createRoom(@CurrentUser() user: User, @Body() { name, is_private, is_direct_message , password}: { name: string, is_private: boolean ,is_direct_message : boolean, password ?: string}) {
 		let regex = new RegExp('^__connected_.*');
 		if (regex.test(name))
 			throw new HttpException('Invalid Name', HttpStatus.BAD_REQUEST);
-		return this.roomService.createRoom({ room_name: name, room_creator_login: user.login, room_private: is_private , room_password: password});
+		return this.roomService.createRoom({ room_name: name, room_creator_login: user.login, room_private: is_private ,room_direct_message : is_direct_message, room_password: password});
 	}
 
 	@Post(":room_id/see_messages")
