@@ -51,9 +51,8 @@ export class UserController {
 
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
-	async getProfile(@CurrentUser() user: UserModel, @Res() res: Response) {
-		console.log(user)
-		res.json(user);
+	async getProfile(@CurrentUser() user: UserModel) {
+		return await this.userService.user({login: user.login},)
 	}
 
 	@Get('rooms')
@@ -131,59 +130,9 @@ export class UserController {
 	@Get('friend/:friend_login')
 	async getFriendRelationship(@CurrentUser() user: UserModel, @Param('friend_login') friend_login: string): Promise<{
 		is_friend: boolean, is_request_sent:boolean,is_request_received: boolean, is_blocked: boolean}> {
-		let relationships = {is_request_sent: false, is_request_received: false, is_friend: false, is_blocked: false};
-		console.log( 'friend relationship : ', user.login, friend_login)
-		if (user.login == friend_login)
-			return relationships;
-		// console.log(friend_login);
-		if (!this.userService.permissionToDoAction({action_performer: user.login, action_target: friend_login}))
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		if( await this.userService.getFriendBool({
-			where: {
-				login: user.login,
-				friends: {
-					some: {
-						login: friend_login,
-					}
-				}
-			}
-		}) )
-			relationships['is_friend'] = true;
-		if ( await this.userService.getFriendBool({
-			where: {
-				login: user.login,
-				friend_requests_sent: {
-					some: {
-						login: friend_login,
-					}
-				}
-			}
-		}))
-			relationships['is_request_sent'] = true;
-		if ( await this.userService.getFriendBool({
-			where: {
-				login: user.login,
-				friend_requests: {
-					some: {
-						login: friend_login,
-					}
-				}
-			}
-		}))
-			relationships['is_request_received'] = true;
-		// is blocked
-		if ( await this.userService.getFriendBool({
-			where: {
-				login: user.login,
-				blocked_users: {
-					some: {
-						login: friend_login,
-					}
-				}
-			}
-		}))
-			relationships['is_blocked'] = true;
+		let relationships = this.userService.getRelationship(user.login, friend_login);
 		return relationships;
+		
 	}
 	@Patch('update')
 	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
@@ -195,6 +144,10 @@ export class UserController {
 		user['status'] = userData['status'] || user['status'];
 		if (userData['is_banned'] != undefined)
 			user['is_banned'] = userData['is_banned'];
+		delete user['_count']
+		console.log(user, "wdjhvcjhwd")
+		
+		
 		this.userService.updateUser({
 			where: { login: (login) },
 			data: user
@@ -202,23 +155,35 @@ export class UserController {
 		return user;
 	}
 	@Get(':login')
-	async getUserByLogin(@Param('login') login: string): Promise<UserModel> {
+	async getUserByLogin(@CurrentUser() user: UserModel, @Param('login') profile_login: string): Promise<UserModel> {
 		// console.log(!Number(login));
-		let user: UserModel | null;
-		if (!Number(login)) {
-			user = await this.userService.user({ login: login });
+		let profile_user: UserModel | null;
+		if (!Number(profile_login)) {
+			profile_user = await this.userService.user({ login: profile_login, },
+				// {
+				// 	_count: {
+				// 		select: {
+				// 			games_lost: true,
+				// 			games_won: true,
+				// 			friend_requests: true,
+				// 			friends: true,
+				// 		}
+					
+				// }}
+				);
 		}
 		else
-			user = await this.userService.user({ user_id: Number(login) });
+			profile_user = await this.userService.user({ user_id: Number(profile_login) });
 		let allowed = await this.userService.permissionToDoAction({
 			action_performer: user.login,
-			action_target: user.login
+			action_target: profile_login,
+			action_mutual: false
 		});
 		if (!allowed)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		if (user == null)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		return user;
+		return profile_user;
 	}
 
 	@Post('search_user')
