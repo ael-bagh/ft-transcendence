@@ -7,17 +7,83 @@ import { useRelation } from "../../hooks/api/useUser";
 
 export default function Relationship(props: { user: User | null }) {
   const { relation } = useRelation(props.user?.login);
-  const { authUser } = useContext(AuthUserContext);
+  const [isSelf, setIsSelf] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
   const [isRequestSent, setIsRequestSent] = useState(false);
   const [isRequestReceived, setIsRequestReceived] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
-  const { sendFriendRequest } = useSocket();
+  const { sendFriendRequest, deleteFriend, deleteFriendRequest, deleteSentFriendRequest, blockUser, unblockUser } =
+    useSocket();
+
   const onRequestSent = () => {
     sendFriendRequest({
-      friend_login: props.user?.login,
-    }).finally(() => setIsRequestSent(true));
+      target_login: props.user?.login,
+    })
+      .then((ret) => {
+        console.log(ret);
+        if (isRequestReceived) {
+          setIsFriend(true);
+          setIsRequestReceived(false);
+          setIsRequestSent(false);
+        }
+        else {
+          console.log("request sent");
+          if(ret) setIsFriend(true);
+          else setIsRequestSent(true);
+        }
+      })
+      .catch((err) => console.log(err));
   };
+
+  const onDeleteFriendRequest = () => {
+    deleteFriendRequest({
+      target_login: props.user?.login,
+    })
+      .then(() => {
+        setIsRequestReceived(false);
+        setIsFriend(false);
+        setIsRequestSent(false);
+      }).catch((err) => console.log(err));
+  };
+  const onCancelRequest = () => {
+    deleteSentFriendRequest({
+      target_login: props.user?.login,
+    })
+      .then(() => {
+        setIsRequestSent(false);
+      }).catch((err) => console.log(err));
+  };
+  const onDeleteFriend = () => {
+    deleteFriend({
+      target_login: props.user?.login,
+    }).finally(() => {
+      setIsFriend(false)
+      setIsRequestReceived(false)
+      setIsRequestSent(false)
+    });
+  };
+  const onBlockRequest = () => {
+    blockUser({
+      target_login: props.user?.login,
+    }).finally(() => setIsBlocked(true));
+  };
+  const onUnblockRequest = () => {
+    unblockUser({
+      target_login: props.user?.login,
+    }).finally(() => setIsBlocked(false));
+  };
+
+  useEffect(() => {
+    if (relation.is_self) setIsSelf(true);
+    if (relation?.is_friend) setIsFriend(true);
+    if (relation?.is_blocked) setIsBlocked(true);
+    if (relation?.is_request_sent) setIsRequestSent(true);
+    if (relation?.is_request_received) setIsRequestReceived(true);
+  }, [relation]);
+  useEffect(() => {
+    
+  }, [isFriend, isRequestReceived, isRequestSent, isBlocked]);
+
   return (
     <div className="">
       <Menu as="div" className="relative inline-block text-left">
@@ -41,7 +107,7 @@ export default function Relationship(props: { user: User | null }) {
         >
           <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div className="px-1 py-1 ">
-              {authUser?.login === props.user?.login && (
+              {isSelf && (
                 <Menu.Item>
                   {({ active }) => (
                     <button
@@ -65,99 +131,207 @@ export default function Relationship(props: { user: User | null }) {
                   )}
                 </Menu.Item>
               )}
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    onClick={onRequestSent}
-                    className={`${
-                      active ? "bg-violet-500 text-white" : "text-gray-900"
-                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                  >
-                    {active ? (
-                      <DuplicateActiveIcon
-                        className="mr-2 h-5 w-5"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <DuplicateInactiveIcon
-                        className="mr-2 h-5 w-5"
-                        aria-hidden="true"
-                      />
+              {!isFriend && isRequestSent && !isSelf && !isBlocked && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={onCancelRequest}
+                      className={`${
+                        active ? "bg-violet-500 text-white" : "text-gray-900"
+                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                      {active ? (
+                        <DuplicateActiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <DuplicateInactiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      )}
+                      cancel request
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
+              {!isFriend && !isRequestReceived && !isRequestSent && !isSelf &&  !isBlocked &&(
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={onRequestSent}
+                      className={`${
+                        active ? "bg-violet-500 text-white" : "text-gray-900"
+                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                      {active ? (
+                        <DuplicateActiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <DuplicateInactiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Add Friend
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
+              {!isFriend && isRequestReceived && !isRequestSent && !isSelf &&!isBlocked &&(
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={onRequestSent}
+                        className={`${
+                          active ? "bg-violet-500 text-white" : "text-gray-900"
+                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                      >
+                        {active ? (
+                          <DuplicateActiveIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <DuplicateInactiveIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                        )}
+                        Accept
+                      </button>
                     )}
-                    Add Friend
-                  </button>
-                )}
-              </Menu.Item>
+                  </Menu.Item>
+              )}
+              {!isFriend && isRequestReceived && !isRequestSent && !isSelf && !isBlocked &&(
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={onDeleteFriendRequest}
+                        className={`${
+                          active ? "bg-violet-500 text-white" : "text-gray-900"
+                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                      >
+                        {active ? (
+                          <DuplicateActiveIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <DuplicateInactiveIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                        )}
+                        Delete Request
+                      </button>
+                    )}
+                  </Menu.Item>
+              )}
+              {isFriend && !isSelf && !isBlocked &&(
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={onDeleteFriend}
+                      className={`${
+                        active ? "bg-violet-500 text-white" : "text-gray-900"
+                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                      {active ? (
+                        <DuplicateActiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <DuplicateInactiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Delete Friend
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
             </div>
             <div className="px-1 py-1">
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    className={`${
-                      active ? "bg-violet-500 text-white" : "text-gray-900"
-                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                  >
-                    {active ? (
-                      <ArchiveActiveIcon
-                        className="mr-2 h-5 w-5"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <ArchiveInactiveIcon
-                        className="mr-2 h-5 w-5"
-                        aria-hidden="true"
-                      />
-                    )}
-                    Block
-                  </button>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    className={`${
-                      active ? "bg-violet-500 text-white" : "text-gray-900"
-                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                  >
-                    {active ? (
-                      <MoveActiveIcon
-                        className="mr-2 h-5 w-5"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <MoveInactiveIcon
-                        className="mr-2 h-5 w-5"
-                        aria-hidden="true"
-                      />
-                    )}
-                    Send Message
-                  </button>
-                )}
-              </Menu.Item>
-            </div>
-            <div className="px-1 py-1">
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    className={`${
-                      active ? "bg-violet-500 text-white" : "text-gray-900"
-                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                  >
-                    {active ? (
-                      <DeleteActiveIcon
-                        className="mr-2 h-5 w-5 text-violet-400"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <DeleteInactiveIcon
-                        className="mr-2 h-5 w-5 text-violet-400"
-                        aria-hidden="true"
-                      />
-                    )}
-                    Delete Friend
-                  </button>
-                )}
-              </Menu.Item>
+              {!isBlocked && !isSelf && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={onBlockRequest}
+                      className={`${
+                        active ? "bg-violet-500 text-white" : "text-gray-900"
+                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                      {active ? (
+                        <ArchiveActiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <ArchiveInactiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Block
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
+              {isBlocked && !isSelf && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={onUnblockRequest}
+                      className={`${
+                        active ? "bg-violet-500 text-white" : "text-gray-900"
+                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                      {active ? (
+                        <ArchiveActiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <ArchiveInactiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Unblock
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
+              {!isBlocked && !isSelf && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      className={`${
+                        active ? "bg-violet-500 text-white" : "text-gray-900"
+                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                      {active ? (
+                        <MoveActiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <MoveInactiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Send Message
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
             </div>
           </Menu.Items>
         </Transition>

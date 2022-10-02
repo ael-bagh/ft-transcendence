@@ -1,7 +1,7 @@
 import {useHistory, useUserById} from '../../hooks/api/useUser'
 import {AuthUserContext} from '../../contexts/authUser.context'
 import { useContext } from 'react'
-import Loading from '../layout/Loading'
+import {Loading} from '../layout/Loading'
 import { useParams } from "react-router-dom";
 import { useEffect } from 'react';
 
