@@ -1,6 +1,108 @@
 import MainLayout from "../components/layout/MainLayout";
-import { useLoaderData } from "react-router-dom";
+import { ReactP5Wrapper, P5Instance } from "react-p5-wrapper";
+import { Engine, Bodies, Composite} from 'matter-js'
+import { useEffect, useRef, useState } from "react";
+import { useSocket } from "../hooks/api/useSocket";
+
+
 
 export default function Game() {
-  return <MainLayout>put your game here</MainLayout>;
+  const {Move, Correction, CorrectionOff} = useSocket();
+  const engine = useRef(Engine.create())
+  const bar1 = useRef(Bodies.rectangle(50, 300, 10, 100))
+  const bar2 = useRef(Bodies.rectangle(1230, 300, 10, 100))
+  const ball = useRef(Bodies.circle(640, 360, 10))
+  const key = useRef({up: false, down: false})
+  const [score1, setScore1] = useState(0);
+  const [score2, setScore2] = useState(0);
+  useEffect(() => {
+    Composite.add( engine.current.world, [ball.current, bar1.current, bar2.current,
+      Bodies.rectangle(640, -250, 1800, 500, { isStatic: true }),
+      Bodies.rectangle(640, 970, 1800, 500, { isStatic: true }),
+      Bodies.rectangle(-250, 360, 500, 1500, { isStatic: true }),
+      Bodies.rectangle(1530, 360, 500, 1500, { isStatic: true })]);
+      document.addEventListener('keydown',
+            (event) => {
+                let mov = 0;
+                if (event.key === 'ArrowUp'){
+                  mov = -1;
+                  key.current.up = true;
+                }
+                else if (event.key === 'ArrowDown'){
+                  mov = 1;
+                  key.current.down = true;
+                }
+                else
+                  return;
+                Move(mov);
+            }, false);
+            document.addEventListener("keyup",
+            event => {
+                let mov = 0;
+                if (event.key === 'ArrowUp'){
+                  key.current.up = false;
+                  if (key.current.down === true)
+                    mov = 1;
+                  else
+                    mov = 0;
+                }
+                else if (event.key === 'ArrowDown'){
+                  key.current.down = false;
+                  if (key.current.up === true)
+                    mov = -1;
+                  else
+                    mov = 0;
+                }
+                else
+                  return;
+                Move(mov);
+                
+            }, false);
+    Correction(bar1.current, bar2.current, ball.current, setScore1, setScore2);
+    return () => {
+      CorrectionOff();
+    };
+  }, [])
+  const sketch = (p5: P5Instance) => {
+    p5.setup = () => p5.createCanvas(1280, 720, p5.P2D);
+  
+    p5.draw = () => {
+      p5.background(51);
+      let pos = ball.current.position;
+      let angle = ball.current.angle;
+      p5.push();
+      p5.translate(pos.x, pos.y);
+      p5.rotate(angle);
+      p5.rectMode(p5.CENTER);
+      p5.ellipse(0, 0, 10, 10);
+      p5.pop();
+      pos = bar1.current.position;
+      angle = bar1.current.angle;
+      p5.push();
+      p5.translate(pos.x, pos.y);
+      p5.rotate(angle);
+      p5.rectMode(p5.CENTER);
+      p5.rect(0, 0, 10, 100);
+      p5.pop();
+      pos = bar2.current.position;
+      angle = bar2.current.angle;
+      p5.push();
+      p5.translate(pos.x, pos.y);
+      p5.rotate(angle);
+      p5.rectMode(p5.CENTER);
+      p5.rect(0, 0, 10, 100);
+      p5.pop();
+      
+    };
+  };
+  // const { data: Game } = useLoaderData() as { data: Game | null };
+  return <MainLayout>
+    <div className="w-screen flex flex-col justify-center items-center m-auto">
+    <div className="flex flex-row justify-between text-xl">
+      <div>{score1}</div>
+      <div>{score2}</div>
+    </div>
+    <ReactP5Wrapper sketch={sketch} />
+    </div>
+    </MainLayout>;
 }
