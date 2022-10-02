@@ -4,6 +4,7 @@ import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import { useSocket } from "../../hooks/api/useSocket";
 import { useRelation } from "../../hooks/api/useUser";
+import { Link } from "react-router-dom";
 
 export default function Relationship(props: { user: User | null }) {
   const { relation } = useRelation(props.user?.login);
@@ -12,9 +13,15 @@ export default function Relationship(props: { user: User | null }) {
   const [isRequestSent, setIsRequestSent] = useState(false);
   const [isRequestReceived, setIsRequestReceived] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
-  const { sendFriendRequest, deleteFriend, deleteFriendRequest, deleteSentFriendRequest, blockUser, unblockUser } =
-    useSocket();
-
+  const {
+    sendFriendRequest,
+    deleteFriend,
+    deleteFriendRequest,
+    deleteSentFriendRequest,
+    blockUser,
+    unblockUser,
+  } = useSocket();
+  const { authUser } = useContext(AuthUserContext);
   const onRequestSent = () => {
     sendFriendRequest({
       target_login: props.user?.login,
@@ -25,10 +32,9 @@ export default function Relationship(props: { user: User | null }) {
           setIsFriend(true);
           setIsRequestReceived(false);
           setIsRequestSent(false);
-        }
-        else {
+        } else {
           console.log("request sent");
-          if(ret) setIsFriend(true);
+          if (ret) setIsFriend(true);
           else setIsRequestSent(true);
         }
       })
@@ -43,7 +49,8 @@ export default function Relationship(props: { user: User | null }) {
         setIsRequestReceived(false);
         setIsFriend(false);
         setIsRequestSent(false);
-      }).catch((err) => console.log(err));
+      })
+      .catch((err) => console.log(err));
   };
   const onCancelRequest = () => {
     deleteSentFriendRequest({
@@ -51,15 +58,16 @@ export default function Relationship(props: { user: User | null }) {
     })
       .then(() => {
         setIsRequestSent(false);
-      }).catch((err) => console.log(err));
+      })
+      .catch((err) => console.log(err));
   };
   const onDeleteFriend = () => {
     deleteFriend({
       target_login: props.user?.login,
     }).finally(() => {
-      setIsFriend(false)
-      setIsRequestReceived(false)
-      setIsRequestSent(false)
+      setIsFriend(false);
+      setIsRequestReceived(false);
+      setIsRequestSent(false);
     });
   };
   const onBlockRequest = () => {
@@ -80,9 +88,7 @@ export default function Relationship(props: { user: User | null }) {
     if (relation?.is_request_sent) setIsRequestSent(true);
     if (relation?.is_request_received) setIsRequestReceived(true);
   }, [relation]);
-  useEffect(() => {
-    
-  }, [isFriend, isRequestReceived, isRequestSent, isBlocked]);
+  useEffect(() => {}, [isFriend, isRequestReceived, isRequestSent, isBlocked]);
 
   return (
     <div className="">
@@ -110,11 +116,13 @@ export default function Relationship(props: { user: User | null }) {
               {isSelf && (
                 <Menu.Item>
                   {({ active }) => (
-                    <button
+                    <Link
                       className={`${
                         active ? "bg-violet-500 text-white" : "text-gray-900"
                       } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                      to={"/profile/" + authUser?.login + "/edit"}
                     >
+                      {" "}
                       {active ? (
                         <EditActiveIcon
                           className="mr-2 h-5 w-5"
@@ -127,7 +135,7 @@ export default function Relationship(props: { user: User | null }) {
                         />
                       )}
                       Edit My profile
-                    </button>
+                    </Link>
                   )}
                 </Menu.Item>
               )}
@@ -156,32 +164,40 @@ export default function Relationship(props: { user: User | null }) {
                   )}
                 </Menu.Item>
               )}
-              {!isFriend && !isRequestReceived && !isRequestSent && !isSelf &&  !isBlocked &&(
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      onClick={onRequestSent}
-                      className={`${
-                        active ? "bg-violet-500 text-white" : "text-gray-900"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                    >
-                      {active ? (
-                        <DuplicateActiveIcon
-                          className="mr-2 h-5 w-5"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <DuplicateInactiveIcon
-                          className="mr-2 h-5 w-5"
-                          aria-hidden="true"
-                        />
-                      )}
-                      Add Friend
-                    </button>
-                  )}
-                </Menu.Item>
-              )}
-              {!isFriend && isRequestReceived && !isRequestSent && !isSelf &&!isBlocked &&(
+              {!isFriend &&
+                !isRequestReceived &&
+                !isRequestSent &&
+                !isSelf &&
+                !isBlocked && (
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={onRequestSent}
+                        className={`${
+                          active ? "bg-violet-500 text-white" : "text-gray-900"
+                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                      >
+                        {active ? (
+                          <DuplicateActiveIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <DuplicateInactiveIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                        )}
+                        Add Friend
+                      </button>
+                    )}
+                  </Menu.Item>
+                )}
+              {!isFriend &&
+                isRequestReceived &&
+                !isRequestSent &&
+                !isSelf &&
+                !isBlocked && (
                   <Menu.Item>
                     {({ active }) => (
                       <button
@@ -205,8 +221,12 @@ export default function Relationship(props: { user: User | null }) {
                       </button>
                     )}
                   </Menu.Item>
-              )}
-              {!isFriend && isRequestReceived && !isRequestSent && !isSelf && !isBlocked &&(
+                )}
+              {!isFriend &&
+                isRequestReceived &&
+                !isRequestSent &&
+                !isSelf &&
+                !isBlocked && (
                   <Menu.Item>
                     {({ active }) => (
                       <button
@@ -230,8 +250,8 @@ export default function Relationship(props: { user: User | null }) {
                       </button>
                     )}
                   </Menu.Item>
-              )}
-              {isFriend && !isSelf && !isBlocked &&(
+                )}
+              {isFriend && !isSelf && !isBlocked && (
                 <Menu.Item>
                   {({ active }) => (
                     <button

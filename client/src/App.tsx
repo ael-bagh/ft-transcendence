@@ -16,6 +16,8 @@ import { Flowbite } from "flowbite-react";
 import Home from "./components/layout/Home";
 import { useSocket } from "./hooks/api/useSocket";
 import  axiosInstance from "./lib/axios"
+import { ChatContext } from "./contexts/chat.context";
+import ProfileEdit from "./components/profile/ProfileEdit";
 
 const router = createBrowserRouter([
   {
@@ -32,10 +34,30 @@ const router = createBrowserRouter([
     errorElement: <UserNotFound />,
   },
   {
+    path: "/profile/:id/edit",
+    element: <ProfileEdit />,
+    loader: async ({ params }) => {
+      return axiosInstance.get("/user/" + params.id)
+    },
+    action: async ({ request, params }) => {
+      const data = Object.fromEntries(await request.formData());
+      console.log(data);
+      await axiosInstance.patch("/user/update", data);
+      return { redirect: "/profile/" + params.id };
+    },
+    errorElement: <UserNotFound />,
+  },
+  {
     path: "/chat",
     element: <Chat />,
     errorElement: <ErrorPage />,
   },
+  {
+    path: "/chat/:id",
+    element: <Chat />,
+    errorElement: <ErrorPage />,
+  },
+
   {
     path: "/leaderboard/:page",
     element: <LeaderBoard />,
@@ -43,9 +65,9 @@ const router = createBrowserRouter([
   },
   {
     path: "/game/:id",
-    loader : async ({params}) => {
-      return axiosInstance.get("/game/" + params.id)
-    },
+    // loader : async ({params}) => {
+    //   return axiosInstance.get("/game/" + params.id)
+    // },
     element: <Game />,
     errorElement: <ErrorPage />,
   },
