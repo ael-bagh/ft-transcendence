@@ -26,6 +26,7 @@ export class GameService {
 		});
 	}
 
+
 	async saveGame(
 		gameData: { game_winner_login: string; game_loser_login: string; game_winner_score: number; game_loser_score: number },
 	): Promise<Game> {
@@ -68,3 +69,4 @@ export class GameService {
 		return this.prisma.game.deleteMany({});
 	}
 }
+

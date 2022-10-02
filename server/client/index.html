@@ -74,7 +74,7 @@
 		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script>
 		const axiosInstance = axios.create({
-			baseURL: 'http://backend.transcendance.com/',
+			baseURL: 'http://localhost:8080',
 			headers: {
 				'Content-Type': 'application/json'
 			},
@@ -108,7 +108,7 @@
 		}, 4000);
 
 
-		const socket = io('http://backend.transcendance.com/', {
+		const socket = io('http://localhost:8080', {
 			transports: ['websocket']
 		});
 		var form = document.getElementById('form');
@@ -116,10 +116,15 @@
 		// var input = document.getElementById('select');
 		var messages = document.getElementById('messages');
 		socket.on('connect', function () {
-			console.log('Connected');
+			console.log('Connectedddddd');
+			// socket.emit('join_game_queue');
 			socket.emit('identity', 0, response =>
 				console.log('Identity:', response),
 			);
+		});
+		socket.on('welcome', function () {
+			socket.emit('join_game_queue');
+			
 		});
 		socket.on('disconnect', function () {
 			console.log('Disconnected');
@@ -130,12 +135,39 @@
 		socket.on('exception', function (data) {
 			console.log('event', data);
 		});
+		socket.on('match_found', function (data) {
+			console.log('match_found', data);
+		});
+		socket.on('correction', function (data) {
+			console.log('correction', data);
+		});
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();
 			if (input.value) {
 				socket.emit('message', input.value);
+				// socket.emit('join_game_queue');
 				input.value = '';
 			}
+		});
+		document.addEventListener('keydown', function (e) {
+			if (event.key === 'ArrowUp'){
+				socket.emit('move', -1);
+			}
+			else if (event.key === 'ArrowDown'){
+				socket.emit('move', 1);
+			}
+			else
+				return;
+		});
+		document.addEventListener('keyup', function (e) {
+			if (event.key === 'ArrowUp'){
+				socket.emit('move', 0);
+			}
+			else if (event.key === 'ArrowDown'){
+				socket.emit('move', 0);
+			}
+			else
+				return;
 		});
 		// socket.on('search_rooms', (room)=>{});
 		socket.on('join_room',(room)=>{

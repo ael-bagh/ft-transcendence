@@ -210,6 +210,12 @@ export class UserController {
 		}
 		else
 			user = await this.userService.user({ user_id: Number(login) });
+		let allowed = await this.userService.permissionToDoAction({
+			action_performer: user.login,
+			action_target: user.login
+		});
+		if (!allowed)
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		if (user == null)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		return user;

@@ -5,11 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '@/user/user.service';
 import { WsException } from '@nestjs/websockets';
+import { GameObject } from '@/game/game.object';
 
 export interface CustomSocket extends Socket {
     user: User;
     token_expire_at: number;
-    game_lobby?: Game;
+    game_lobby?: GameObject;
+    user_nb?: number;
 }
 
 export class AuthAdapter extends IoAdapter {

@@ -11,6 +11,7 @@ import { ChatGateway } from './common/gateways/chat.gateway';
 import { EventsGateway } from '@/common/gateways/events.gateway'
 import { PrismaService } from '@/common/services/prisma.service';
 import { ChatGatewayService } from './common/services/chat.gateway.service';
+import { GameGateway } from './common/gateways/game.gateway';
 
 @Module({
 	imports: [
@@ -25,6 +26,6 @@ import { ChatGatewayService } from './common/services/chat.gateway.service';
 		RoomModule
 	],
 	controllers: [],
-	providers: [ChatGatewayService, EventsGateway, ChatGateway, PrismaService],
+	providers: [GameGateway,ChatGatewayService, EventsGateway, ChatGateway, PrismaService],
 })
 export class AppModule { }
