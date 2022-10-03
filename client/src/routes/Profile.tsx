@@ -8,7 +8,7 @@ function  Profile() {
   const {id} = useParams<{id: string | undefined}>()
   return (
     <MainLayout>
-      <div className="flex flex-col h-full w-screen">
+      <div className="flex flex-col flex-grow w-screen">
         <ProfileHeader />
         <Badges />
         <MatchHistory />
