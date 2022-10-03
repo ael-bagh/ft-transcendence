@@ -114,6 +114,15 @@ export function useSocket() {
       });
     });
   };
+  const gameInv = () => {
+    return new Promise((resolve, reject) => {
+      socket.emit("join_game_invit");
+      socket.on("match_found", (data, err) => {
+        if (err) return reject(err);
+        resolve(data);
+      });
+    });
+  };
   const Move = (m :number) => {
     socket.emit('move', m);
   };
@@ -142,6 +151,7 @@ export function useSocket() {
     deleteSentFriendRequest,
     relation,
     queueUp,
+    gameInv,
     Move,
     Correction,
     CorrectionOff
