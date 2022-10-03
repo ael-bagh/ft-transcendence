@@ -21,7 +21,6 @@ export class GameController {
   constructor(private readonly gameService: GameService) {}
   @Get('/games')
   async getGames(): Promise<GameModel[]> {
-    console.log('params');
     return this.gameService.games({});
   }
   @Get('/games/:id')

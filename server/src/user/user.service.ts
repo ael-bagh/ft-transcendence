@@ -12,7 +12,7 @@ export class UserService {
 		include? : Prisma.UserInclude
 		
 	): Promise<User | null> {
-		if (!userWhereUniqueInput)
+		if (userWhereUniqueInput == null)
 			return null;
 		return this.prisma.user.findUnique({
 			where: userWhereUniqueInput,
@@ -361,7 +361,7 @@ export class UserService {
 		console.log(user_exists);
 		userData['avatar'] = userData['avatar'];
 		userData['KDA'] = 0;
-		userData['two_factor_auth'] = 'false';
+		userData['two_factor_auth'] = '';
 		userData['creation_date'] = new Date();
 		userData['current_lobby'] = null;
 		userData['player_level'] = 0.00;
@@ -369,6 +369,7 @@ export class UserService {
 		userData['status'] = Status.OFFLINE;
 		userData['winrate'] = 0.00;
 		userData['is_banned'] = false;
+		userData['two_factor_auth_enabled'] = false;
 		return this.createUser(userData);
 	}
 
