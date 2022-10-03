@@ -2,6 +2,7 @@ import "./App.css";
 import {
   createBrowserRouter,
   RouterProvider,
+  redirect
 } from "react-router-dom";
 import Game from "./routes/Game";
 import Profile from "./routes/Profile";
@@ -16,7 +17,6 @@ import { Flowbite } from "flowbite-react";
 import Home from "./components/layout/Home";
 import { useSocket } from "./hooks/api/useSocket";
 import  axiosInstance from "./lib/axios"
-import { ChatContext } from "./contexts/chat.context";
 import ProfileEdit from "./components/profile/ProfileEdit";
 
 const router = createBrowserRouter([
@@ -39,11 +39,10 @@ const router = createBrowserRouter([
     loader: async ({ params }) => {
       return axiosInstance.get("/user/" + params.id)
     },
-    action: async ({ request, params }) => {
+    action: async ({ request }) => {
       const data = Object.fromEntries(await request.formData());
-      console.log(data);
-      await axiosInstance.patch("/user/update", data);
-      return { redirect: "/profile/" + params.id };
+      const user : User = await axiosInstance.patch("/user/update", data);
+      return redirect(`/profile/${user.data.user_id}`);
     },
     errorElement: <UserNotFound />,
   },
