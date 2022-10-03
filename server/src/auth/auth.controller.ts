@@ -89,6 +89,9 @@ export class AuthController {
 		{
 			const payload = jwt.verify(refreshToken, process.env.SECRET_TOKEN) as Record<string, any>;
 			const user = await this.userService.user({ login: payload.login })
+			if (!user) {
+				throw new Error("User not found");
+			}
 			const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
 			response.cookie("access_token", accessToken, {
 				httpOnly: true,
