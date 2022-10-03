@@ -12,7 +12,7 @@ import { ChatGatewayService } from "../services/chat.gateway.service";
 @WebSocketGateway({
 	transports: ["websocket"],
 	cors: {
-		origin: ['http://frontend.transcendance.com'],
+		origin: [process.env.FRONTEND_URL],
 		credentials: true
 	}
 })

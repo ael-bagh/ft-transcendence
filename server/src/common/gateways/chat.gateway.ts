@@ -11,7 +11,7 @@ import { PrismaService } from "@/common/services/prisma.service";
 @WebSocketGateway({
 	transports: ["websocket"],
 	cors: {
-		origin: ['http://frontend.transcendance.com'],
+		origin: [process.env.FRONTEND_URL],
 		credentials: true
 	}
 })
