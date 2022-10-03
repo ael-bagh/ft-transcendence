@@ -81,6 +81,7 @@ export default function ProfileEdit() {
         >
           <div>
             <input type="text" name="nickname" placeholder="nickname" />
+            <input type="" name="two_factor_auth" placeholder="nickname" />
           </div>
           <button type="submit"> submit</button>
         </Form>

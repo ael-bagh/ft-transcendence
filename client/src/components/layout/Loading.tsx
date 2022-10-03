@@ -18,7 +18,7 @@ export function Searching(){
     autoplay
     loop
     src="https://assets3.lottiefiles.com/packages/lf20_cdlaxvqk.json"
-    style={{ height: "15px", width: "15px" }}
+    style={{ height: "auto", width: "100%" }}
   ></Player>
 </div>)
 }

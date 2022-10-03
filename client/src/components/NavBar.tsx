@@ -9,7 +9,7 @@ import { AuthUserContext } from "../contexts/authUser.context";
 import UserAvatar from "./user/UserAvatar";
 
 const navigation = [
-  { name: "Dashboard", href: "/", current: true },
+  { name: "Dashboard", href: "/dashboard", current: true },
   { name: "Team", href: "/", current: false },
   { name: "Chat Rooms", href: "/", current: false },
 ];
@@ -116,15 +116,15 @@ export default function NavBar() {
                       </Menu.Item>
                       <Menu.Item>
                         {({ active }) => (
-                          <a
-                            href="#"
+                          <Link
+                            to={`/profile/${authUser?.user_id}/edit`}
                             className={classNames(
                               active ? "bg-gray-100" : "",
                               "block px-4 py-2 text-sm text-gray-700"
                             )}
                           >
                             Settings
-                          </a>
+                          </Link>
                         )}
                       </Menu.Item>
                       <Menu.Item>
