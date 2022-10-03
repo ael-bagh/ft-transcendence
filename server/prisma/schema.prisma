@@ -13,10 +13,11 @@ datasource db {
 model User {
 	user_id Int @id @default(autoincrement())
 	login String
-	nickname String
+	nickname String 
 	avatar String?
 	status Status @default(OFFLINE)
 	two_factor_auth String?
+	two_factor_auth_enabled Boolean?
 	creation_date DateTime?
 	current_lobby String?
 	is_banned Boolean?

@@ -19,7 +19,7 @@ import { UserService } from '@/user/user.service';
 import { User as UserModel, Game as GameModel, Status, prisma, Room } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime';
 import { GameService } from '@/game/game.service';
-import { timeStamp } from 'console';
+import { profile, timeStamp } from 'console';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
@@ -72,6 +72,15 @@ export class UserController {
 	}
 	// @UseGuards(JwtAuthGuard)
 
+	@Get(':nickname/available')
+	async checkNickname(@Param('nickname') nickname: string): Promise<boolean> {
+		const user = await this.userService.user({ nickname: nickname });
+		if (user == null)
+			return (true);
+		return (false);
+	}
+	
+
 	@Get(':login/history')
 
 	async getUserGames(@Param('login') login: string): Promise<GameModel[]> {
@@ -110,6 +119,7 @@ export class UserController {
 	async getUserFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
 		return (await this.userService.userFields(user.login, 'received_requests'));
 	}
+
 	@Get('sent_friend_requests')
 	async getUserSentFriendRequests(@CurrentUser() user: UserModel): Promise<UserModel[]> {
 		return (await this.userService.userFields(user.login, 'sent_requests'));
@@ -147,12 +157,16 @@ export class UserController {
 		delete user['_count']
 		console.log(user, "wdjhvcjhwd")
 		
-		
-		this.userService.updateUser({
+		const verify_duplicate = await this.userService.user({ nickname: user['nickname'] });
+		if (verify_duplicate != null && verify_duplicate.login != user.login)
+			throw new HttpException('Nickname already taken', HttpStatus.BAD_REQUEST);
+		await this.userService.updateUser({
 			where: { login: (login) },
 			data: user
 		});
-		return user;
+		const newUserInfo = await this.userService.user({ login: login });
+		console.log(newUserInfo)
+		return newUserInfo;
 	}
 	@Get(':login')
 	async getUserByLogin(@CurrentUser() user: UserModel, @Param('login') profile_login: string): Promise<UserModel> {
@@ -174,9 +188,11 @@ export class UserController {
 		}
 		else
 			profile_user = await this.userService.user({ user_id: Number(profile_login) });
+		if (profile_user == null)
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		let allowed = await this.userService.permissionToDoAction({
 			action_performer: user.login,
-			action_target: profile_login,
+			action_target: profile_user.login,
 			action_mutual: false
 		});
 		if (!allowed)

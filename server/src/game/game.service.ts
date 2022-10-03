@@ -15,7 +15,6 @@ export class GameService {
   }
 
   async games(params: Prisma.GameFindManyArgs): Promise<Game[]> {
-    console.log('params');
     return this.prisma.game.findMany(params);
   }
 
