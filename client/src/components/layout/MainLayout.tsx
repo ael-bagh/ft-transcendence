@@ -1,22 +1,24 @@
-import React from "react";
+import React, { useContext } from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import NavBar from "../NavBar";
-import { useSocket } from "../../hooks/api/useSocket";
+import { QueueContext } from "../../contexts/queue.context";
+import Queue from "./queue";
 
 export default function MainLayout({
   children,
 }: {
   children?: React.ReactNode;
 }) {
-  const { isAuthLoaded } = React.useContext(AuthUserContext);
+  const { isAuthLoaded } = useContext(AuthUserContext);
   return (
     <>
       {isAuthLoaded && (
         <div className="text-white flex flex-col h-screen">
-          <NavBar />
-          <div className="flex grow w-screen">
-            {children}
+          <div className="flex flex-col w-screen">
+            <NavBar />
+            <Queue />
           </div>
+          <div className="grow w-screen">{children}</div>
         </div>
       )}
     </>

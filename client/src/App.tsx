@@ -18,6 +18,8 @@ import Home from "./components/layout/Home";
 import { useSocket } from "./hooks/api/useSocket";
 import  axiosInstance from "./lib/axios"
 import ProfileEdit from "./components/profile/ProfileEdit";
+import Dashboard from "./components/dashboard/Dashboard";
+import QueueContextProvider from "./contexts/queue.context";
 
 const router = createBrowserRouter([
   {
@@ -70,15 +72,22 @@ const router = createBrowserRouter([
     element: <Game />,
     errorElement: <ErrorPage />,
   },
+  {
+    path: "/Dashboard",
+    element: <Dashboard />,
+    errorElement: <ErrorPage />,
+  },
 ]);
 
 function App() {
   return (
     <AuthUserProvider>
+      <QueueContextProvider>
       <Flowbite>
         <GetAuthuser />
         <RouterProvider router={router}/>
       </Flowbite>
+      </QueueContextProvider>
     </AuthUserProvider>
   );
 }
