@@ -1,52 +1,30 @@
 import { GiRank1, GiPodiumWinner, GiDeathJuice } from "react-icons/gi";
-import { useLoaderData, useNavigate } from "react-router-dom";
-import { useRelation } from "../../hooks/api/useUser";
 import Relationship from "./Relationship";
-import { useSocket } from "../../hooks/api/useSocket";
 
-function ProfileHeader() {
-  const { data: user } = useLoaderData() as { data: User | null };
-  const {queueUp} = useSocket();
-  let navigate = useNavigate();
-  const handleClick = () => {
-    queueUp().then((data)=> {
-    const url = "/game/" + data;
-    navigate(url);
-  })
-  };
-  const divStyle = {
-    backgroundImage: "url(" + user?.avatar + ")",
-  };
+function ProfileHeader(props: { user: User | null }) {
   return (
     <div className="flex flex-col w-full">
       <div className="sm:h-96 w-full flex justify-center items-center">
-        <div className="sm:bg-repeat sm:w-full sm:h-full overflow-clip" style={divStyle}></div>
         <img
-          src={`https://avatars.dicebear.com/api/pixel-art-neutral/${user?.login}.svg`}
+          src={`https://avatars.dicebear.com/api/avataaars/${props.user?.login}.svg`}
           alt="avatar"
-          className="sm:absolute sm:h-44 sm:w-44 h-full  sm:rounded-full w-screen sm:object-contain"
+          className="sm:absolute sm:h-44 sm:w-44 h-full  sm:rounded-full w-screen sm:object-contain bg-gray-700"
         />
       </div>
       <div className="flex flex-row justify-between items-center bg-purple-500 p-2 pl-4 pr-4">
         <p>
           <GiRank1 className="inline text-3xl font-extrabold" />
-          {user?.player_level}
+          {props.user?.player_level}
         </p>
         <p>
           <GiPodiumWinner className="inline text-3xl font-extrabold" />
-          {user?._count?.games_won}
+          {props.user?._count?.games_won}
         </p>
         <p>
           <GiDeathJuice className="inline text-3xl font-extrabold" />{" "}
-          {user?._count?.games_lost}
+          {props.user?._count?.games_lost}
         </p>
-        <Relationship user={user}/>
-        <button className="bg-black text-white p-2 rounded-md" onClick={handleClick}>Queue up</button>
-      </div>
-      <div className="playerInfo">
-        <h1 className="text-2xl font-sans font-bold">{user?.login}</h1>
-        <h1 className=" text-base font-sans font-bold">{user?.nickname}</h1>
-        <p>{user?.status}</p>
+        <Relationship user={props.user}/>
       </div>
     </div>
   );

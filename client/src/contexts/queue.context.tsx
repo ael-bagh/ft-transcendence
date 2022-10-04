@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 interface Q {
     inQueue: boolean;
     match: "normal1" | "normal2" | "ranked" | null;
+    matchFound: boolean;
 }
 interface QueueContextInterface {
     queue: Q;
@@ -13,6 +14,7 @@ const QueueContextDefaultValues: QueueContextInterface = {
   queue: {
     inQueue: false,
     match: null,
+    matchFound: false,
     },
   setQueue: () => null,
 }

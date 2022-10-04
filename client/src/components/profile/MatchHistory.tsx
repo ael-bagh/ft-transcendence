@@ -30,12 +30,12 @@ function matchHistory () {
                     'match',
                     (match.game_winner_login === user?.login) ? "bg-green-500" : "bg-red-500"
                 )} >
-                    <img src={match.game_winner.avatar} alt="player avatar" className='matchAvatar'/>
+                    <img src={`https://avatars.dicebear.com/api/avataaars/${match.game_winner_login}.svg`} alt="player avatar" className='matchAvatar rounded-full bg-gray-700'/>
                     <div className='matchInfo'>
                         <h1 className='text-2xl font-sans font-bold'>Victory</h1>
                         <p>{match.game_winner_score} - {match.game_loser_score}</p>
                     </div>
-                    <img src={match.game_loser.avatar} alt="oponenet avatar" className='matchAvatar'/>
+                    <img src={`https://avatars.dicebear.com/api/avataaars/${match.game_loser_login}.svg`} alt="oponenet avatar" className='matchAvatar rounded-full bg-gray-700'/>
                 </div>
                 ))}
                 <div className='flex justify-center'>

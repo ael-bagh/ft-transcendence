@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import NavBar from "../NavBar";
 import { QueueContext } from "../../contexts/queue.context";
-import Queue from "./queue";
+import Queue from "./Queue";
 
 export default function MainLayout({
   children,
