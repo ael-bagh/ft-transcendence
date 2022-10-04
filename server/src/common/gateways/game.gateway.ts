@@ -128,16 +128,16 @@ export class GameGateway {
 		}
 		else if (res[0] == false)
 		{
+			this.server.to(game_lobby).emit('game_accepted', 'refused');
 			client.leave(game_lobby);
 			matching_opp.leave(game_lobby);
-			matching_opp.emit('game_accepted', 'refused');
 			matching_opp.join('__game_queue');
 		}
 		else
 		{
+			this.server.to(game_lobby).emit('game_accepted', 'refused');
 			client.leave(game_lobby);
 			matching_opp.leave(game_lobby);
-			client.emit('game_accepted', 'refused');
 			client.join('__game_queue');
 			
 		}
