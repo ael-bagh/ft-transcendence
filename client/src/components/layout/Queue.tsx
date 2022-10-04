@@ -7,22 +7,23 @@ import { useNavigate } from "react-router-dom";
 export default function Queue() {
     const { queue, setQueue } = useContext(QueueContext)
     const {acceptGame} = useSocket();
+    let navigate = useNavigate();
     const acceptMatch = () => {
-      let navigate = useNavigate();
       acceptGame({isAccepted:true}).then((data) => {
       setQueue({
         inQueue: false,
         match: null,
-        matchFound: true,
+        matchFound: false,
       });
       navigate("/game/"+data);
-    }).catch(() => {
-      setQueue({
-        inQueue: true,
-        match: null,
-        matchFound: false,
-        });
     })
+    // .catch(() => {
+    //   setQueue({
+    //     inQueue: true,
+    //     match: null,
+    //     matchFound: false,
+    //     });
+    // })
     }
     const declineMatch = () => {
       acceptGame({isAccepted:false}).then((data) => {
@@ -34,6 +35,7 @@ export default function Queue() {
     })};
     const cancelQueue = () => {
         //cancel queue here
+
         setQueue({
           inQueue: false,
           match: null,

@@ -10,7 +10,6 @@ export default function Dashboard() {
   const {queueUp} = useSocket();
   let navigate = useNavigate();
   const queueUpNormal1 = () => {
-    //queue up here
     setQueue({
       inQueue: true,
       match: "normal1",
