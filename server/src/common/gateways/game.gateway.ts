@@ -74,6 +74,7 @@ export class GameGateway {
 				sock.on("accept_response", (obj: {isAccepted :Boolean}) => {
 				resolve(obj.isAccepted);
 			  });
+			  setTimeout(() => (resolve(false)), 5000);
 			}));
 		  };
 		const res = await Promise.all([wait_res(client), wait_res(matching_opp)]);
@@ -126,20 +127,11 @@ export class GameGateway {
 			console.log(data);
 			this.server.to(game_lobby).emit('game_ended', data);
 		}
-		else if (res[0] == false)
-		{
-			this.server.to(game_lobby).emit('game_accepted', 'refused');
-			client.leave(game_lobby);
-			matching_opp.leave(game_lobby);
-			matching_opp.join('__game_queue');
-		}
 		else
 		{
 			this.server.to(game_lobby).emit('game_accepted', 'refused');
 			client.leave(game_lobby);
 			matching_opp.leave(game_lobby);
-			client.join('__game_queue');
-			
 		}
 	}
 	@SubscribeMessage('move')
