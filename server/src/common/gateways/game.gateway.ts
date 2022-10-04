@@ -13,7 +13,10 @@ import { Status } from '@prisma/client';
 import { Socket } from 'dgram';
 import { resolve } from 'path';
 import { Server } from 'socket.io';
+import { GatewayService } from '../services/gateway.service';
 import { PrismaService } from '../services/prisma.service';
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 @WebSocketGateway({
 	transports: ['websocket'],
@@ -27,7 +30,8 @@ export class GameGateway {
 		private readonly userService: UserService,
 		private readonly prisma: PrismaService,
 		private readonly gameService: GameService,
-	) {}
+		private readonly gateWayService: GatewayService,
+	) { }
 
 	@WebSocketServer()
 	server: Server;
@@ -44,19 +48,39 @@ export class GameGateway {
 			.to('__connected_' + user.login)
 			.emit('come_play', client.user.login);
 	}
+
 	@SubscribeMessage('join_game_queue')
 	async joinGameQueue(@ConnectedSocket() client: CustomSocket) {
+		client.user = await this.userService.updateUser({
+			where: {
+				login: client.user.login
+			},
+			data: {
+				status: Status.INQUEUE
+			}
+		})
+		this.gateWayService.broadcastStatusChangeToFriends(
+			this.server,
+			this.userService,
+			client.user
+		);
 		if (!this.server.sockets.adapter.rooms.has('__game_queue')) {
 			client.join('__game_queue');
 			console.log('joined game');
 			return;
 		}
+		// this.server.to()
 		const queue = this.server.sockets.adapter.rooms.get('__game_queue');
-		console.log(queue.values().next().value);
-		console.log(queue.size);
+		// console.log(queue.values().next().value);
+		// console.log(queue.size);
 		let matching_opp = this.server.sockets.sockets.get(
 			queue.values().next().value,
 		) as CustomSocket;
+		if (matching_opp.user.login == client.user.login) {
+			console.log('same person');
+			this.server.to('__connected_' + client.user.login).emit('i_am_you');
+			return;
+		}
 		console.log(matching_opp.user, 'hihi');
 		matching_opp.leave('__game_queue');
 		client.user_nb = 0;

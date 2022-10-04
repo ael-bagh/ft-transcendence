@@ -21,6 +21,24 @@ export class UserService {
 	}
 
 
+	async getUserFriends(
+		login: string
+	): Promise<User[] | null>
+	{
+		if ((await this.user({login: login}) == null))
+			return null;
+		return await this.users({
+			where: {
+				friends: {
+					some: {
+						login: login
+					}
+				}
+			}
+		})
+	}
+
+
 	async getRelationship(
 		login: string,
 		friend_login: string,

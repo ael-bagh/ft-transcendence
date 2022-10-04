@@ -1,6 +1,6 @@
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Socket } from 'socket.io';
-import { User, Game } from '@prisma/client';
+import { User, Game, Status } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '@/user/user.service';
@@ -34,12 +34,19 @@ export class AuthAdapter extends IoAdapter {
                 // console.log('access_token from cookie:', accessTokenCookie);
                 const payload = jwt.verify(accessTokenCookie || accessTokenHeader, this.configService.get('SECRET_TOKEN')) as any;
                 // console.log(payload);
-                const user = await this.userService.user({
+                let user = await this.userService.user({
                     login: payload.login
                 });
                 if (!user) next(new WsException('User not found'));
                 if (user.is_banned) next(new WsException('User is banned'));
+				user = await this.userService.updateUser({
+					where: { login: user.login },
+					data: {
+						status: (user.status == Status.OFFLINE ? Status.ONLINE : user.status),
+					}
+				});
                 socket.user = user;
+				console.log("svjh",user)
                 socket.token_expire_at = payload.exp * 1000;
             } catch (e) {
                 console.log("oh no");

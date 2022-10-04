@@ -47,23 +47,25 @@ export class UserController {
 		private readonly userService: UserService,
 		private readonly gameService: GameService,
 		private readonly roomService: RoomService
-		) { }
+	) { }
 
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
 	async getProfile(@CurrentUser() user: UserModel) {
-		return await this.userService.user({login: user.login},
+		console.log(user);
+		return await this.userService.user({ login: user.login },
 			{
-					_count: {
-						select: {
-							games_lost: true,
-							games_won: true,
-							friend_requests: true,
-							friends: true,
-						}
-					
-				}}
-				)
+				_count: {
+					select: {
+						games_lost: true,
+						games_won: true,
+						friend_requests: true,
+						friends: true,
+					}
+
+				}
+			}
+		)
 	}
 
 	@Get('rooms')
@@ -90,7 +92,7 @@ export class UserController {
 			return (true);
 		return (false);
 	}
-	
+
 
 	@Get(':login/history')
 
@@ -137,23 +139,16 @@ export class UserController {
 	}
 	@Get('friends')
 	async getUserFriends(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-		return (await this.userService.users({
-			where: {
-				friends: {
-					some: {
-						login: user.login
-					}
-				}
-			}
-		}));
+		return (await this.userService.getUserFriends(user.login));
 	}
 
 	@Get('friend/:friend_login')
 	async getFriendRelationship(@CurrentUser() user: UserModel, @Param('friend_login') friend_login: string): Promise<{
-		is_friend: boolean, is_request_sent:boolean,is_request_received: boolean, is_blocked: boolean}> {
+		is_friend: boolean, is_request_sent: boolean, is_request_received: boolean, is_blocked: boolean
+	}> {
 		let relationships = this.userService.getRelationship(user.login, friend_login);
 		return relationships;
-		
+
 	}
 	@Patch('update')
 	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
@@ -166,7 +161,7 @@ export class UserController {
 		if (userData['is_banned'] != undefined)
 			user['is_banned'] = userData['is_banned'];
 		console.log(user, "wdjhvcjhwd")
-		
+
 		const verify_duplicate = await this.userService.user({ nickname: user['nickname'] });
 		if (verify_duplicate != null && verify_duplicate.login != user.login)
 			throw new HttpException('Nickname already taken', HttpStatus.BAD_REQUEST);
@@ -192,12 +187,25 @@ export class UserController {
 							friend_requests: true,
 							friends: true,
 						}
-					
-				}}
-				);
+
+					}
+				}
+			);
 		}
 		else
-			profile_user = await this.userService.user({ user_id: Number(profile_login) });
+			profile_user = await this.userService.user({ user_id: Number(profile_login) },
+				{
+					_count: {
+						select: {
+							games_lost: true,
+							games_won: true,
+							friend_requests: true,
+							friends: true,
+						}
+
+					}
+				}
+			);
 		if (profile_user == null)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		let allowed = await this.userService.permissionToDoAction({
@@ -218,7 +226,7 @@ export class UserController {
 		@CurrentUser() user: UserModel
 	) {
 		const result = this.userService.searchUsers(login, user)
-		return(result);
+		return (result);
 	}
 
 	// @Delete('/:id/delete')

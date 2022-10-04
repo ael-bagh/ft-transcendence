@@ -114,6 +114,7 @@ enum Status {
 	OFFLINE
 	ONLINE
 	INGAME
+	INQUEUE
 }
 
 enum Achievements_name {

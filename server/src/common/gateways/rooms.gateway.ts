@@ -7,6 +7,8 @@ import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSo
 import { Room, Status, User } from "@prisma/client";
 import { Socket, Server } from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 @WebSocketGateway({
 	transports: ["websocket"],
