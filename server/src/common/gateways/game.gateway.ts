@@ -69,65 +69,76 @@ export class GameGateway {
 		matching_opp.join(game_lobby);
 		this.server.to(game_lobby).emit('accept_game', 'go');
 		
-		const wait_res = (sock:CustomSocket) => {
-			return new Promise((resolve, reject) => {
-				sock.on("accept_response", (obj, err) => {
-				if (err) return reject(err);
-				resolve(obj);
+		const wait_res  = (sock:CustomSocket) => {
+			return new Promise<Boolean>(((resolve , reject) => {
+				sock.on("accept_response", (obj: {isAccepted :Boolean}) => {
+				resolve(obj.isAccepted);
 			  });
-			//   setTimeout(() => reject(false), 5000);
-			});
+			}));
 		  };
 		const res = await Promise.all([wait_res(client), wait_res(matching_opp)]);
-		console.log(res);
-		this.server.to(game_lobby).emit('game_accepted', game_lobby);
+		console.log(res[0], res[1]);
 		
-		const game = new GameObject(this.server, game_lobby, this.gameService);
-		client.game_lobby = game;
-		matching_opp.game_lobby = game;
-		
-		
-		// this.server.to(game_lobby).emit('match_found', game_lobby);
-		const score = await Promise.all([
-			this.userService.updateUser({
-				where: { login: client.user.login },
-				data: { current_lobby: game_lobby, status: Status.INGAME },
-			}),
-			this.userService.updateUser({
-				where: { login: matching_opp.user.login },
-				data: { current_lobby: game_lobby, status: Status.INGAME },
-			}),
-			game.run(),
-		]);
-		console.log('!!!!!!!!!!!!!!scores ', score);
-		let gameData: {
-			game_winner_login: string;
-			game_loser_login: string;
-			game_winner_score: number;
-			game_loser_score: number;
-		};
-		if (score[2][0] < score[2][1]) {
-			[client, matching_opp] = [matching_opp, client];
+		if (res[0] == true && res[1] == true) {
+			this.server.to(game_lobby).emit('game_accepted', game_lobby);
+			
+			const game = new GameObject(this.server, game_lobby, this.gameService);
+			client.game_lobby = game;
+			matching_opp.game_lobby = game;
+			const score = await Promise.all([
+				this.userService.updateUser({
+					where: { login: client.user.login },
+					data: { current_lobby: game_lobby, status: Status.INGAME },
+				}),
+				this.userService.updateUser({
+					where: { login: matching_opp.user.login },
+					data: { current_lobby: game_lobby, status: Status.INGAME },
+				}),
+				game.run(),
+			]);
+			console.log('!!!!!!!!!!!!!!scores ', score);
+			let gameData: {
+				game_winner_login: string;
+				game_loser_login: string;
+				game_winner_score: number;
+				game_loser_score: number;
+			};
+			if (score[2][0] < score[2][1]) {
+				[client, matching_opp] = [matching_opp, client];
+			}
+			gameData = {
+				game_winner_login: client.user.login,
+				game_loser_login: matching_opp.user.login,
+				game_winner_score: score[2][client.user_nb],
+				game_loser_score: score[2][matching_opp.user_nb],
+			};
+			const data = await Promise.all([
+				this.userService.updateUser({
+					where: { login: client.user.login },
+					data: { current_lobby: null, status: Status.ONLINE },
+				}),
+				this.userService.updateUser({
+					where: { login: matching_opp.user.login },
+					data: { current_lobby: null, status: Status.ONLINE },
+				}),
+				this.gameService.saveGame(gameData),
+			]);
+			console.log(data);
+			this.server.to(game_lobby).emit('game_ended', data);
 		}
-		gameData = {
-			game_winner_login: client.user.login,
-			game_loser_login: matching_opp.user.login,
-			game_winner_score: score[2][client.user_nb],
-			game_loser_score: score[2][matching_opp.user_nb],
-		};
-		const data = await Promise.all([
-			this.userService.updateUser({
-				where: { login: client.user.login },
-				data: { current_lobby: null, status: Status.ONLINE },
-			}),
-			this.userService.updateUser({
-				where: { login: matching_opp.user.login },
-				data: { current_lobby: null, status: Status.ONLINE },
-			}),
-			this.gameService.saveGame(gameData),
-		]);
-		console.log(data);
-		this.server.to(game_lobby).emit('game_ended', data);
+		else if (res[0] == false)
+		{
+			client.leave(game_lobby);
+			matching_opp.leave(game_lobby);
+			matching_opp.join('__game_queue');
+			// matching_opp.emit('game_accepted');
+		}
+		else
+		{
+			client.leave(game_lobby);
+			matching_opp.leave(game_lobby);
+			client.join('__game_queue');
+		}
 	}
 	@SubscribeMessage('move')
 	async move(
