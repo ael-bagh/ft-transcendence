@@ -13,6 +13,7 @@ export default function Queue() {
     setAccepted(true);
     acceptGame({ isAccepted: true })
       .then((data) => {
+        setAccepted(false);
         if (data === "refused") {
           setQueue({
             inQueue: true,
