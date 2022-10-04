@@ -74,7 +74,7 @@ export class GameGateway {
 				sock.on("accept_response", (obj: {isAccepted :Boolean}) => {
 				resolve(obj.isAccepted);
 			  });
-			  setTimeout(() => (resolve(false)), 5000);
+			  	// setTimeout(() => (resolve(false)), 5000);
 			}));
 		  };
 		const res = await Promise.all([wait_res(client), wait_res(matching_opp)]);
@@ -134,6 +134,21 @@ export class GameGateway {
 			matching_opp.leave(game_lobby);
 		}
 	}
+	@SubscribeMessage('quit_queue')
+    async quitQueue(
+        @ConnectedSocket() client: CustomSocket,
+    ) {
+        if (client.rooms.has('__game_queue'))
+        {
+            client.leave('__game_queue');
+            client.emit('queue_quitted', 'ok');
+        }
+        else
+        {
+            throw new Error('not in queue');
+        }
+    }
+
 	@SubscribeMessage('move')
 	async move(
 		@ConnectedSocket() client: CustomSocket,
