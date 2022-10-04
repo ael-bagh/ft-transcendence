@@ -5,10 +5,12 @@ import { useSocket } from "../../hooks/api/useSocket";
 import { useNavigate } from "react-router-dom";
 
 export default function Queue() {
+  const [accepted, setAccepted] = useState(false);
   const { queue, setQueue } = useContext(QueueContext);
-  const { acceptGame, queueUp } = useSocket();
+  const { acceptGame, queueUp, quitQueue } = useSocket();
   let navigate = useNavigate();
   const acceptMatch = () => {
+    setAccepted(true);
     acceptGame({ isAccepted: true })
       .then((data) => {
         if (data === "refused") {
@@ -36,7 +38,6 @@ export default function Queue() {
   };
   const declineMatch = () => {
     acceptGame({ isAccepted: false }).finally(() => {
-      console.log("declined");
       setQueue({
         inQueue: false,
         match: null,
@@ -45,15 +46,24 @@ export default function Queue() {
     });
   };
   const cancelQueue = () => {
+    quitQueue().finally(() => {
     setQueue({
       inQueue: false,
       match: null,
       matchFound: false,
-    });
+    });});
   };
   useEffect(() => {
-    //check if match found here
-  }, [queue]);
+    const timer = setTimeout(() => {  
+    console.log("accepted", accepted);
+    console.log("Match found", queue.matchFound);
+    if (queue.matchFound && accepted===false) {
+        console.log("wallah ma dkhelt hna");
+        declineMatch();
+      }
+      }, 5000);
+    return () => clearTimeout(timer);
+  }, [queue, accepted]);
   return (
     <>
       {queue.inQueue && (

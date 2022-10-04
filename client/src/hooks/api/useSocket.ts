@@ -175,6 +175,7 @@ export function useSocket() {
     Move,
     Correction,
     CorrectionOff,
-    acceptGame
+    acceptGame,
+    quitQueue
   };
 }
