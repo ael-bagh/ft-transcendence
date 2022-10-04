@@ -2,29 +2,27 @@ import MainLayout from "../layout/MainLayout";
 import { Searching } from "../layout/Loading";
 import { useContext, useEffect, useState } from "react";
 import { QueueContext } from "../../contexts/queue.context";
+import { useNavigate } from "react-router-dom";
+import { useSocket } from "../../hooks/api/useSocket";
+
 export default function Dashboard() {
   const {queue, setQueue} = useContext(QueueContext);
-
+  const {queueUp} = useSocket();
+  let navigate = useNavigate();
   const queueUpNormal1 = () => {
     //queue up here
     setQueue({
       inQueue: true,
       match: "normal1",
+      matchFound: false,
     });
-  };
-  const queueUpNormal2 = () => {
-    //queue up here
-    setQueue({
-      inQueue: true,
-      match: "normal2",
+      queueUp().then(()=> {
+      setQueue({
+        inQueue: false,
+        match: "normal1",
+        matchFound: true,
       });
-  };
-  const queueUpRanked = () => {
-    //queue up here
-    setQueue({
-      inQueue: true,
-      match: "ranked",
-    });
+    })
   };
   return (
     <MainLayout>
@@ -33,29 +31,11 @@ export default function Dashboard() {
           <>
             <div
               className="flex flex-row h-20 bg-gray-700 w-full"
-              onClick={queueUpRanked}
-            >
-              <div className="w-44 h-full bg-purple-500"></div>
-              <div className="grow h-full m-auto text-center min-w-44">
-                Normal Game 11
-              </div>
-            </div>
-            <div
-              className="flex flex-row h-20 bg-gray-700 w-full"
-              onClick={queueUpNormal2}
-            >
-              <div className="w-44 h-full bg-purple-500"></div>
-              <div className="grow h-full m-auto text-center min-w-44">
-                Normal Game 7
-              </div>
-            </div>
-            <div
-              className="flex flex-row h-20 bg-gray-700 w-full"
               onClick={queueUpNormal1}
             >
               <div className="w-44 h-full bg-purple-500"></div>
               <div className="grow h-full m-auto text-center min-w-44">
-                Ranked Game
+                Normal Game 11
               </div>
             </div>
           </>

@@ -108,12 +108,32 @@ export function useSocket() {
   const queueUp = () => {
     return new Promise((resolve, reject) => {
       socket.emit("join_game_queue");
-      socket.on("match_found", (data, err) => {
+      socket.on("accept_game", (data, err) => {
         if (err) return reject(err);
         resolve(data);
       });
     });
   };
+
+  const quitQueue = () => {
+    return new Promise((resolve, reject) => {
+      socket.emit("quit_queue");
+      socket.on("queue_quitted", (data, err) => {
+        if (err) return reject(err);
+        resolve(data);
+      });
+    });
+  };
+  const acceptGame = (obj:{isAccepted: boolean}) => {
+    return new Promise((resolve, reject) => {
+      socket.emit("accept_response", obj);
+      socket.on("game_accepted", (data, err) => {
+        if (err) return reject(err);
+        resolve(data);
+      });
+    });
+  };
+
   const gameInv = () => {
     return new Promise((resolve, reject) => {
       socket.emit("join_game_invit");
@@ -154,6 +174,7 @@ export function useSocket() {
     gameInv,
     Move,
     Correction,
-    CorrectionOff
+    CorrectionOff,
+    acceptGame
   };
 }
