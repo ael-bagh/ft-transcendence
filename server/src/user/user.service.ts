@@ -369,15 +369,13 @@ export class UserService {
 	}
 
 	async signupUser(
-		userData: { login: string; nickname: string; avatar: string; two_factor_auth?: string; creation_date?: Date; current_lobby?: string; KDA?: number },
+		userData: { login: string; nickname: string; avatar: string, email: string},
 	): Promise<User> {
 		const user_exists = await this.user({ login: userData['login'] });
 		if (user_exists != null) {
 			console.log(user_exists, "hi");
 			return user_exists;
 		}
-		console.log(user_exists);
-		userData['avatar'] = userData['avatar'];
 		userData['KDA'] = 0;
 		userData['two_factor_auth'] = '';
 		userData['creation_date'] = new Date();
