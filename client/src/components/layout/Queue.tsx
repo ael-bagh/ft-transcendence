@@ -35,7 +35,7 @@ export default function Queue() {
     })};
     const cancelQueue = () => {
         //cancel queue here
-
+        
         setQueue({
           inQueue: false,
           match: null,

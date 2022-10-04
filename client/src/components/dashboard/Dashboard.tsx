@@ -17,7 +17,7 @@ export default function Dashboard() {
     });
       queueUp().then(()=> {
       setQueue({
-        inQueue: false,
+        inQueue: true,
         match: "normal1",
         matchFound: true,
       });
