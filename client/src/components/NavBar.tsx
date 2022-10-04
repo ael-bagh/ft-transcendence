@@ -86,7 +86,7 @@ export default function NavBar() {
                       <span className="sr-only">Open user menu</span>
                       <img
                         className="h-8 w-8 rounded-full"
-                        src={authUser?.avatar}
+                        src={`https://avatars.dicebear.com/api/avataaars/${authUser?.login}.svg`}
                         alt=""
                       />
                     </Menu.Button>
