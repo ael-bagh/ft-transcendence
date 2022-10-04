@@ -130,14 +130,16 @@ export class GameGateway {
 		{
 			client.leave(game_lobby);
 			matching_opp.leave(game_lobby);
+			matching_opp.emit('game_accepted', 'refused');
 			matching_opp.join('__game_queue');
-			// matching_opp.emit('game_accepted');
 		}
 		else
 		{
 			client.leave(game_lobby);
 			matching_opp.leave(game_lobby);
+			client.emit('game_accepted', 'refused');
 			client.join('__game_queue');
+			
 		}
 	}
 	@SubscribeMessage('move')
