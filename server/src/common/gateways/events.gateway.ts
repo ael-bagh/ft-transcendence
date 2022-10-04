@@ -141,27 +141,27 @@ export class EventsGateway {
 		});
 		if (!allowed)
 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		this.userService.remove_request({
+		await this.userService.remove_request({
 			login, friend_login: target_login, onFinish: (login: string, target_login) => {
 				this.gateWayService.emitBroadcast(this.server, target_login, login);
 			}
 		});
-		this.userService.addfriends(login, target_login);
+		await this.userService.addfriends(login, target_login);
 		client.emit('friend_request_accepted', userData?.target_login)
 	}
 
 	@SubscribeMessage('delete_friend')
-	delete_friend(
+	async delete_friend(
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
-		 this.userService.deleteFriends(login, userData?.target_login);
+		await  this.userService.deleteFriends(login, userData?.target_login);
 		 client.emit('friend_deleted', userData?.target_login)
 	}
 
 	@SubscribeMessage('delete_friend_request')
-	delete_friend_request(
+	async delete_friend_request(
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
@@ -171,18 +171,18 @@ export class EventsGateway {
 		{
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		}
-		let friend =  this.userService.user({ login: (target_login) });
+		let friend =  await this.userService.user({ login: (target_login) });
 		if (!client?.user || !friend)
 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 	
-		this.userService.remove_request({
+		await this.userService.remove_request({
 			login, friend_login:target_login, 
 		});
 		client.emit('decline_friend_request', target_login)
 	}
 
 	@SubscribeMessage('delete_sent_friend_request')
-	delete_sent_friend_request(
+	async delete_sent_friend_request(
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
@@ -192,14 +192,14 @@ export class EventsGateway {
 		if (!client?.user || !friend)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		 
-		this.userService.remove_request({
+		await this.userService.remove_request({
 			login: target_login, friend_login: login, 
 		});
 		client.emit('cancel_friend_request', target_login)
 	}
 
 	@SubscribeMessage('block_user')
-	block_user(
+	async block_user(
 		@MessageBody() userData : { target_login: string},
 		@ConnectedSocket() client: CustomSocket,
 	)
@@ -208,14 +208,14 @@ export class EventsGateway {
 		let user_to_block_login = userData?.target_login
 		if (!user_to_block_login)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		if (!this.userService.user({login: user_to_block_login}))
+		if (!(await this.userService.user({login: user_to_block_login})))
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		this.userService.block_user({login, user_to_block_login})
+		await this.userService.block_user({login, user_to_block_login})
 		client.emit('blocked', user_to_block_login)
 	}
 
 	@SubscribeMessage('unblock_user')
-	unblock_user(
+	async unblock_user(
 		@MessageBody() userData : { target_login: string},
 		@ConnectedSocket() client: CustomSocket,
 	)
@@ -223,10 +223,10 @@ export class EventsGateway {
 		let login = client.user.login;
 		let user_to_unblock_login = userData?.target_login
 		if (!user_to_unblock_login)
-		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		if (!this.userService.user({login: user_to_unblock_login}))
-		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		this.userService.unblock_user({login, user_to_unblock_login});
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		if (!(await this.userService.user({login: user_to_unblock_login})))
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		await this.userService.unblock_user({login, user_to_unblock_login});
 		client.emit('unblocked', user_to_unblock_login)
 	}
 	// handleNotifications(

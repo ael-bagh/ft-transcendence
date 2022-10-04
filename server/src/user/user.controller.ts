@@ -52,7 +52,18 @@ export class UserController {
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
 	async getProfile(@CurrentUser() user: UserModel) {
-		return await this.userService.user({login: user.login},)
+		return await this.userService.user({login: user.login},
+			{
+					_count: {
+						select: {
+							games_lost: true,
+							games_won: true,
+							friend_requests: true,
+							friends: true,
+						}
+					
+				}}
+				)
 	}
 
 	@Get('rooms')
@@ -154,7 +165,6 @@ export class UserController {
 		user['status'] = userData['status'] || user['status'];
 		if (userData['is_banned'] != undefined)
 			user['is_banned'] = userData['is_banned'];
-		delete user['_count']
 		console.log(user, "wdjhvcjhwd")
 		
 		const verify_duplicate = await this.userService.user({ nickname: user['nickname'] });
@@ -174,16 +184,16 @@ export class UserController {
 		let profile_user: UserModel | null;
 		if (!Number(profile_login)) {
 			profile_user = await this.userService.user({ login: profile_login, },
-				// {
-				// 	_count: {
-				// 		select: {
-				// 			games_lost: true,
-				// 			games_won: true,
-				// 			friend_requests: true,
-				// 			friends: true,
-				// 		}
+				{
+					_count: {
+						select: {
+							games_lost: true,
+							games_won: true,
+							friend_requests: true,
+							friends: true,
+						}
 					
-				// }}
+				}}
 				);
 		}
 		else
