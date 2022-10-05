@@ -18,7 +18,7 @@ export default function MainLayout({
             <NavBar />
             <Queue />
           </div>
-          <div className="grow w-screen">{children}</div>
+          <div className="flex grow w-screen">{children}</div>
         </div>
       )}
     </>
