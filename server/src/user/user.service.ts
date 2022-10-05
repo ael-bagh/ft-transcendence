@@ -7,6 +7,7 @@ export class UserService {
 	constructor(private prisma: PrismaService) { }
 
 
+	
 	async user(
 		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
 		include? : Prisma.UserInclude
@@ -538,5 +539,13 @@ export class UserService {
 				}
 			}
 		}));
+	}
+
+	async setTwoFactorAuthenticationSecret(secret: string, userId: number) {
+		return (await this.prisma.user.update(
+			{
+				where: { user_id: (userId) },
+				data: { two_factor_auth: (secret) },
+			}));
 	}
 }
