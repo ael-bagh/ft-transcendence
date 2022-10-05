@@ -261,9 +261,9 @@ export class GameObject {
   private after_update() {
     const corr: [number, number][] = [];
     for (let i = 0; i < this.bars.length; ++i) {
-      corr.push([this.bars[i].position.x, this.bars[i].position.y]);
+      corr.push([this.bars[i].position.x / 1280, this.bars[i].position.y / 720]);
     }
-    corr.push([this.ball.position.x, this.ball.position.y]);
+    corr.push([this.ball.position.x /1280, this.ball.position.y / 720]);
     corr.push([this.score[0], this.score[1]]);
     this.server.to(this.room).volatile.emit('correction', corr[0], corr[1], corr[2], corr[3]);
   }

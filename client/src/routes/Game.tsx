@@ -9,18 +9,15 @@ import { useSocket } from "../hooks/api/useSocket";
 export default function Game() {
   const {Move, Correction, CorrectionOff} = useSocket();
   const engine = useRef(Engine.create())
-  const bar1 = useRef(Bodies.rectangle(50, 300, 10, 100))
-  const bar2 = useRef(Bodies.rectangle(1230, 300, 10, 100))
-  const ball = useRef(Bodies.circle(640, 360, 10))
+  const bar1 = useRef(Bodies.rectangle(50, 300, 10, 100, { isStatic: true }))
+  const bar2 = useRef(Bodies.rectangle(1230, 300, 10, 100, {isStatic: true}))
+  const ball = useRef(Bodies.circle(640, 360, 10, {isStatic: true}))
   const key = useRef({up: false, down: false})
   const [score1, setScore1] = useState(0);
   const [score2, setScore2] = useState(0);
   useEffect(() => {
     Composite.add( engine.current.world, [ball.current, bar1.current, bar2.current,
-      Bodies.rectangle(640, -250, 1800, 500, { isStatic: true }),
-      Bodies.rectangle(640, 970, 1800, 500, { isStatic: true }),
-      Bodies.rectangle(-250, 360, 500, 1500, { isStatic: true }),
-      Bodies.rectangle(1530, 360, 500, 1500, { isStatic: true })]);
+    ]);
       document.addEventListener('keydown',
             (event) => {
                 let mov = 0;
@@ -64,35 +61,47 @@ export default function Game() {
     };
   }, [])
   const sketch = (p5: P5Instance) => {
-    p5.setup = () => p5.createCanvas(1280, 720, p5.P2D);
-  
+    const ballRadiusRatio = 10/1280;
+    const barWidthRatio = 10/1280;
+    const barHeightRatio = 100/720;
+    let cwidth = window.innerWidth;
+    let cheight = window.innerWidth/ 1.77777777778;
+
+    p5.setup = () => p5.createCanvas(cwidth, cheight, p5.P2D);
+    
+    p5.windowResized = () => {
+      cwidth = window.innerWidth;
+      cheight = window.innerWidth/ 1.77777777778;
+      p5.resizeCanvas(cwidth, cheight);
+    }
+
     p5.draw = () => {
+
       p5.background(51);
       let pos = ball.current.position;
       let angle = ball.current.angle;
       p5.push();
-      p5.translate(pos.x, pos.y);
+      p5.translate(pos.x * cwidth, pos.y * cheight);
       p5.rotate(angle);
       p5.rectMode(p5.CENTER);
-      p5.ellipse(0, 0, 10, 10);
+      p5.ellipse(0, 0, ballRadiusRatio * cwidth, ballRadiusRatio* cwidth);
       p5.pop();
       pos = bar1.current.position;
       angle = bar1.current.angle;
       p5.push();
-      p5.translate(pos.x, pos.y);
+      p5.translate(pos.x * cwidth, pos.y * cheight);
       p5.rotate(angle);
       p5.rectMode(p5.CENTER);
-      p5.rect(0, 0, 10, 100);
+      p5.rect(0, 0, barWidthRatio * cwidth, barHeightRatio * cheight);
       p5.pop();
       pos = bar2.current.position;
       angle = bar2.current.angle;
       p5.push();
-      p5.translate(pos.x, pos.y);
+      p5.translate(pos.x * cwidth, pos.y * cheight);
       p5.rotate(angle);
       p5.rectMode(p5.CENTER);
-      p5.rect(0, 0, 10, 100);
+      p5.rect(0, 0, barWidthRatio * cwidth, barHeightRatio * cheight);
       p5.pop();
-      
     };
   };
   // const { data: Game } = useLoaderData() as { data: Game | null };
