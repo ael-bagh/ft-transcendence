@@ -54,6 +54,7 @@ export class AuthController {
 						const user = await this.userService.signupUser({
 							login: info.data.login,
 							nickname: info.data.login,
+							email: info.data.login,
 							// password: value.data.access_token,
 							avatar: `https://avatars.dicebear.com/api/jdenticon/${info.data.login}.svg`
 						});
