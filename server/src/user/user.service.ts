@@ -548,4 +548,15 @@ export class UserService {
 				data: { two_factor_auth: (secret) },
 			}));
 	}
+	
+	async turnOnTwoFactorAuthentication(userId: number) {
+		return this.prisma.user.update(
+			{
+				where: { user_id: (userId) },
+				data: { two_factor_auth_enabled: (true) },
+			}
+		);
+	}
+
+
 }
