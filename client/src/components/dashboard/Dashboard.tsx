@@ -21,7 +21,9 @@ export default function Dashboard() {
         match: "normal1",
         matchFound: true,
       });
-    })
+    }).catch((err) => {
+      console.log("already in queue");}
+      );
   };
   return (
     <MainLayout>

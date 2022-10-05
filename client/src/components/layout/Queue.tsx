@@ -26,7 +26,9 @@ export default function Queue() {
               match: "normal1",
               matchFound: true,
             });
-          })
+          }).catch((err) => {
+            console.log("already in queue");}
+            );
         } else {
           setQueue({
             inQueue: false,
