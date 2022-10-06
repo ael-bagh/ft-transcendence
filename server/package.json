@@ -39,6 +39,8 @@
     "@prisma/client": "^4.3.1",
     "@types/bcrypt": "^5.0.0",
     "bcrypt": "^5.0.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.13.2",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.2",
     "matter-js": "^0.18.0",

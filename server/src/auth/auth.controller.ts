@@ -5,7 +5,6 @@ import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '@/user/user.service';
 
-
 @Controller("auth")
 export class AuthController {
 	constructor(
