@@ -159,7 +159,8 @@ export class UserController {
 		let login = user.login;
 		user['nickname'] = userData['nickname'] || user['nickname'];
 		user['avatar'] = userData['avatar'] || user['avatar'];
-		user['two_factor_auth'] = userData['two_factor_auth'] || user['two_factor_auth'];
+		if (userData['two_factor_auth_enabled'])
+			user['two_factor_auth_enabled'] = userData['two_factor_auth_enabled'] == 'on' ? true : false;
 		user['current_lobby'] = userData['current_lobby'] || user['current_lobby'];
 		user['status'] = userData['status'] || user['status'];
 		if (userData['is_banned'] != undefined)
