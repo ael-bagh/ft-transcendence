@@ -16,10 +16,12 @@ import { RoomService } from '@/room/room.service';
 import { CurrentUser } from '@/user/user.decorator';
 import { UserModule } from '@/user/user.module';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import JwtTwoFactorGuard from '@/common/guards/jwt-two-factor.guard';
 
 
 @Controller("rooms")
 @UseGuards(JwtAuthGuard)
+@UseGuards(JwtTwoFactorGuard)
 export class RoomController {
 	constructor(private readonly roomService: RoomService) { }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { User, Prisma, Game, Status } from '@prisma/client';
 
@@ -38,7 +38,19 @@ export class UserService {
 			}
 		})
 	}
+	// findOneBy
+	// async findOneBy()
 
+	async getById(id: number) {
+		const user = await this.user({ user_id: id });
+		if (user) {
+		  return user;
+		}
+		throw new HttpException(
+		  'User with this id does not exist',
+		  HttpStatus.NOT_FOUND,
+		);
+	  }
 
 	async getRelationship(
 		login: string,

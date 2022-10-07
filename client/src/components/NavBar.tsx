@@ -130,7 +130,7 @@ export default function NavBar() {
                       <Menu.Item>
                         {({ active }) => (
                           <a
-                            href="http://backend.transcendance.com/auth/logout"
+                            href="http://localhost:5000/auth/logout"
                             className={classNames(
                               active ? "bg-gray-100" : "",
                               "block px-4 py-2 text-sm text-gray-700"

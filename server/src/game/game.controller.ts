@@ -13,10 +13,12 @@ import { GameService } from '@/game/game.service';
 import { Game as GameModel, User as UserModel, Prisma } from '@prisma/client';
 import { UserModule } from '@/user/user.module';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import JwtTwoFactorGuard  from '@/common/guards/jwt-two-factor.guard';
 import { CurrentUser } from '@/user/user.decorator';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
+@UseGuards(JwtTwoFactorGuard)
 export class GameController {
   constructor(private readonly gameService: GameService) {}
   @Get('/games')

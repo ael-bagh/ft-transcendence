@@ -28,6 +28,7 @@ import { CurrentUser } from './user.decorator';
 import { HttpService } from '@nestjs/axios';
 import { NOTFOUND } from 'dns';
 import { MessageBody } from '@nestjs/websockets';
+import JwtTwoFactorGuard from '@/common/guards/jwt-two-factor.guard';
 
 enum status {
 	'OFFLINE' = 0,
@@ -42,6 +43,7 @@ function delay(ms: number) {
 
 @Controller('user')
 @UseGuards(JwtAuthGuard)
+// @UseGuards(JwtTwoFactorGuard)
 export class UserController {
 	constructor(
 		private readonly userService: UserService,

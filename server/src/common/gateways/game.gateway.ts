@@ -21,7 +21,7 @@ dotenv.config()
 @WebSocketGateway({
 	transports: ['websocket'],
 	cors: {
-		origin: [process.env.FRONTEND_URL],
+		origin: ['http://localhost'],
 		credentials: true,
 	},
 })

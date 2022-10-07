@@ -11,7 +11,7 @@ dotenv.config()
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, {
 		cors: {
-			origin: ['http://frontend.transcendance.com'],
+			origin: ['http://localhost'],
 			credentials: true,
 		}
 	});
@@ -28,7 +28,7 @@ async function bootstrap() {
 		.build();
 	const document = SwaggerModule.createDocument(app, config);
 	SwaggerModule.setup('api', app, document);
-	await app.listen(80, '0.0.0.0');
+	await app.listen(5000, '0.0.0.0');
 	console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

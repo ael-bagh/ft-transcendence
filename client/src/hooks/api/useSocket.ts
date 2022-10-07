@@ -2,7 +2,7 @@ import io from "socket.io-client";
 import { useEffect, useState } from "react";
 import { Body } from "matter-js";
 
-const socket = io("ws://backend.transcendance.com/", {
+const socket = io("ws://localhost:5000/", {
   transports: ["websocket"],
   reconnection: true,
   reconnectionDelay: 1000,

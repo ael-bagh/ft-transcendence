@@ -1,4 +1,12 @@
-import { Controller, Get, Query, Redirect, Res, Req } from '@nestjs/common';
+import {
+	Controller, 
+	Get, 
+	Query, 
+	Redirect, 
+	Res, 
+	Req,
+} from '@nestjs/common';
+import RequestWithUser from './requestWithUser.interface';
 import { HttpService } from '@nestjs/axios';
 import { AuthService } from '@/auth/auth.service';
 import { Request, Response } from 'express';
@@ -18,9 +26,31 @@ export class AuthController {
 		"client_id=" + process.env.OAUTH_CLIENT_ID +
 		"&redirect_uri=" + process.env.OAUTH_CALLBACK +
 		"&response_type=code")
-	ft_oauth_login() {
+	ft_oauth_login(){
 
 	}
+	// ft_oauth_login(@Req() request: RequestWithUser) {
+	// 	const { user } = request;
+	// 	const accessTokenCookie = this.authService.getCookieWithJwtAccessToken(user.user_id);
+	// 	const {
+	// 	  cookie: refreshTokenCookie,
+	// 	  token: refreshToken
+	// 	} = this.authService.regenerateAccessTokenWithRefreshToken(user, request.cookies.refresh_token);
+	 
+	// 	// await this.userService.user.setRefreshToken(refreshToken);
+	// 	this.userService.updateUser({
+	// 		where : {user_id: user.user_id},
+	// 		data: {refreshToken: refreshToken}}
+	// 	);
+	 
+	// 	request.res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
+	 
+	// 	if (user.two_factor_auth_enabled) {
+	// 	  return; redirect to 2fa page
+	// 	}
+	 
+	// 	return user;
+	//   }
 
 
 	@Get('logout')
@@ -53,7 +83,8 @@ export class AuthController {
 						const user = await this.userService.signupUser({
 							login: info.data.login,
 							nickname: info.data.login,
-							email: info.data.login,
+							email: info.data.email,
+
 							// password: value.data.access_token,
 							avatar: `https://avatars.dicebear.com/api/jdenticon/${info.data.login}.svg`
 						});
@@ -66,12 +97,10 @@ export class AuthController {
 						// refreshExpires.setSeconds(refreshExpires.getSeconds() + 2);
 						response.cookie("refresh_token", refreshToken, {
 							httpOnly: true,
-							domain: process.env.DOMAIN,
 							path: '/auth/refresh'
 						});
 						response.cookie("access_token", accessToken, {
 							httpOnly: true,
-							domain: process.env.DOMAIN,
 							// expires: refreshExpires,
 							path: '/'
 						});
@@ -95,7 +124,6 @@ export class AuthController {
 			const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
 			response.cookie("access_token", accessToken, {
 				httpOnly: true,
-				domain: process.env.DOMAIN,
 				path: '/'
 			});
 			response.json(req.cookies);

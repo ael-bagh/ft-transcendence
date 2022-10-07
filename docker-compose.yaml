@@ -3,7 +3,7 @@ services:
   frontend:
     container_name: client
     build:
-      context: ./client
+      context: ./server
       dockerfile: Dockerfile.local
     restart: always
     env_file: .env
