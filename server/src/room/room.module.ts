@@ -3,13 +3,14 @@ import { PrismaService } from '@/common/services/prisma.service';
 import { RoomController } from "@/room/room.controller";
 import { RoomService } from "@/room/room.service";
 import { GatewayService } from "@/common/services/gateway.service";
+import { UserService } from "@/user/user.service";
 
 
 
 @Module({
 	imports: [],
 	controllers: [RoomController],
-	providers: [RoomService, PrismaService],
+	providers: [RoomService, PrismaService, UserService],
 	exports: [RoomService]
 })
 export class RoomModule { }

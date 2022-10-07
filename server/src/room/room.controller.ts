@@ -11,53 +11,91 @@ import {
 	Query,
 	UseGuards,
 } from '@nestjs/common';
-import { Room, User, Prisma, Message_Notification, Message} from '@prisma/client';
+import { Room, User, Prisma, Message_Notification, Message } from '@prisma/client';
 import { RoomService } from '@/room/room.service';
 import { CurrentUser } from '@/user/user.decorator';
 import { UserModule } from '@/user/user.module';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { userInfo } from 'os';
+import { UserService } from '@/user/user.service';
+import { WsException } from '@nestjs/websockets';
 
 
 @Controller("rooms")
 @UseGuards(JwtAuthGuard)
 export class RoomController {
-	constructor(private readonly roomService: RoomService) { }
+	constructor(
+		private readonly roomService: RoomService,
+		private readonly userServise: UserService,
+		) { }
 
 	@Get('messages')
-	async getAllMessages(): Promise<Message[]>
-	{
+	async getAllMessages(): Promise<Message[]> {
 		return await this.roomService.getMessages();
 	}
 
 	@Get('')
-	async getRooms(@CurrentUser() user: User, @Query('page') page: number): Promise<(Room & {unread_messages_count: number})[]> {
+	async getRooms(
+		@CurrentUser() user: User,
+		@Query('page') page: number,
+		@Query('segment') segment: string
+		): Promise<(Room & { unread_messages_count: number })[]> {
 		page = Number(page) || 0;
-		const rooms = await this.roomService.rooms({
-			where: {
-				room_users: {
-					some: {
-						login: user.login
-					}
-				},
+
+		const whereClause: Prisma.RoomWhereInput = {
+			room_users: {
+				some: {
+					login: user.login
+				}
 			},
-			include:{
+		};
+
+		if (segment) {
+			whereClause['OR'] = [
+				{
+					room_name: {
+						contains: segment
+					},
+				},
+				{
+					room_users: {
+						some: {
+							login: {
+								contains: segment,
+								not: user.login
+							},
+						},
+					}
+				}
+			]
+		}
+
+		const rooms = await this.roomService.rooms({
+			where: whereClause,
+			include: {
+				room_users: true,
 				room_messages:
 				{
 					take: 1,
-					orderBy:{
+					orderBy: {
 						message_time: 'desc'
 					}
-				}
+				},
+
 			},
 			take: 10,
 			skip: 10 * page,
 		});
-		rooms.map(async room => {
-			delete room.room_password;
-		});
-		return Promise.all(rooms.map(async room => Object.assign(room, {
+		// await Promise.all(rooms.map(async room => {
+		// 	delete room.room_password;
+		// }));
+		const test =  await Promise.all(rooms.map(async room => ({
+			...room,
+			room_password : undefined,
 			unread_messages_count: await this.roomService.unseenMessages(room.room_id, user.login),
 		})));
+		console.log(test);
+		return(test);
 	}
 
 	// @Get("create_room2")
@@ -72,21 +110,76 @@ export class RoomController {
 		if (await (this.roomService.roomPermissions(action_performer.login, 'viewRoom', null, { room_id: Number(room_id) })) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		let room = await this.roomService.room({ room_id: Number(room_id) });
-		if (room.room_direct_message){
-			const room_users = this.roomService.getRoomUsers({room_id: Number(room_id)});
-			room.room_name = (action_performer.login == room_users[0].login?room_users[1].login : room_users[0].login)
+		if (room.room_direct_message) {
+			const room_users = await this.roomService.getRoomUsers({ room_id: Number(room_id) });
+			room.room_name = (action_performer.login == room_users[0].login ? room_users[1].login : room_users[0].login)
 		}
 		delete (room).room_password;
+		console.log(room);
 		return room;
+	}
+
+	@Post('create_direct_message/:login')
+	async createDirectMessage(
+		@CurrentUser() action_performer: User,
+		@Param("login") target_login: string,
+	): Promise<Number> {
+		const relationShip = await this.userServise.getRelationship(
+			action_performer.login,
+			target_login
+			);
+		if (relationShip.is_blocked)
+			throw new WsException('Not Found')
+		let room = await this.roomService.directMessageRoom(
+			{
+				where: {
+					room_direct_message : true,
+					AND: [
+						{
+							room_users: {
+								some: action_performer
+							}
+						},
+						{
+							room_users: {
+								some: {
+									login: target_login
+								},
+							}
+						}
+					]
+				},
+				select:{
+					room_id:true,
+				}
+			}
+		)
+		console.log(room, !room);
+		if (!room)
+		{
+			room = await this.roomService.createRoom({
+				room_name : '',
+				room_direct_message : true,
+				room_password: "",
+				room_private: false,
+				room_creator_login: action_performer.login,
+			}) as Room
+			room = await this.roomService.addRoomUser(
+				{room_id: room.room_id},
+				{login: target_login}
+				)
+		}
+
+		return room.room_id;
 	}
 
 
 	@Post("create_room")
-	async createRoom(@CurrentUser() user: User, @Body() { name, is_private, is_direct_message , password}: { name: string, is_private: boolean ,is_direct_message : boolean, password ?: string}) {
+	async createRoom(@CurrentUser() user: User, @Body() { name, is_private, is_direct_message, password }: { name: string, is_private: boolean, is_direct_message: boolean, password?: string }) {
 		let regex = new RegExp('^__connected_.*');
 		if (regex.test(name))
 			throw new HttpException('Invalid Name', HttpStatus.BAD_REQUEST);
-		return this.roomService.createRoom({ room_name: name, room_creator_login: user.login, room_private: is_private ,room_direct_message : is_direct_message, room_password: password});
+		return this.roomService.createRoom({ room_name: name, room_creator_login: user.login, room_private: is_private, room_direct_message: is_direct_message, room_password: password });
 	}
 
 	@Post(":room_id/see_messages")
@@ -94,14 +187,12 @@ export class RoomController {
 		const { room_id, user_login }: { room_id: string, user_login: string } = params;
 		if (Number(room_id) == NaN)
 			return null;
-		if (await (this.roomService.roomPermissions(user.login, 'seeMessages', null, { room_id: Number(room_id) })) == false)
-			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-		this.roomService.seemessages(Number(room_id),  user_login );
+		await this.roomService.seemessages(Number(room_id), user.login);
 		return this.roomService.room({ room_id: Number(room_id) });
 	}
 
 	@Delete(":room_id")
-	async deleteRoom(@CurrentUser() user: User, @Param('room_id') room_id: string){
+	async deleteRoom(@CurrentUser() user: User, @Param('room_id') room_id: string) {
 		if (Number(room_id) == NaN)
 			return null;
 		if (await (this.roomService.roomPermissions(user.login, 'deleteRoom', null, { room_id: Number(room_id) })) == false)
@@ -212,6 +303,7 @@ export class RoomController {
 		return this.roomService.room({ room_id: Number(room_id) });
 	}
 
+	
 	// @SubscribeMessage('search_rooms')
 	// searchForRoom(@MessageBody() segment: string, @ConnectedSocket() client: CustomSocket) {
 	// 	/// prisma.rooms.find(name contains query)

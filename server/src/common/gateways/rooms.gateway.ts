@@ -35,10 +35,10 @@ export class RoomsGateway {
 			}
 		});
 		if ((result.room_private && room_password == (result.room_password)) || !result.room_private) {
-			client.join(result.room_name);
+			client.join('rooom_id_'+result.room_id);
 			client.emit('joined_room');
 			let message = this.roomService.addSystemMessage("joined_room", room_id)
-			this.server.to(String(room_id)).emit("message", message);
+			this.server.to('rooom_id_'+String(room_id)).emit("message", message);
 		}
 		else
 			client.emit('wrong_password');
@@ -56,10 +56,10 @@ export class RoomsGateway {
 			}
 		});
 		if (result.length > 0) {
-			client.join(result[0].room_name);
+			client.join('rooom_id_'+result[0].room_id);
 			client.emit('left_room');
 			let message = this.roomService.addSystemMessage("left_room", room_id)
-			this.server.to(String(room_id)).emit("message", message);
+			this.server.to('rooom_id_'+String(room_id)).emit("message", message);
 		}
 		else
 			client.emit('not in room');

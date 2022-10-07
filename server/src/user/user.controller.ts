@@ -52,8 +52,8 @@ export class UserController {
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
 	async getProfile(@CurrentUser() user: UserModel) {
-		console.log(user);
-		return await this.userService.user({ login: user.login },
+		console.log(1,user);
+		const usercount = await this.userService.user({ login: user.login },
 			{
 				_count: {
 					select: {
@@ -66,6 +66,10 @@ export class UserController {
 				}
 			}
 		)
+		return({
+			...user,
+			_count:usercount["_count"]
+		})
 	}
 
 	@Get('rooms')
