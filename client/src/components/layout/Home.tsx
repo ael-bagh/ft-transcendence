@@ -18,7 +18,7 @@ export default function Home() {
       <div className="bg-purple-500 w-full sm:w-3/5 h-1/3 sm:h-full rounded-t-xl sm:rounded-r-xl flex flex-col  justify-center items-center">
         <img src={logo} alt="" className="flex-none w-96 h-auto" />
         <a
-          href="http://localhost:5000/auth/login"
+          href="http://localhost:8080/auth/login"
           className="animate-bounce bg-black text-white text-xl font-minecraft border border-gray-50 p-2 flex flex-row items-center mt-2"
         >
           <img

@@ -18,7 +18,7 @@ model User {
 	email String
 	status Status @default(OFFLINE)
 	two_factor_auth String?
-	two_factor_auth_enabled Boolean?
+	two_factor_auth_enabled Boolean @default(false)
 	creation_date DateTime?
 	current_lobby String?
 	is_banned Boolean?

@@ -12,6 +12,8 @@ import { AuthService } from '@/auth/auth.service';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '@/user/user.service';
+import { CurrentUser } from '@/user/user.decorator';
+import { User } from '@prisma/client';
 
 @Controller("auth")
 export class AuthController {
@@ -29,24 +31,24 @@ export class AuthController {
 	ft_oauth_login(){
 
 	}
-	// ft_oauth_login(@Req() request: RequestWithUser) {
-	// 	const { user } = request;
-	// 	const accessTokenCookie = this.authService.getCookieWithJwtAccessToken(user.user_id);
-	// 	const {
-	// 	  cookie: refreshTokenCookie,
-	// 	  token: refreshToken
-	// 	} = this.authService.regenerateAccessTokenWithRefreshToken(user, request.cookies.refresh_token);
+	// ft_oauth_login(@CurrentUser() user : User ,@Req() request: RequestWithUser) {
+	// 	// const { user } = request;
+	// 	// const accessTokenCookie = this.authService.getCookieWithJwtAccessToken(user.user_id);
+	// 	// const {
+	// 	//   cookie: refreshTokenCookie,
+	// 	//   token: refreshToken
+	// 	// } = this.authService.regenerateAccessTokenWithRefreshToken(user, request.cookies.refresh_token);
 	 
-	// 	// await this.userService.user.setRefreshToken(refreshToken);
-	// 	this.userService.updateUser({
-	// 		where : {user_id: user.user_id},
-	// 		data: {refreshToken: refreshToken}}
-	// 	);
+	// 	// // await this.userService.user.setRefreshToken(refreshToken);
+	// 	// this.userService.updateUser({
+	// 	// 	where : {user_id: user.user_id},
+	// 	// 	data: {refreshToken: refreshToken}}
+	// 	// );
 	 
-	// 	request.res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
+	// 	// request.res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
 	 
 	// 	if (user.two_factor_auth_enabled) {
-	// 	  return; redirect to 2fa page
+	// 	  return; //redirect to 2fa page
 	// 	}
 	 
 	// 	return user;
@@ -91,6 +93,9 @@ export class AuthController {
 						// Prevent password from being sent out
 						// delete user.password;
 						// Generate both refreshToken and accessToken
+						if (!user.two_factor_auth_enabled) {
+							response.redirect("https://www.google.com/");
+						}
 						const refreshToken = await this.authService.loginAndGenerateRefreshToken(user);
 						const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
 						// const refreshExpires = new Date();
