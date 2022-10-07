@@ -21,13 +21,14 @@ export class RoomService {
 	async seemessages(
 		room_id: number,
 		login: string
-	) {
-		this.prisma.message_Notification.deleteMany({
+	): Promise<boolean> {
+		await this.prisma.message_Notification.deleteMany({
 			where: {
 				room_id: room_id,
 				user_login: login
 			}
 		})
+		return true;
 	}
 	async joinRoom(
 		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
@@ -212,7 +213,8 @@ export class RoomService {
 							}
 						}
 					}).then((count) => count > 0));
-
+			case 'seeMessages':
+				return (await this.seemessages(action_room.room_id,action_perfomer))
 
 
 
@@ -288,6 +290,12 @@ export class RoomService {
 		});
 	}
 
+	async directMessageRoom(
+		params : Prisma.RoomFindManyArgs
+	):  Promise<Room | null> {
+		return this.prisma.room.findFirst(params);
+	}
+
 	async deleteRooms(where: Prisma.RoomWhereUniqueInput)
 	{
 		this.prisma.room.deleteMany({
@@ -352,6 +360,7 @@ export class RoomService {
 		message_content: string,
 		message_user_login: string,
 		message_room_id: string,
+		connected_user_login: string,
 	): Promise<Message> {
 		const message = await this.prisma.message.create({
 			data: {
@@ -379,8 +388,10 @@ export class RoomService {
 					}
 				}
 		}));
-		Promise.all(users.map(async user =>{
-			this.prisma.message_Notification.create({
+		await Promise.all(users.map(async user =>{
+			console.log('Sender user: ', user.login, 'Connected login: ', connected_user_login)
+			if (user.login != connected_user_login)
+			await this.prisma.message_Notification.create({
 				data: {
 					message_id: message.message_id,
 					room_id: Number(message_room_id),
@@ -404,11 +415,11 @@ export class RoomService {
 
 
 	async getRoomMessages(
-		where: Prisma.RoomWhereUniqueInput
+		room_id: number,
 	): Promise<Message[]> {
 		return this.prisma.message.findMany({
 			where: {
-				message_room_id: where.room_id
+				message_room_id: room_id
 			},
 			include: {
 				message_user: {
@@ -418,7 +429,7 @@ export class RoomService {
 				},
 			},
 			orderBy: {
-				message_time: 'asc'
+				message_time: 'desc'
 			}
 
 		});

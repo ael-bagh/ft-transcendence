@@ -29,16 +29,34 @@ export class ChatGateway {
 
 	@SubscribeMessage('send_user_message')
 	async handleUserMessages(
-		@MessageBody() data: {currentRoom:string, time: Date, user_login:string, message:string,  },
+		@MessageBody() data: Message,
 		@ConnectedSocket() client: CustomSocket,
 	): Promise<Message> {
 		console.log(data);
-		if (await (this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id: parseInt(data.currentRoom) },)) == false)
+		if (await (this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id: data.message_room_id },)) == false)
 			throw new WsException('Not found');
-		const message = await this.roomService.addUserMessage(data.message,client.user.login,data.currentRoom)
-		this.server.to(data.currentRoom).emit("message", message);
-		console.log("test_me ", message);
+		const message = await this.roomService.addUserMessage(data.message_content,client.user.login,String(data.message_room_id), client.user.login)
+		const users = await this.roomService.getRoomUsers({room_id:data.message_room_id});
+		console.log('message: ', message)
+		users.map(async user =>{
+			// console.log(user.login);
+			
+			this.server.to('__connected_'+user.login).emit("message", message)
+		});
+		// GET ROOM
+		// LOOP THROUGH USERIDS
+		// SEND MESSAGES TO THEM
+		// this.server.to('rooom_id_'+data.currentRoom).emit("message", message);
+		// console.log("test_me ", message);
 		return message;
+	}
+	@SubscribeMessage('get_room_messages')
+	async getRoomMessage(
+		@ConnectedSocket() client : CustomSocket,
+		@MessageBody() data : {room_id: number}
+	) : Promise<Message[]> {
+		const messages = await this.roomService.getRoomMessages(data.room_id);
+		return messages.reverse();
 	}
 	// @SubscribeMessage('join_room')
 	// async handleSystemMessage(

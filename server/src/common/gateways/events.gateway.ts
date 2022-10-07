@@ -39,7 +39,7 @@ export class EventsGateway {
 			this.userService,
 			client.user
 		);
-		console.log("a user connected", client.user);
+		console.log("a user connected", client.user.login);
 	}
 
 	async handleDisconnect(client: CustomSocket) {
@@ -89,16 +89,14 @@ export class EventsGateway {
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		const relationship = await this.userService.getRelationship(client.user.login, userData.target_login)
-
-		client.emit('relationship_sent', relationship);
+		return this.userService.getRelationship(client.user.login, userData.target_login)
 	}
 	@SubscribeMessage('add_friend_request')
 	async sendRequest(
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		console.log(userData);
+		console.log(1,userData);
 		let login = client.user.login;
 		let target_login = userData.target_login;
 		if (!target_login) {
@@ -111,7 +109,7 @@ export class EventsGateway {
 		});
 		if (!allowed)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		const mutual = await this.userService.sendFriendRequest({
+		return(await this.userService.sendFriendRequest({
 			login, friend_login: target_login, onFinish: (user, target_login, broadcast) => {
 				// FIXME: REVISE THIS
 				if (broadcast) {
@@ -121,8 +119,7 @@ export class EventsGateway {
 					this.server.to(`__connected_${target_login}`).emit('friend_request', user.login);
 				}
 			}
-		});
-		client.emit('friend_request_sent', mutual)
+		}))
 	}
 
 	@SubscribeMessage('accept_friend_request')
@@ -148,7 +145,7 @@ export class EventsGateway {
 			}
 		});
 		this.userService.addfriends(login, target_login);
-		client.emit('friend_request_accepted', userData?.target_login)
+		return userData?.target_login;
 	}
 
 	@SubscribeMessage('delete_friend')
@@ -158,7 +155,7 @@ export class EventsGateway {
 	) {
 		let login = client.user.login;
 		this.userService.deleteFriends(login, userData?.target_login);
-		client.emit('friend_deleted', userData?.target_login)
+		return userData?.target_login;
 	}
 
 	@SubscribeMessage('delete_friend_request')
@@ -178,7 +175,7 @@ export class EventsGateway {
 		this.userService.remove_request({
 			login, friend_login: target_login,
 		});
-		client.emit('decline_friend_request', target_login)
+		return target_login
 	}
 
 	@SubscribeMessage('delete_sent_friend_request')
