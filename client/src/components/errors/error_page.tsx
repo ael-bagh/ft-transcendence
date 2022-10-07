@@ -18,7 +18,7 @@ export function ErrorPage() {
         ></Player>
         <div className="flex flex-row items-center justify-between gap-40">
           <p className="text-xl text-center md:text-3xl font-minecraft">
-            {error.statusText} User Not Found
+            {error.statusText}
           </p>
           <Link className="text-xl underline md:text-3xl font-minecraft" to="/">
             <div className="flex">

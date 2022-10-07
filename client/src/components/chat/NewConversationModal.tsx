@@ -26,7 +26,7 @@ export default function NewConversationModal() {
   } = useForm<Inputs>();
   /* once i submit the data the response gotta return the id of the conversation created */
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    setCurrentGroup && setCurrentGroup("1")
+    setCurrentGroup && setCurrentGroup(null);
   };
   return (
     <form className="w-full h-96 flex flex-col gap-2 bg-black p-2" onSubmit={handleSubmit(onSubmit)}>

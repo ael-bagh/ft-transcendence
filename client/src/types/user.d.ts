@@ -17,6 +17,7 @@ interface User {
   KDA: number;
   _count: Count;
   player_level: number;
+  two_factor_auth_boolean?: boolean;
 }
 
 interface GamePlayer {

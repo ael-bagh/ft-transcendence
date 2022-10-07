@@ -3,7 +3,7 @@ import { AuthUserContext } from '../../contexts/authUser.context';
 import axiosInstance from '../../lib/axios';
 
 export function useRooms()  {
-    const [rooms, setRooms] = useState<Room[] | undefined>(undefined);
+    const [rooms, setRooms] = useState<Room[]>([]);
     const [error, setError] = useState<Error | undefined>(undefined);
     useEffect(() => {
       axiosInstance
@@ -19,7 +19,7 @@ export function useRooms()  {
   }
 
   export function markMessagesAsRead(room: Room)  {
-    return axiosInstance.post(`/rooms/${room.room_id}/seemessages`)
+    return axiosInstance.post(`/rooms/${room.room_id}/see_messages`)
   }
 
   export function useRoom(roomId: string)  {

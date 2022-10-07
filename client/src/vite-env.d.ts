@@ -5,6 +5,11 @@ declare module '*.mp4' {
     export default src;
 }
 
+declare module '*.png' {
+    const src: string;
+    export default src;
+}
+
 interface ImportMetaEnv {
     readonly VITE_API_URL: string
 }

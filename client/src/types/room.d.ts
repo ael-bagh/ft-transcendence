@@ -11,5 +11,5 @@ interface Room {
   room_messages: Message[];
   room_users: User[];
   room_banned_users: User[];
-  unread_message_count?: number;
+  unread_messages_count?: number;
 }

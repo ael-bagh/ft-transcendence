@@ -1,14 +1,7 @@
-import io from "socket.io-client";
-import { useEffect, useState } from "react";
+import sock from "../../lib/socket";
 import { Body } from "matter-js";
 
-const socket = io("ws://backend.transcendance.com/", {
-  transports: ["websocket"],
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: 5,
-});
+const socket = sock;
 
 (window as any).aymane_socket = socket;
 
@@ -19,8 +12,7 @@ socket.on("exception", (data: any) => {
 export function useSocket() {
   const relation = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-        socket.emit("relationship", object);
-        socket.on("relationship_sent", (obj, err) => {
+        socket.emit("relationship", object, (obj: any, err: any) => {
           if (err) return reject(err);
           resolve(obj);
         });
@@ -29,7 +21,7 @@ export function useSocket() {
   };
   const sendMessage = (message: Message) => {
     return new Promise((resolve, reject) => {
-      if (message.message.trim() !== "") {
+      if (message.message_content !== "") {
         socket.emit(
           "send_user_message",
           message,

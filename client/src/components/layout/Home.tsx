@@ -5,6 +5,7 @@ import { AuthUserContext } from "../../contexts/authUser.context";
 import { Navigate } from "react-router-dom";
 import { BsArrowBarLeft, BsArrowBarRight, BsGithub } from "react-icons/bs";
 import Team from "../team/Team";
+import logod42 from "../imgs/42_Logo_W.png"
 
 export default function Home() {
   const { authUser } = useContext(AuthUserContext);
@@ -22,7 +23,7 @@ export default function Home() {
           className="animate-bounce bg-black text-white text-xl font-minecraft border border-gray-50 p-2 flex flex-row items-center mt-2"
         >
           <img
-            src="https://bilisimvadisi.com.tr/wp-content/uploads/2022/05/42_Logo_W_500x220.png"
+            src={logod42}
             className="h-6"
             alt="42 LOGO"
           />

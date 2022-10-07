@@ -2,15 +2,16 @@ import MainLayout from "../layout/MainLayout";
 import { Form } from "react-router-dom";
 import ImageUploading from "react-images-uploading";
 import { useLoaderData } from "react-router-dom";
-import { useRef, useState } from "react";
-import { AiFillPicture } from "react-icons/ai";
+import { useState } from "react";
 
 export default function ProfileEdit() {
   const { data: user } = useLoaderData() as { data: User | null };
   const [image, setImage] = useState([]);
+  const [base64, setBase64] = useState("");
   const onChange = (imageList: any, addUpdateIndex: any) => {
-    console.log(imageList, addUpdateIndex);
+    console.log(imageList[0]?.data_url);
     setImage(imageList);
+    setBase64(imageList[0]?.data_url);
   };
   const divStyle = {
     backgroundImage: "url(" + user?.avatar + ")",
@@ -79,9 +80,23 @@ export default function ProfileEdit() {
           action={"/profile/" + user + "/edit"}
           className="p-4 flex-col"
         >
-          <div>
+          <div className="flex flex-col">
             <input type="text" name="nickname" placeholder="nickname" />
-            <input type="" name="two_factor_auth" placeholder="nickname" />
+            <div className="flex flex-row gap-3">
+              <label htmlFor="nickname">2 factor Auth</label>
+              <input
+                type="checkbox"
+                name="two_factor_auth_boolean"
+              />
+            </div>
+
+            <input
+              type="text"
+              name="avatar"
+              value={base64}
+              onChange={(e) => e}
+              hidden
+            />
           </div>
           <button type="submit"> submit</button>
         </Form>
