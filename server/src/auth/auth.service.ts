@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/user/user.service';
+import TokenPayload from './tokenPayload.interface';
 
 @Injectable()
 export class AuthService {
@@ -26,4 +27,12 @@ export class AuthService {
 		// TODO: Only add the minimum required fields instead of ...user
 		return this.jwtService.sign({ ...user, refreshId: payload.refreshId });
 	}
+	public getCookieWithJwtAccessToken(userId: number, isSecondFactorAuthenticated = false) {
+		const payload: TokenPayload = { userId, isSecondFactorAuthenticated };
+		const token = this.jwtService.sign(payload, {
+		  secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+		  expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`
+		});
+		return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}`;
+	  }
 }

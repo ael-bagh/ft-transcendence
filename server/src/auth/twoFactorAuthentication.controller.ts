@@ -16,14 +16,37 @@ import { TwoFactorAuthenticationCodeDto } from './twoFactorAuthenticationCode.dt
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
 import RequestWithUser from './requestWithUser.interface';
 import { UserService } from '../user/user.service';
+import {AuthService} from './auth.service'
 
 @Controller('2fa')
 @UseInterceptors(ClassSerializerInterceptor)
 export class TwoFactorAuthenticationController {
   constructor(
     private readonly twoFactorAuthenticationService: TwoFactorAuthenticationService,
-    private readonly usersService: UserService
+    private readonly usersService: UserService,
+    private readonly authenticationService: AuthService
   ) {}
+
+  @Post('authenticate')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async authenticate(
+    @Req() request: RequestWithUser,
+    @Body() { twoFactorAuthenticationCode } : TwoFactorAuthenticationCodeDto
+  ) {
+    const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
+      twoFactorAuthenticationCode, request.user
+    );
+    if (!isCodeValid) {
+      throw new UnauthorizedException('Wrong authentication code');
+    }
+ 
+    const accessTokenCookie = this.authenticationService.getCookieWithJwtAccessToken(request.user.id, true);
+ 
+    request.res.setHeader('Set-Cookie', [accessTokenCookie]);
+ 
+    return request.user;
+  }
 
   @Post('turn-on')
   @HttpCode(200)
