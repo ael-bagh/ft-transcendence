@@ -62,7 +62,7 @@ export class AuthController {
 		response.redirect(process.env.FRONTEND_URL);
 	}
 
-
+	
 	@Get("callback")
 	// @Redirect(process.env.URL, 302)
 	async ft_callback(@Query() qw, @Res({ passthrough: false }) response: Response) {
@@ -96,6 +96,9 @@ export class AuthController {
 						if (!user.two_factor_auth_enabled) {
 							response.redirect("https://www.google.com/");
 						}
+						// if (user.isTwoFactorAuthenticated) {
+						// 	return user;
+						//   }
 						const refreshToken = await this.authService.loginAndGenerateRefreshToken(user);
 						const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
 						// const refreshExpires = new Date();

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/user/user.service';
+import { toDataURL } from 'qrcode';
 import TokenPayload from './tokenPayload.interface';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt} from 'passport-jwt';
@@ -37,6 +38,21 @@ export class AuthService {
     });
     return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}`;
 	  }
+	
+	async generateQrCodeDataURL(otpAuthUrl: string) {
+	return toDataURL(otpAuthUrl);
+	}
+
+	async login(user : any, isTwoFactorAuthenticated = false) {
+		const payload = {
+			email: user.email,
+			isTwoFactorAuthenticationEnabled: !!user.isTwoFactorAuthenticationEnabled,
+			isTwoFactorAuthenticated,
+		};
+		return {
+			email: payload.email,
+		};
+	}
 }
 
 // @Injectable()
