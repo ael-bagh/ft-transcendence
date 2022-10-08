@@ -1,3 +1,4 @@
+import { Game_mode } from '@prisma/client';
 import {
   Body,
   Engine,
@@ -13,7 +14,7 @@ import { Server } from 'socket.io';
 
 export interface GameEnded{
   game_id: string;
-  game_type: string;
+  game_type: Game_mode;
   games: {winner: string, loser: string, winner_score: number, loser_score: number}[];
   winner?: string;
   loser?: string;
@@ -34,13 +35,20 @@ export class GameObject {
   public gameStarted: boolean;
   public games_played :number;
   public data : GameEnded;
+  public number_of_games : number;
   constructor(
     private readonly server: Server,
     private readonly room: string,
-    private readonly number_of_games: number,
+    private readonly mode: Game_mode,
     private readonly player1: string,
     private readonly player2: string,
   ) {
+	if (mode == Game_mode.ONE)
+		this.number_of_games = 1;
+	else
+	{
+		this.number_of_games = 3;
+	}
     this.engine = Engine.create({ gravity: { x: 0, y: 0 } });
     this.walls['top'] = Bodies.rectangle(640, -250, 1800, 500, {
       isStatic: true,
@@ -104,12 +112,13 @@ export class GameObject {
     this.game_score = [0, 0];
     this.data = {
       game_id: this.room,
-      game_type: 'pong '+ number_of_games,
+      game_type: mode,
       games: [],
     }
     // this.runner.
   }
-  run() {
+  run() :Promise<GameEnded>
+  {
     return new Promise((resolve) => {
       this.reset();
       Runner.run(this.runner, this.engine);

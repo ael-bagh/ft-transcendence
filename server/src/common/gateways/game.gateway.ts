@@ -10,7 +10,7 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 } from '@nestjs/websockets';
-import { Status } from '@prisma/client';
+import { Game_mode, Status } from '@prisma/client';
 import { Socket } from 'dgram';
 import { resolve } from 'path';
 import { Server } from 'socket.io';
@@ -39,7 +39,7 @@ export class GameGateway {
 
 	@SubscribeMessage('invite_to_game')
 	async sendRequest(
-		@MessageBody() userData: { target_login: string , mode: number},
+		@MessageBody() userData: { target_login: string , mode: Game_mode},
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
@@ -60,7 +60,7 @@ export class GameGateway {
 
 	@SubscribeMessage('accept_game_request')
 	async acceptGameRequest(
-		@MessageBody() userData: { target_login: string, isAccepted: boolean, mode: number},
+		@MessageBody() userData: { target_login: string, isAccepted: boolean, mode: Game_mode},
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		let login = client.user.login;
@@ -97,7 +97,7 @@ export class GameGateway {
 	
 	@SubscribeMessage('join_game_queue')
 	async joinGameQueue(
-		@MessageBody() userData: { mode: number },
+		@MessageBody() userData: { mode: Game_mode },
 		@ConnectedSocket() client: CustomSocket) {
 		console.log('join game queue');
 		client.user = await this.userService.updateUser({
@@ -149,7 +149,7 @@ export class GameGateway {
 		
 		if (res[0] == true && res[1] == true) {
 			console.log('starting game');
-			this.gameService.startGame(this.server, game_lobby, 3);
+			this.gameService.startGame(this.server, game_lobby, userData.mode);
 		}
 		else
 		{
@@ -161,7 +161,7 @@ export class GameGateway {
 
 	@SubscribeMessage('quit_queue')
     async quitQueue(
-		@MessageBody() userData: { mode: number },
+		@MessageBody() userData: { mode: Game_mode },
         @ConnectedSocket() client: CustomSocket,
     ) {
 
