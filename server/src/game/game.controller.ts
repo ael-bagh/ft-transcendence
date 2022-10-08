@@ -27,6 +27,16 @@ export class GameController {
   async getGame(@Param('id') id: string): Promise<GameModel> {
     return this.gameService.game({ game_id: id });
   }
+  @Get('/:login/games')
+  async getGamesByLogin(@Param('login') login: string): Promise<GameModel[]> {
+	return this.gameService.games({ where: { OR:[
+		{
+		game_winner_login: login } ,
+		{
+			game_loser_login: login } ,
+	]
+} });
+	}
   @Get('/:login/sets')
   async getSets(@Param('login') login: string): Promise<SetModel[]> {
 	return this.gameService.sets({ 
