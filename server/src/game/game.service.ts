@@ -19,19 +19,36 @@ export class GameService {
 	}
 
 	async games(params: Prisma.GameFindManyArgs): Promise<Game[]> {
-		return this.prisma.game.findMany(params);
+		return await this.prisma.game.findMany(params);
 	}
 
 	async sets(params: Prisma.SetFindManyArgs): Promise<Set[]> {
-		return this.prisma.set.findMany(params);
+		return await this.prisma.set.findMany(params);
 	}
 
 	async prismaCreateGame(data: Prisma.GameCreateInput): Promise<Game> {
-		return this.prisma.game.create({
+		return await this.prisma.game.create({
 			data,
 		});
 	}
-
+	async leaderboard(page: number): Promise<User[]> {
+		return await this.prisma.user.findMany({
+			skip: page * 10,
+			take: 10,
+			include: {
+				_count:{
+					select :{
+						set_won: true,
+						set_lost: true
+					}
+				}
+					
+			},
+			orderBy: {
+				wins: 'desc'
+			},
+		});
+	}
 	async stats(login: string, mode: Game_mode)
 	{
 		const ranked_wins = await this.prisma.set.count({
@@ -60,6 +77,16 @@ export class GameService {
 				set_loser_score: gameEnded.loser_score,
 			}
 		});
+		await this.prisma.user.update({
+			where: {
+				login: gameEnded.winner
+			},
+			data: {
+				wins :{
+					increment: 1
+				}
+			}
+		});
 		let games = Promise.all(gameEnded.games.map(async game => {
 			await this.prisma.game.create({
 				data: {
@@ -78,7 +105,7 @@ export class GameService {
 		data: Prisma.GameUpdateInput;
 	}): Promise<Game> {
 		const { data, where } = params;
-		return this.prisma.game.update({
+		return await this.prisma.game.update({
 			data,
 			where,
 		});
