@@ -19,6 +19,7 @@ import  axiosInstance from "./lib/axios"
 import ProfileEdit from "./components/profile/ProfileEdit";
 import Dashboard from "./components/dashboard/Dashboard";
 import QueueContextProvider from "./contexts/queue.context";
+import TwoFactorAuth from "./components/2FA/TwoFactorAuth";
 
 
 const router = createBrowserRouter([
@@ -28,8 +29,8 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
-    path: "/2fa/login",
-    element: <Home />,
+    path: "/2fa/:login",
+    element: <TwoFactorAuth />,
     errorElement: <ErrorPage />,
   },
   {

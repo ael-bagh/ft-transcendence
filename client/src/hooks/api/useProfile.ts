@@ -7,7 +7,7 @@ interface returnObject {
   error: Error | undefined;
 }
 
-export default function useProfile():returnObject  {
+export default function useProfile(): returnObject {
   const { setIsAuthLoaded } = useContext(AuthUserContext);
   const [profile, setProfile] = useState<User | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
@@ -18,9 +18,12 @@ export default function useProfile():returnObject  {
         setProfile(res.data);
         setIsAuthLoaded(true);
       })
-      .catch((err : Error) => {
+      .catch((err: Error) => {
         setError(err);
-        if (location.pathname !== "/") {
+        if (
+          location.pathname !== "/" &&
+          location.pathname.startsWith("/2fa/") === false
+        ) {
           location.href = "/";
         }
       });
