@@ -29,7 +29,14 @@ export class GameController {
   }
   @Get('/:login/sets')
   async getSets(@Param('login') login: string): Promise<SetModel[]> {
-	return this.gameService.sets({ where: { set_winner_login: login } });
+	return this.gameService.sets({ 
+		where: { OR:[
+			{
+			set_winner_login: login } ,
+			{
+				set_loser_login: login } ,
+		]
+	}});
   }
 
 //   @Get('deleteGames')
