@@ -7,8 +7,8 @@ import { genSalt, hash } from "bcrypt";
 export class RoomService {
 	constructor(private prisma: PrismaService) {
 		prisma.$on<any>('query', (event: Prisma.QueryEvent) => {
-			console.log('Query: ' + event.query);
-			console.log('Duration: ' + event.duration + 'ms');
+			console.log(new Date(),'Query: ' + event.query);
+			console.log(new Date(),'Duration: ' + event.duration + 'ms');
 		});
 	}
 
@@ -38,16 +38,6 @@ export class RoomService {
 		const room = await this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
 		});
-		if (room.room_private === false || room.room_password === password) {
-			return this.prisma.room.update({
-				where: roomWhereUniqueInput,
-				data: {
-					room_users: {
-						connect: userWhereUniqueInput,
-					},
-				},
-			});
-		}
 		throw new Error('Wrong password');
 	}
 
@@ -286,7 +276,7 @@ export class RoomService {
 						}
 					}
 				},
-			}
+			},
 		});
 	}
 
@@ -389,7 +379,7 @@ export class RoomService {
 				}
 		}));
 		await Promise.all(users.map(async user =>{
-			console.log('Sender user: ', user.login, 'Connected login: ', connected_user_login)
+			console.log(new Date(),'Sender user: ', user.login, 'Connected login: ', connected_user_login)
 			if (user.login != connected_user_login)
 			await this.prisma.message_Notification.create({
 				data: {

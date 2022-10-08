@@ -3,7 +3,7 @@ import { RoomService } from "@/room/room.service";
 import { CurrentUser } from "@/user/user.decorator";
 import { UserService } from "@/user/user.service";
 import { Query, Req } from "@nestjs/common";
-import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from "@nestjs/websockets"
+import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer, WsException } from "@nestjs/websockets"
 import { Room, Status, User } from "@prisma/client";
 import { Socket, Server } from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
@@ -34,17 +34,25 @@ export class RoomsGateway {
 				room_id,
 			}
 		});
-		if ((result.room_private && room_password == (result.room_password)) || !result.room_private) {
-			client.join('rooom_id_'+result.room_id);
+		if (!this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id },)) {
+			throw new WsException('Not found');
+		}
+		if (!(result.room_private) || room_password == (result.room_password)) {
+			this.roomService.joinRoom({room_id: room_id}, {login:client.user.login});
+			client.join('room_id_'+result.room_id);
 			client.emit('joined_room');
-			let message = this.roomService.addSystemMessage("joined_room", room_id)
-			this.server.to('rooom_id_'+String(room_id)).emit("message", message);
+			let message = this.roomService.addSystemMessage(client.user.login + " joined the room", room_id)
+			const users = await this.roomService.getRoomUsers({room_id:room_id});
+			// this.server.to('room_id_'+String(room_id)).emit("message", message);
+			users.map(async user =>{
+				this.server.to('__connected_'+user.login).emit("message", message)
+			});
 		}
 		else
 			client.emit('wrong_password');
 	}
 	@SubscribeMessage('leave_room')
-	async leaveRoom(@ConnectedSocket() client: CustomSocket, @MessageBody() { room_id, room_password }: { room_id: number, room_password?: string }) {
+	async leaveRoom(@ConnectedSocket() client: CustomSocket, @MessageBody() { room_id}: { room_id: number}) {
 		const result = await this.prisma.room.findMany({
 			where: {
 				room_id,
@@ -56,10 +64,15 @@ export class RoomsGateway {
 			}
 		});
 		if (result.length > 0) {
-			client.join('rooom_id_'+result[0].room_id);
+			client.join('room_id_'+result[0].room_id);
 			client.emit('left_room');
-			let message = this.roomService.addSystemMessage("left_room", room_id)
-			this.server.to('rooom_id_'+String(room_id)).emit("message", message);
+			let message = this.roomService.addSystemMessage(client.user.login + " left the room", room_id)
+			// this.server.to('room_id_'+String(room_id)).emit("message", message);
+			const users = await this.roomService.getRoomUsers({room_id:room_id});
+			// this.server.to('room_id_'+String(room_id)).emit("message", message);
+			users.map(async user =>{
+				this.server.to('__connected_'+user.login).emit("message", message)
+			});
 		}
 		else
 			client.emit('not in room');

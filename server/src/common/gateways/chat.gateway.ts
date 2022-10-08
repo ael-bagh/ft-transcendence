@@ -32,15 +32,13 @@ export class ChatGateway {
 		@MessageBody() data: Message,
 		@ConnectedSocket() client: CustomSocket,
 	): Promise<Message> {
-		console.log(data);
+		console.log('message type: ', data.message_room_id);
 		if (await (this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id: data.message_room_id },)) == false)
 			throw new WsException('Not found');
 		const message = await this.roomService.addUserMessage(data.message_content,client.user.login,String(data.message_room_id), client.user.login)
 		const users = await this.roomService.getRoomUsers({room_id:data.message_room_id});
 		console.log('message: ', message)
 		users.map(async user =>{
-			// console.log(user.login);
-			
 			this.server.to('__connected_'+user.login).emit("message", message)
 		});
 		// GET ROOM

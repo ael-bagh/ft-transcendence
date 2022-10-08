@@ -29,6 +29,6 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config);
 	SwaggerModule.setup('api', app, document);
 	await app.listen(80, '0.0.0.0');
-	console.log(`Application is running on: ${await app.getUrl()}`);
+	console.log(new Date(),`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

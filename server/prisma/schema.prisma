@@ -40,6 +40,8 @@ model User {
 	banned_from Room[] @relation("room_banned_users")
 	admin_in Room[] @relation("room_admins")
 	player_level Float?
+	notifications_sent Notification[] @relation("notification_sender")
+	notifications_received Notification[] @relation("notification_receiver")	
 	winrate Float?
 
 	@@unique([login])
@@ -52,7 +54,9 @@ model Notification {
 	notification_type Notification_type
 	notification_date DateTime
 	notification_receiver_login String
+	notification_receiver User? @relation("notification_receiver", fields: [notification_receiver_login], references: [login])
 	notification_sender_login String
+	notification_sender User? @relation("notification_sender", fields: [notification_sender_login], references: [login])
 	notification_seen Boolean
 }
 
@@ -110,6 +114,7 @@ model Message_Notification {
 	user_login String?
 	room_id Int
 }
+
 
 enum Status {
 	OFFLINE

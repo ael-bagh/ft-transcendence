@@ -12,6 +12,7 @@ import { EventsGateway } from '@/common/gateways/events.gateway'
 import { PrismaService } from '@/common/services/prisma.service';
 import { GatewayService } from './common/services/gateway.service';
 import { GameGateway } from './common/gateways/game.gateway';
+import { NotificationModule } from '@/notification/notification.module';
 
 @Module({
 	imports: [
@@ -23,7 +24,8 @@ import { GameGateway } from './common/gateways/game.gateway';
 		HttpModule,
 		UserModule,
 		GameModule,
-		RoomModule
+		RoomModule,
+		NotificationModule
 	],
 	controllers: [],
 	providers: [GameGateway,GatewayService, EventsGateway, ChatGateway, PrismaService],

@@ -84,7 +84,7 @@
 		axiosInstance.interceptors.response.use(
 			res => res,
 			async err => {
-				console.log("hi2");
+				console.log(new Date(),"hi2");
 				const originalConfig = err.config;
 				if (originalConfig.url !== '/auth/refresh' && err.response) {
 					if (err.response.status === 401 && !originalConfig._retry) {
@@ -103,7 +103,7 @@
 		)
 
 		setTimeout(() => {
-			axiosInstance.get('/profile').then(resp => console.log(resp.data));
+			axiosInstance.get('/profile').then(resp => console.log(new Date(),resp.data));
 
 		}, 4000);
 
@@ -116,10 +116,10 @@
 		// var input = document.getElementById('select');
 		var messages = document.getElementById('messages');
 		socket.on('connect', function () {
-			console.log('Connectedddddd');
+			console.log(new Date(),'Connectedddddd');
 			// socket.emit('join_game_queue');
 			socket.emit('identity', 0, response =>
-				console.log('Identity:', response),
+				console.log(new Date(),'Identity:', response),
 			);
 		});
 		socket.on('welcome', function () {
@@ -127,19 +127,19 @@
 			
 		});
 		socket.on('disconnect', function () {
-			console.log('Disconnected');
+			console.log(new Date(),'Disconnected');
 		});
 		socket.on('events', function (data) {
-			console.log('event', data);
+			console.log(new Date(),'event', data);
 		});
 		socket.on('exception', function (data) {
-			console.log('event', data);
+			console.log(new Date(),'event', data);
 		});
 		socket.on('match_found', function (data) {
-			console.log('match_found', data);
+			console.log(new Date(),'match_found', data);
 		});
 		socket.on('correction', function (data) {
-			console.log('correction', data);
+			console.log(new Date(),'correction', data);
 		});
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();

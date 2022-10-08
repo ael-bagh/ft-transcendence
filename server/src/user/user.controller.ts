@@ -52,7 +52,7 @@ export class UserController {
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
 	async getProfile(@CurrentUser() user: UserModel) {
-		console.log(1,user);
+		console.log(new Date(),1,user);
 		const usercount = await this.userService.user({ login: user.login },
 			{
 				_count: {
@@ -158,14 +158,14 @@ export class UserController {
 	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
 		let login = user.login;
 		user['nickname'] = userData['nickname'] || user['nickname'];
-		user['avatar'] = userData['avatar'] || user['avatar'];
+		user['avatar'] = userData['avatar'];
 		if (userData['two_factor_auth_enabled'])
 			user['two_factor_auth_enabled'] = userData['two_factor_auth_enabled'] == 'on' ? true : false;
 		user['current_lobby'] = userData['current_lobby'] || user['current_lobby'];
 		user['status'] = userData['status'] || user['status'];
 		if (userData['is_banned'] != undefined)
 			user['is_banned'] = userData['is_banned'];
-		console.log(user, "wdjhvcjhwd")
+		console.log(new Date(),user, "updated")
 
 		const verify_duplicate = await this.userService.user({ nickname: user['nickname'] });
 		if (verify_duplicate != null && verify_duplicate.login != user.login)
@@ -175,9 +175,11 @@ export class UserController {
 			data: user
 		});
 		const newUserInfo = await this.userService.user({ login: login });
-		console.log(newUserInfo)
+		console.log(new Date(),newUserInfo)
 		return newUserInfo;
 	}
+
+	
 	@Get(':login')
 	async getUserByLogin(@CurrentUser() user: UserModel, @Param('login') profile_login: string): Promise<UserModel> {
 		// console.log(!Number(login));
@@ -234,6 +236,20 @@ export class UserController {
 		return (result);
 	}
 
+	@Get("/is_available/:nickname")
+	async checkAvailability(@Param("nickname") nickname: string) : Promise<Boolean>
+	{
+		if(await this.userService.user({nickname : nickname}))
+			return false;
+		return true;
+	}
+	
+	@Get('/friends/:segment')
+	async getFriendsBySegment(@CurrentUser() user: UserModel,@Param("segment") segment: string)
+	{
+		const friends=await this.userService.getUserFriends(user.login, segment);
+		return friends;
+	}
 	// @Delete('/:id/delete')
 	// async deleteUser(@CurrentUser() user: UserModel, @Body() userData: {login: string})
 	// {
@@ -329,12 +345,18 @@ export class UserController {
 
 @Controller()
 export class UsersController {
-	constructor(private readonly userService: UserService, private readonly gameService: GameService, private readonly roomService: RoomService) { }
+	constructor(
+		private readonly userService: UserService,
+		private readonly gameService: GameService,
+		private readonly roomService: RoomService
+		) { }
 
 	@Get('users')
 	async getUsers(): Promise<UserModel[]> {
 		return this.userService.users({});
 	}
+
+	
 
 	@Get('/leaderboard/:page')
 	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
