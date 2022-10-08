@@ -94,7 +94,7 @@ export class RoomController {
 			room_password : undefined,
 			unread_messages_count: await this.roomService.unseenMessages(room.room_id, user.login),
 		})));
-		console.log(test);
+		console.log(new Date(),test);
 		return(test);
 	}
 
@@ -115,7 +115,7 @@ export class RoomController {
 			room.room_name = (action_performer.login == room_users[0].login ? room_users[1].login : room_users[0].login)
 		}
 		delete (room).room_password;
-		console.log(room);
+		console.log(new Date(),room);
 		return room;
 	}
 
@@ -154,7 +154,7 @@ export class RoomController {
 				}
 			}
 		)
-		console.log(room, !room);
+		console.log(new Date(),room, !room);
 		if (!room)
 		{
 			room = await this.roomService.createRoom({

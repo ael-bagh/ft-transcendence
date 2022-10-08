@@ -9,6 +9,7 @@ import { Socket, Server } from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
 import { GatewayService } from "../services/gateway.service";
 import * as dotenv from 'dotenv'
+import { NotificationService } from "@/notification/notification.service";
 dotenv.config()
 
 @WebSocketGateway({
@@ -23,7 +24,8 @@ export class EventsGateway {
 		private readonly userService: UserService,
 		private readonly prisma: PrismaService,
 		private readonly roomServece: RoomService,
-		private readonly gateWayService: GatewayService
+		private readonly gateWayService: GatewayService,
+		private readonly notificationService: NotificationService
 
 	) { };
 
@@ -39,11 +41,11 @@ export class EventsGateway {
 			this.userService,
 			client.user
 		);
-		console.log("a user connected", client.user.login);
+		console.log(new Date(),"a user connected", client.user.login);
 	}
 
 	async handleDisconnect(client: CustomSocket) {
-		// console.log(this.server.sockets.adapter.rooms);
+		// console.log(new Date(),this.server.sockets.adapter.rooms);
 		client.leave('__connected_' + client.user.login);
 		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.login]) {
 			client.user = await this.prisma.user.update({
@@ -58,7 +60,7 @@ export class EventsGateway {
 			this.userService,
 			client.user
 		);
-		console.log("a user disconnected", client.user);
+		console.log(new Date(),"a user disconnected", client.user);
 	}
 
 	@SubscribeMessage('identity')
@@ -66,7 +68,7 @@ export class EventsGateway {
 		@MessageBody() data: string,
 		@ConnectedSocket() client: CustomSocket
 	): string {
-		console.log(data, client.user.login);
+		console.log(new Date(),data, client.user.login);
 		return data;
 	}
 
@@ -77,7 +79,7 @@ export class EventsGateway {
 		@MessageBody() data: string,
 		@ConnectedSocket() client: CustomSocket,
 	): string {
-		console.log(data);
+		console.log(new Date(),data);
 		return data;
 	}
 
@@ -91,139 +93,198 @@ export class EventsGateway {
 	) {
 		return this.userService.getRelationship(client.user.login, userData.target_login)
 	}
-	@SubscribeMessage('add_friend_request')
-	async sendRequest(
-		@MessageBody() userData: { target_login: string },
+
+	@SubscribeMessage('notifications')
+	async getNotifications(
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		console.log(1,userData);
-		let login = client.user.login;
-		let target_login = userData.target_login;
-		if (!target_login) {
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		}
-		let allowed = await this.userService.permissionToDoAction({
-			action_performer: login,
-			action_target: target_login,
-			action_mutual: true
-		});
-		if (!allowed)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		return(await this.userService.sendFriendRequest({
-			login, friend_login: target_login, onFinish: (user, target_login, broadcast) => {
-				// FIXME: REVISE THIS
-				if (broadcast) {
-					this.gateWayService.emitBroadcast(this.server, target_login, login);
-
-				} else {
-					this.server.to(`__connected_${target_login}`).emit('friend_request', user.login);
-				}
-			}
-		}))
+		return await this.notificationService.getNotifications(client.user.login);
 	}
 
-	@SubscribeMessage('accept_friend_request')
-	async acceptFriendRequest(
+	@SubscribeMessage('seen_notification')
+	async seenNotification(
+		@ConnectedSocket() client:CustomSocket,
+	){
+		await this.notificationService.turnSeenToUseen(client.user.login);
+	}
+		
+
+@SubscribeMessage('add_friend_request')
+async sendRequest(
 		@MessageBody() userData: { target_login: string },
-		@ConnectedSocket() client: CustomSocket,
+@ConnectedSocket() client: CustomSocket,
 	) {
-		let login = client.user.login;
-		let target_login = userData?.target_login
-		if (!target_login) {
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		}
-		let allowed = await this.userService.permissionToDoAction({
-			action_performer: login,
-			action_target: target_login,
-			action_mutual: true
-		});
-		if (!allowed)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		this.userService.remove_request({
-			login, friend_login: target_login, onFinish: (login: string, target_login) => {
+	console.log(new Date(),1, userData);
+	let login = client.user.login;
+	let target_login = userData.target_login;
+	if (!target_login) {
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	}
+	let allowed = await this.userService.permissionToDoAction({
+		action_performer: login,
+		action_target: target_login,
+		action_mutual: true
+	});
+	if (!allowed)
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	
+	return (await this.userService.sendFriendRequest({
+		login, friend_login: target_login, onFinish:async (user, target_login, broadcast) => {
+			// FIXME: REVISE THIS
+			if (broadcast) {
+				const notification1 = await this.notificationService.addNotification({
+					notification_type: 'NEW_FRIEND',
+					notification_date: new Date(),
+					notification_receiver_login: target_login,
+					notification_sender_login: login,
+					notification_seen: false,
+				});
+				const notification2 = await this.notificationService.addNotification({
+					notification_type: 'NEW_FRIEND',
+					notification_date: new Date(),
+					notification_receiver_login: login,
+					notification_sender_login: target_login,
+					notification_seen: false,
+				});
+				
 				this.gateWayService.emitBroadcast(this.server, target_login, login);
+				this.server.to(`__connected_${target_login}`).emit('notification', notification1);
+				this.server.to(`__connected_${login}`).emit('notification', notification2);
 			}
-		});
-		this.userService.addfriends(login, target_login);
-		return userData?.target_login;
-	}
-
-	@SubscribeMessage('delete_friend')
-	delete_friend(
-		@MessageBody() userData: { target_login: string },
-		@ConnectedSocket() client: CustomSocket,
-	) {
-		let login = client.user.login;
-		this.userService.deleteFriends(login, userData?.target_login);
-		return userData?.target_login;
-	}
-
-	@SubscribeMessage('delete_friend_request')
-	delete_friend_request(
-		@MessageBody() userData: { target_login: string },
-		@ConnectedSocket() client: CustomSocket,
-	) {
-		let login = client.user.login;
-		let target_login = userData?.target_login
-		if (!target_login) {
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+			else
+			{
+				const notification = await this.notificationService.addNotification({
+					notification_type: 'FRIEND_REQUEST',
+					notification_date: new Date(),
+					notification_receiver_login: target_login,
+					notification_sender_login: login,
+					notification_seen: false,
+				});
+				this.server.to(`__connected_${target_login}`).emit('notification', notification);
+			}
 		}
-		let friend = this.userService.user({ login: (target_login) });
-		if (!client?.user || !friend)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	}))
+}
 
-		this.userService.remove_request({
-			login, friend_login: target_login,
-		});
-		return target_login
-	}
-
-	@SubscribeMessage('delete_sent_friend_request')
-	delete_sent_friend_request(
+@SubscribeMessage('accept_friend_request')
+async acceptFriendRequest(
 		@MessageBody() userData: { target_login: string },
-		@ConnectedSocket() client: CustomSocket,
+@ConnectedSocket() client: CustomSocket,
 	) {
-		let login = client.user.login;
-		let target_login = userData['target_login'];
-		let friend = this.userService.user({ login: (target_login) });
-		if (!client?.user || !friend)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-
-		this.userService.remove_request({
-			login: target_login, friend_login: login,
-		});
-		client.emit('cancel_friend_request', target_login)
+	let login = client.user.login;
+	let target_login = userData?.target_login
+	if (!target_login) {
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 	}
+	let allowed = await this.userService.permissionToDoAction({
+		action_performer: login,
+		action_target: target_login,
+		action_mutual: true
+	});
+	if (!allowed)
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	this.userService.remove_request({
+		login, friend_login: target_login, onFinish: (login: string, target_login) => {
+			this.gateWayService.emitBroadcast(this.server, target_login, login);
+		}
+	});
+	this.userService.addfriends(login, target_login);
 
-	@SubscribeMessage('block_user')
-	block_user(
+	const notification1 = await this.notificationService.addNotification({
+		notification_type: 'NEW_FRIEND',
+		notification_date: new Date(),
+		notification_receiver_login: target_login,
+		notification_sender_login: login,
+		notification_seen: false,
+	});
+	const notification2 = await this.notificationService.addNotification({
+		notification_type: 'NEW_FRIEND',
+		notification_date: new Date(),
+		notification_receiver_login: login,
+		notification_sender_login: target_login,
+		notification_seen: false,
+	});
+	this.server.to(`__connected_${target_login}`).emit('notification', notification1);
+	this.server.to(`__connected_${login}`).emit('notification', notification2);
+	return userData?.target_login;
+}
+
+@SubscribeMessage('delete_friend')
+delete_friend(
 		@MessageBody() userData: { target_login: string },
-		@ConnectedSocket() client: CustomSocket,
+@ConnectedSocket() client: CustomSocket,
 	) {
-		let login = client.user.login;
-		let user_to_block_login = userData?.target_login
-		if (!user_to_block_login)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		if (!this.userService.user({ login: user_to_block_login }))
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		this.userService.block_user({ login, user_to_block_login })
-		client.emit('blocked', user_to_block_login)
-	}
+	let login = client.user.login;
+	this.userService.deleteFriends(login, userData?.target_login);
+	return userData?.target_login;
+}
 
-	@SubscribeMessage('unblock_user')
-	unblock_user(
+@SubscribeMessage('delete_friend_request')
+delete_friend_request(
 		@MessageBody() userData: { target_login: string },
-		@ConnectedSocket() client: CustomSocket,
+@ConnectedSocket() client: CustomSocket,
 	) {
-		let login = client.user.login;
-		let user_to_unblock_login = userData?.target_login
-		if (!user_to_unblock_login)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		if (!this.userService.user({ login: user_to_unblock_login }))
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		this.userService.unblock_user({ login, user_to_unblock_login });
-		client.emit('unblocked', user_to_unblock_login)
+	let login = client.user.login;
+	let target_login = userData?.target_login
+	if (!target_login) {
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 	}
+	let friend = this.userService.user({ login: (target_login) });
+	if (!client?.user || !friend)
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+
+	this.userService.remove_request({
+		login, friend_login: target_login,
+	});
+	return target_login
+}
+
+@SubscribeMessage('delete_sent_friend_request')
+delete_sent_friend_request(
+		@MessageBody() userData: { target_login: string },
+@ConnectedSocket() client: CustomSocket,
+	) {
+	let login = client.user.login;
+	let target_login = userData['target_login'];
+	let friend = this.userService.user({ login: (target_login) });
+	if (!client?.user || !friend)
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+
+	this.userService.remove_request({
+		login: target_login, friend_login: login,
+	});
+	client.emit('cancel_friend_request', target_login)
+}
+
+@SubscribeMessage('block_user')
+block_user(
+		@MessageBody() userData: { target_login: string },
+@ConnectedSocket() client: CustomSocket,
+	) {
+	let login = client.user.login;
+	let user_to_block_login = userData?.target_login
+	if (!user_to_block_login)
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	if (!this.userService.user({ login: user_to_block_login }))
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	this.userService.block_user({ login, user_to_block_login })
+	client.emit('blocked', user_to_block_login)
+}
+
+@SubscribeMessage('unblock_user')
+unblock_user(
+		@MessageBody() userData: { target_login: string },
+@ConnectedSocket() client: CustomSocket,
+	) {
+	let login = client.user.login;
+	let user_to_unblock_login = userData?.target_login
+	if (!user_to_unblock_login)
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	if (!this.userService.user({ login: user_to_unblock_login }))
+		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	this.userService.unblock_user({ login, user_to_unblock_login });
+	client.emit('unblocked', user_to_unblock_login)
+}
 	// handleNotifications(
 	// 	target_login : string,
 	// 	message : string,

@@ -23,8 +23,11 @@ model User {
 	current_lobby String?
 	is_banned Boolean?
 	KDA	Decimal?
+	wins Decimal?
 	games_won Game[] @relation("winner")
 	games_lost Game[] @relation ("loser")
+	set_won Set[] @relation("set_winner")
+	set_lost Set[] @relation("set_loser")
 	achievements Achievement[] @relation("user_achievements")
 	friends User[] @relation("friends")
 	friends_relation User[] @relation("friends")
@@ -40,6 +43,8 @@ model User {
 	banned_from Room[] @relation("room_banned_users")
 	admin_in Room[] @relation("room_admins")
 	player_level Float?
+	notifications_sent Notification[] @relation("notification_sender")
+	notifications_received Notification[] @relation("notification_receiver")	
 	winrate Float?
 
 	@@unique([login])
@@ -52,8 +57,22 @@ model Notification {
 	notification_type Notification_type
 	notification_date DateTime
 	notification_receiver_login String
+	notification_receiver User? @relation("notification_receiver", fields: [notification_receiver_login], references: [login])
 	notification_sender_login String
+	notification_sender User? @relation("notification_sender", fields: [notification_sender_login], references: [login])
 	notification_seen Boolean
+}
+
+model Set {
+	set_id Int @id @default(autoincrement())
+	set_games Game[] @relation("set_games")
+	set_type Game_mode
+	set_winner_login String
+	set_winner User? @relation("set_winner", fields: [set_winner_login], references: [login])
+	set_loser_login String
+	set_loser User? @relation("set_loser", fields: [set_loser_login], references: [login])
+	set_winner_score Int
+	set_loser_score Int
 }
 
 model Game {
@@ -63,6 +82,8 @@ model Game {
 	game_loser_login String
 	game_winner User? @relation("winner", fields: [game_winner_login], references: [login])
 	game_loser User? @relation("loser", fields: [game_loser_login], references: [login])
+	game_set_id Int
+	game_set Set  @relation("set_games", fields: [game_set_id], references: [set_id])
 	game_winner_score Int?
 	game_loser_score Int?
 }
@@ -111,6 +132,7 @@ model Message_Notification {
 	room_id Int
 }
 
+
 enum Status {
 	OFFLINE
 	ONLINE
@@ -132,4 +154,10 @@ enum Notification_type {
 enum Message_type {
 	USER
 	SYSTEM
+}
+
+enum Game_mode {
+	ONE
+	NORMAL
+	RANKED
 }

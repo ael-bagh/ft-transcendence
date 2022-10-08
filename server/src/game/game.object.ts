@@ -1,3 +1,4 @@
+import { Game_mode } from '@prisma/client';
 import {
   Body,
   Engine,
@@ -9,7 +10,17 @@ import {
 } from 'matter-js';
 import { Subject } from 'rxjs';
 import { Server } from 'socket.io';
-import { GameService } from './game.service';
+// import { GameService } from './game.service';
+
+export interface GameEnded{
+  game_id: string;
+  game_type: Game_mode;
+  games: {winner: string, loser: string, winner_score: number, loser_score: number}[];
+  winner?: string;
+  loser?: string;
+  winner_score?: number;
+  loser_score?: number;
+}
 
 export class GameObject {
   public gameEvents = new Subject<{ event: string; payload: any }>();
@@ -17,15 +28,27 @@ export class GameObject {
   public ball: Body;
   public bars: Body[] = [];
   public mov: number[] = [];
-  public score: number[] = [];
+  public score: [number, number][] = [];
+  public game_score: number[] = [];
   public walls: { [x: string]: Body } = {};
   public runner: Runner;
   public gameStarted: boolean;
+  public games_played :number;
+  public data : GameEnded;
+  public number_of_games : number;
   constructor(
     private readonly server: Server,
     private readonly room: string,
-    private readonly gameService: GameService,
+    private readonly mode: Game_mode,
+    private readonly player1: string,
+    private readonly player2: string,
   ) {
+	if (mode == Game_mode.ONE)
+		this.number_of_games = 1;
+	else
+	{
+		this.number_of_games = 3;
+	}
     this.engine = Engine.create({ gravity: { x: 0, y: 0 } });
     this.walls['top'] = Bodies.rectangle(640, -250, 1800, 500, {
       isStatic: true,
@@ -78,17 +101,24 @@ export class GameObject {
     // console.log(this.bars);
     this.mov.push(0);
     this.mov.push(0);
-    this.score.push(0);
-    this.score.push(0);
+    this.score.push([0, 0]);
     this.runner = Runner.create({ isFixed: true, delta: 16.6666666667 });
     Events.on(this.engine, 'afterUpdate', this.after_update.bind(this));
     Events.on(this.engine, 'beforeUpdate', this.before_update.bind(this));
     Events.on(this.engine, 'collisionStart', this.col_start.bind(this));
     Events.on(this.engine, 'collisionEnd', this.col_end.bind(this));
     this.gameStarted = false;
+    this.games_played = 0;
+    this.game_score = [0, 0];
+    this.data = {
+      game_id: this.room,
+      game_type: mode,
+      games: [],
+    }
     // this.runner.
   }
-  run() {
+  run() :Promise<GameEnded>
+  {
     return new Promise((resolve) => {
       this.reset();
       Runner.run(this.runner, this.engine);
@@ -132,14 +162,14 @@ export class GameObject {
           console.log('left player 2 goaal');
           // Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
           this.reset();
-          ++this.score[1];
+          ++this.score[this.games_played][1];
         } else if (
           pair.bodyA === this.walls['right'] ||
           pair.bodyB === this.walls['right']
         ) {
           console.log('right player 1 goaal');
           this.reset();
-          ++this.score[0];
+          ++this.score[this.games_played][0];
           // Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
         } else {
           console.log('bar');
@@ -155,12 +185,46 @@ export class GameObject {
         }
       }
     }
-    if (this.score[0] == 10 || this.score[1] == 10) {
-      Runner.stop(this.runner);
-      this.gameEvents.next({
-        event: 'GAME_FINISHED',
-        payload: this.score,
-      });
+    if (this.score[this.games_played][0] == 5 || this.score[this.games_played][1] == 5) {
+      
+      if (this.score[this.games_played][0] == 5)
+      {
+        ++this.game_score[0];
+        this.data.games.push({
+          winner: this.player1,
+          loser: this.player2,
+          winner_score: this.score[this.games_played][0],
+          loser_score: this.score[this.games_played][1],
+        });
+      }
+      else
+      {
+        ++this.game_score[1];
+        this.data.games.push({
+          winner: this.player2,
+          loser: this.player1,
+          winner_score: this.score[this.games_played][1],
+          loser_score: this.score[this.games_played][0],
+        });
+      }
+      ++this.games_played;
+      console.log(this.games_played, this.data.games);
+      if (this.number_of_games == this.games_played || this.game_score[0] == Math.ceil(this.number_of_games / 2) || this.game_score[1] == Math.ceil(this.number_of_games / 2)) {
+        Runner.stop(this.runner);
+        this.gameStarted = false;
+        this.data.winner = this.game_score[0] > this.game_score[1] ? this.player1 : this.player2;
+        this.data.loser = this.game_score[0] > this.game_score[1] ? this.player2 : this.player1;
+        this.data.winner_score = this.game_score[0] > this.game_score[1] ? this.game_score[0] : this.game_score[1];
+        this.data.loser_score = this.game_score[0] > this.game_score[1] ? this.game_score[1] : this.game_score[0];
+
+        this.gameEvents.next({
+          event: 'GAME_FINISHED',
+          payload: this.data,
+        });
+      }
+      else{
+        this.score.push([0, 0]);
+      }
     }
   }
   private twin_projector(height: number) {
@@ -259,12 +323,15 @@ export class GameObject {
   }
 
   private after_update() {
-    const corr: [number, number][] = [];
-    for (let i = 0; i < this.bars.length; ++i) {
-      corr.push([this.bars[i].position.x / 1280, this.bars[i].position.y / 720]);
+    if (this.gameStarted) {
+      const corr: [number, number][] = [];
+      for (let i = 0; i < this.bars.length; ++i) {
+        corr.push([this.bars[i].position.x / 1280, this.bars[i].position.y / 720]);
+      }
+      corr.push([this.ball.position.x /1280, this.ball.position.y / 720]);
+      corr.push([this.score[this.games_played][0], this.score[this.games_played][1]]);
+      this.server.to(this.room).volatile.emit('correction', corr[0], corr[1], corr[2], corr[3]);
     }
-    corr.push([this.ball.position.x /1280, this.ball.position.y / 720]);
-    corr.push([this.score[0], this.score[1]]);
-    this.server.to(this.room).volatile.emit('correction', corr[0], corr[1], corr[2], corr[3]);
   }
 }
+
