@@ -32,6 +32,22 @@ export class GameService {
 		});
 	}
 
+	async stats(login: string, mode: Game_mode)
+	{
+		const ranked_wins = await this.prisma.set.count({
+			where: {
+				set_winner_login: login,
+				set_type: mode
+			}
+		})
+		const ranked_losses = await this.prisma.set.count({
+			where: {
+				set_loser_login: login,
+				set_type: mode
+		}});
+	}
+
+		
 
 	async saveGame(gameEnded: GameEnded) {
 		let set = await this.prisma.set.create({
