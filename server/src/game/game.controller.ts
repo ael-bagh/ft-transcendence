@@ -47,7 +47,8 @@ export class GameController {
 	}
 
 	@Get('/:login/:mode/stats')
-	async getStats(@Param()  params: {login: string, mode: Game_mode}) {
+	async getStats(@Param()  params: {login: string, mode: string}) {
+		params.mode = params.mode.toUpperCase()
 		if (params.mode == "RANKED" || params.mode == "NORMAL" || params.mode == "ONE") {
 			return this.gameService.stats(params.login, params.mode);
 		}
