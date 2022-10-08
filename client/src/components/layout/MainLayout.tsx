@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
-import NavBar from "../NavBar";
+import NavBar from "../NavBar/NavBar";
 import { QueueContext } from "../../contexts/queue.context";
 import Queue from "./Queue";
 
@@ -18,7 +18,7 @@ export default function MainLayout({
             <NavBar />
             <Queue />
           </div>
-          <div className="flex h-full mx-auto max-w-7xl">{children}</div>
+          <div className="flex h-full">{children}</div>
         </div>
       )}
     </>

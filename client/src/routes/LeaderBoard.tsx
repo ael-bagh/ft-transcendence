@@ -1,6 +1,6 @@
 import MainLayout from "../components/layout/MainLayout";
 import RankCard from "../components/leaderboard/RankCard";
-import NavBar from "../components/NavBar";
+import NavBar from "../components/NavBar/NavBar";
 import useFetchLeaderBoard from "../hooks/api/useLeaderBoard";
 
 function LeaderBoard() {

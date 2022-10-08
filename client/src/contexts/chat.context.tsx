@@ -33,8 +33,6 @@ const ChatProvider = ({ children }: { children?: React.ReactNode }) => {
     const onReceiveMessage = (m: Message, err: any) => {
       if (m.message_room_id == currentGroup?.room_id)
         setConversation((prev) => [m, ...prev]);
-      
-      // replace lates message of the room inside rooms array
     };
     socket.on("message", onReceiveMessage);
 

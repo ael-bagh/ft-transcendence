@@ -28,6 +28,11 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
+    path: "/2fa/login",
+    element: <Home />,
+    errorElement: <ErrorPage />,
+  },
+  {
     path: "/profile/:id",
     element: <Profile />,
     loader: async ({ params }) => {

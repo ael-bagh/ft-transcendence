@@ -7,7 +7,7 @@ function ProfileHeader(props: { user: User | null }) {
       <div className="sm:h-96 w-full flex justify-center items-center">
         <img
           // src={`https://avatars.dicebear.com/api/avataaars/${props.user?.login}.svg`}
-          src={props.user?.avatar ?? `https://avatars.dicebear.com/api/avataaars/${props.user?.login}.svg` }
+          src={props.user?.avatar || `https://avatars.dicebear.com/api/avataaars/${props.user?.login}.svg` }
           alt="avatar"
           className="sm:absolute sm:h-44 sm:w-44 h-full  sm:rounded-full w-screen sm:object-contain bg-gray-700"
         />

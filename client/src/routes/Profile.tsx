@@ -1,4 +1,4 @@
-import NavBar from "../components/NavBar";
+import NavBar from "../components/NavBar/NavBar";
 import ProfileHeader from "../components/profile/ProfileHeader";
 import Badges from "../components/profile/Badges";
 import MatchHistory from "../components/profile/MatchHistory";

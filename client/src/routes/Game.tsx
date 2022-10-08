@@ -13,7 +13,12 @@ export default function Game() {
   const key = useRef({ up: false, down: false });
   const [score1, setScore1] = useState(0);
   const [score2, setScore2] = useState(0);
+  const [gameEnded, setGameEnded] = useState(false);
+  const { socket } = useSocket();
   useEffect(() => {
+    socket.on("game_ended", (data: GameData) => {
+      setGameEnded(true);
+    });
     Composite.add(engine.current.world, [
       ball.current,
       bar1.current,
@@ -53,6 +58,7 @@ export default function Game() {
     );
     Correction(bar1.current, bar2.current, ball.current, setScore1, setScore2);
     return () => {
+      socket.off("game_ended");
       CorrectionOff();
     };
   }, []);
@@ -109,7 +115,7 @@ export default function Game() {
   // const { data: Game } = useLoaderData() as { data: Game | null };
   return (
     <MainLayout>
-      <div className="flex justify-center items-center w-screen">
+      <div className="flex  justify-center items-center w-screen h-full">
       <ReactP5Wrapper sketch={sketch} />
       </div>
     </MainLayout>
