@@ -104,6 +104,10 @@ export default function Game() {
       p5.rectMode(p5.CENTER);
       p5.rect(0, 0, barWidthRatio * cwidth, barHeightRatio * cheight);
       p5.pop();
+      p5.textSize(32);
+      p5.text(score1, (cwidth / 2) - 50 , 10, 70, 80);
+      p5.text(score2, (cwidth / 2) + 50, 10, 70, 80);
+
     };
   };
   // const { data: Game } = useLoaderData() as { data: Game | null };

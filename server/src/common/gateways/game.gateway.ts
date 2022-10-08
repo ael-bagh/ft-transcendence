@@ -108,6 +108,7 @@ export class GameGateway {
 				status: Status.INQUEUE
 			}
 		})
+		userData.mode = Game_mode.RANKED;
 		console.log(client.user);
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
