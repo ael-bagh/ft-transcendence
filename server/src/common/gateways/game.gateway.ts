@@ -2,6 +2,7 @@ import { CustomSocket } from '@/auth/auth.adapter';
 import { GameObject } from '@/game/game.object';
 import { GameService } from '@/game/game.service';
 import { UserService } from '@/user/user.service';
+import { HttpException, HttpStatus } from "@nestjs/common";
 import {
 	ConnectedSocket,
 	MessageBody,
@@ -36,21 +37,70 @@ export class GameGateway {
 	@WebSocketServer()
 	server: Server;
 
-	@SubscribeMessage('join_game_invit')
-	async joinGameInvit(
-		@ConnectedSocket() client: CustomSocket,
-		@MessageBody() data: string,
-	) {
-		const user = await this.userService.user({ login: data });
-		if (!user || user.status == Status.OFFLINE || user.status == Status.INGAME)
-			return;
-		this.server
-			.to('__connected_' + user.login)
-			.emit('come_play', client.user.login);
-	}
+	// @SubscribeMessage('invite_to_game')
+	// async sendRequest(
+	// 	@MessageBody() userData: { target_login: string },
+	// 	@ConnectedSocket() client: CustomSocket,
+	// ) {
+	// 	// console.log(1,userData);
+	// 	let login = client.user.login;
+	// 	let target_login = userData.target_login;
+	// 	if (!target_login) {
+	// 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	// 	}
+	// 	let allowed = await this.userService.permissionToDoAction({
+	// 		action_performer: login,
+	// 		action_target: target_login,
+	// 		action_mutual: true
+	// 	});
+	// 	if (!allowed)
+	// 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	// 	return(await this.userService.sendFriendRequest({
+	// 		login, friend_login: target_login, onFinish: (user, target_login, broadcast) => {
+	// 			// FIXME: REVISE THIS
+	// 			if (broadcast) {
+	// 				this.gateWayService.emitBroadcast(this.server, target_login, login);
+	// 			} else {
+	// 				this.server.to(`__connected_${target_login}`).emit('game_request', user.login);
+	// 				client.join(client.user.login + target_login);
+	// 			}
+	// 		}
+	// 	}))
+	// }
 
+	// @SubscribeMessage('accept_game_request')
+	// async acceptGameRequest(
+	// 	@MessageBody() userData: { target_login: string ,socket_id: string},
+	// 	@ConnectedSocket() client: CustomSocket,
+	// ) {
+	// 	let login = client.user.login;
+	// 	let target_login = userData?.target_login
+	// 	if (!target_login) {
+	// 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	// 	}
+	// 	let allowed = await this.userService.permissionToDoAction({
+	// 		action_performer: login,
+	// 		action_target: target_login,
+	// 		action_mutual: true
+	// 	});
+	// 	if (!allowed)
+	// 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+	// 	this.userService.remove_request({
+	// 		login, friend_login: target_login, onFinish: (login: string, target_login) => {
+	// 			this.gateWayService.emitBroadcast(this.server, target_login, login);
+	// 		}
+	// 	});
+	// 	client.join(target_login+client.user.login);
+		
+
+	// 	return userData?.target_login;
+	// }
+	
 	@SubscribeMessage('join_game_queue')
-	async joinGameQueue(@ConnectedSocket() client: CustomSocket) {
+	async joinGameQueue(
+		@MessageBody() userData: { mode: number },
+		@ConnectedSocket() client: CustomSocket) {
+		console.log('join game queue');
 		client.user = await this.userService.updateUser({
 			where: {
 				login: client.user.login
@@ -59,20 +109,19 @@ export class GameGateway {
 				status: Status.INQUEUE
 			}
 		})
+		console.log(client.user);
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
 			this.userService,
 			client.user
 		);
-		if (!this.server.sockets.adapter.rooms.has('__game_queue')) {
-			client.join('__game_queue');
+		if (!this.server.sockets.adapter.rooms.has('__game_queue' + userData.mode)) {
+			client.join('__game_queue' + userData.mode);
 			console.log('joined game');
 			return;
 		}
-		// this.server.to()
-		const queue = this.server.sockets.adapter.rooms.get('__game_queue');
-		// console.log(queue.values().next().value);
-		// console.log(queue.size);
+		console.log('game found');
+		const queue = this.server.sockets.adapter.rooms.get('__game_queue' + userData.mode);
 		let matching_opp = this.server.sockets.sockets.get(
 			queue.values().next().value,
 		) as CustomSocket;
@@ -82,11 +131,7 @@ export class GameGateway {
 			return;
 		}
 		console.log(matching_opp.user, 'hihi');
-		matching_opp.leave('__game_queue');
-		client.user_nb = 0;
-		matching_opp.user_nb = 1;
-		
-		
+		matching_opp.leave('__game_queue' + userData.mode);
 		console.log('accepting game');
 		const game_lobby = client.id + matching_opp.id;
 		client.join(game_lobby);
@@ -98,58 +143,14 @@ export class GameGateway {
 				sock.on("accept_response", (obj: {isAccepted :Boolean}) => {
 				resolve(obj.isAccepted);
 			  });
-			  	// setTimeout(() => (resolve(false)), 5000);
 			}));
 		  };
 		const res = await Promise.all([wait_res(client), wait_res(matching_opp)]);
 		console.log(res[0], res[1]);
 		
 		if (res[0] == true && res[1] == true) {
-			this.server.to(game_lobby).emit('game_accepted', game_lobby);
-			
-			const game = new GameObject(this.server, game_lobby, this.gameService);
-			client.game_lobby = game;
-			matching_opp.game_lobby = game;
-			const score = await Promise.all([
-				this.userService.updateUser({
-					where: { login: client.user.login },
-					data: { current_lobby: game_lobby, status: Status.INGAME },
-				}),
-				this.userService.updateUser({
-					where: { login: matching_opp.user.login },
-					data: { current_lobby: game_lobby, status: Status.INGAME },
-				}),
-				game.run(),
-			]);
-			console.log('!!!!!!!!!!!!!!scores ', score);
-			let gameData: {
-				game_winner_login: string;
-				game_loser_login: string;
-				game_winner_score: number;
-				game_loser_score: number;
-			};
-			if (score[2][0] < score[2][1]) {
-				[client, matching_opp] = [matching_opp, client];
-			}
-			gameData = {
-				game_winner_login: client.user.login,
-				game_loser_login: matching_opp.user.login,
-				game_winner_score: score[2][client.user_nb],
-				game_loser_score: score[2][matching_opp.user_nb],
-			};
-			const data = await Promise.all([
-				this.userService.updateUser({
-					where: { login: client.user.login },
-					data: { current_lobby: null, status: Status.ONLINE },
-				}),
-				this.userService.updateUser({
-					where: { login: matching_opp.user.login },
-					data: { current_lobby: null, status: Status.ONLINE },
-				}),
-				this.gameService.saveGame(gameData),
-			]);
-			console.log(data);
-			this.server.to(game_lobby).emit('game_ended', data);
+			console.log('starting game');
+			this.gameService.startGame(this.server, game_lobby);
 		}
 		else
 		{
@@ -158,14 +159,19 @@ export class GameGateway {
 			matching_opp.leave(game_lobby);
 		}
 	}
+
 	@SubscribeMessage('quit_queue')
     async quitQueue(
+		@MessageBody() userData: { mode: number },
         @ConnectedSocket() client: CustomSocket,
     ) {
-        if (client.rooms.has('__game_queue'))
+
+        if (client.rooms.has('__game_queue' + userData.mode))
         {
-            client.leave('__game_queue');
+            client.leave('__game_queue' + userData.mode);
+			
             client.emit('queue_quitted', 'ok');
+			console.log('quitted queue');
         }
         else
         {

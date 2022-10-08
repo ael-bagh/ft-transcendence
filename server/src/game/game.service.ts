@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
-import { Game, User, Prisma } from '@prisma/client';
+import { Game, User, Prisma, Status } from '@prisma/client';
+import { Server } from 'socket.io';
+import { CustomSocket } from '@/auth/auth.adapter';
+import { GameObject } from './game.object';
+import { UserService } from '@/user/user.service';
 
 @Injectable()
 export class GameService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private readonly userService : UserService) {}
 
   async game(
     gameWhereUniqueInput: Prisma.GameWhereUniqueInput,
@@ -57,7 +61,68 @@ export class GameService {
       where,
     });
   }
-
+  async startGame(server: Server, roomId:string) {
+      console.log('start game');
+      
+      const room = server.sockets.adapter.rooms.get(roomId);
+      if (!room || room.size !== 2)
+        return;
+      let it = room.values();
+      let player1 = server.sockets.sockets.get(
+        it.next().value,
+      ) as CustomSocket;
+      let player2 = server.sockets.sockets.get(
+        it.next().value,
+      ) as CustomSocket;
+      console.log(player1.user.login);
+      console.log(player2.user.login);
+      player1.user_nb = 0;
+      player2.user_nb = 1;
+      server.to(roomId).emit('game_accepted', roomId);
+      const game = new GameObject(server, roomId);
+      player1.game_lobby = game;
+      player2.game_lobby = game;
+      const score = await Promise.all([
+				this.userService.updateUser({
+					where: { login: player1.user.login },
+					data: { current_lobby: roomId, status: Status.INGAME },
+				}),
+				this.userService.updateUser({
+					where: { login: player2.user.login },
+					data: { current_lobby: roomId, status: Status.INGAME },
+				}),
+				game.run(),
+			]);
+      let gameData: {
+				game_winner_login: string;
+				game_loser_login: string;
+				game_winner_score: number;
+				game_loser_score: number;
+			};
+			if (score[2][0] < score[2][1]) {
+				[player1, player2] = [player2, player1];
+			}
+			gameData = {
+				game_winner_login: player1.user.login,
+				game_loser_login: player2.user.login,
+				game_winner_score: score[2][player1.user_nb],
+				game_loser_score: score[2][player2.user_nb],
+			};
+			const data = await Promise.all([
+				this.userService.updateUser({
+					where: { login: player1.user.login },
+					data: { current_lobby: null, status: Status.ONLINE },
+				}),
+				this.userService.updateUser({
+					where: { login: player2.user.login },
+					data: { current_lobby: null, status: Status.ONLINE },
+				}),
+				this.saveGame(gameData),
+			]);
+			console.log(data);
+			server.to(roomId).emit('game_ended', gameData);
+    }
+  
   async deleteGame(where: Prisma.GameWhereUniqueInput): Promise<Game> {
     return this.prisma.game.delete({
       where,

@@ -9,7 +9,7 @@ import {
 } from 'matter-js';
 import { Subject } from 'rxjs';
 import { Server } from 'socket.io';
-import { GameService } from './game.service';
+// import { GameService } from './game.service';
 
 export class GameObject {
   public gameEvents = new Subject<{ event: string; payload: any }>();
@@ -24,7 +24,7 @@ export class GameObject {
   constructor(
     private readonly server: Server,
     private readonly room: string,
-    private readonly gameService: GameService,
+    // private readonly gameService: GameService,
   ) {
     this.engine = Engine.create({ gravity: { x: 0, y: 0 } });
     this.walls['top'] = Bodies.rectangle(640, -250, 1800, 500, {
