@@ -7,6 +7,8 @@ import {
 	Put,
 	Delete,
 	UseGuards,
+	HttpException,
+	HttpStatus,
 } from '@nestjs/common';
 
 import { GameService } from '@/game/game.service';
@@ -46,7 +48,11 @@ export class GameController {
 
 	@Get('/:login/:mode/stats')
 	async getStats(@Param()  params: {login: string, mode: Game_mode}) {
-		return this.gameService.stats(params.login, params.mode);
+		if (params.mode == "RANKED" || params.mode == "NORMAL" || params.mode == "ONE") {
+			return this.gameService.stats(params.login, params.mode);
+		}
+		else
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 	}
 	@Get('/:login/sets')
 	async getSets(@Param('login') login: string): Promise<SetModel[]> {

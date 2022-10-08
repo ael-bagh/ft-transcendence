@@ -45,6 +45,7 @@ export class GameService {
 				set_loser_login: login,
 				set_type: mode
 		}});
+		return {wins: ranked_wins, losses: ranked_losses};
 	}
 
 		
