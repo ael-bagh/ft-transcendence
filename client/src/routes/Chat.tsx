@@ -2,7 +2,7 @@ import Conversation from "../components/chat/Conversation";
 import ChatProvider, { ChatContext } from "../contexts/chat.context";
 import ChatHistory from "../components/chat/ChatHistory";
 import MainLayout from "../components/layout/MainLayout";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useParams } from "react-router-dom";
 import { useEffect, useContext } from "react";
 import { useSocket } from "../hooks/api/useSocket";
 import axiosInstance from "../lib/axios";
@@ -20,6 +20,7 @@ export default function Chat() {
 function ChatComponent() {
   const { setCurrentGroup, currentGroup, setChatHistory } = useContext(ChatContext);
   const loaderData = useLoaderData() as any;
+  const {id} = useParams();
   const { socket } = useSocket();
   useEffect(() => {
     console.log("allllllloooooooo");
@@ -39,7 +40,7 @@ function ChatComponent() {
     return () => {
       socket.off("message");
     }
-  }, []);
+  }, [id]);
 
   return (
     <div className="flex flex-grow flex-col md:flex-row w-screen divide-x divide-gray-200">

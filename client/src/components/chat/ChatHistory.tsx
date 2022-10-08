@@ -32,6 +32,7 @@ export default function ChatHistory() {
           new Date(b.room_messages[0].message_time).valueOf()
       ));
     })
+    setShowNewConversation(false);
   }, [conversation, currentGroup]);
   return (
     <div

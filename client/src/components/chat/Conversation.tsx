@@ -21,7 +21,6 @@ export default function Conversation() {
   } = useContext(ChatContext);
   const { authUser } = useContext(AuthUserContext);
   const [message, setMessage] = useState("");
-  const [sent, setSent] = useState(false);
   const { socket, sendMessage } = useSocket();
 
   const chatboxRef = useRef<HTMLDivElement>(null);
@@ -47,10 +46,6 @@ export default function Conversation() {
   };
 
   const [isLoading, setIsLoading] = useState(false);
-
-  // useEffect(() => {
-
-  // }, [conversation]);
 
   useEffect(() => {
     if (isLoading) return;
