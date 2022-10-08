@@ -25,6 +25,8 @@ model User {
 	KDA	Decimal?
 	games_won Game[] @relation("winner")
 	games_lost Game[] @relation ("loser")
+	set_won Set[] @relation("set_winner")
+	set_lost Set[] @relation("set_loser")
 	achievements Achievement[] @relation("user_achievements")
 	friends User[] @relation("friends")
 	friends_relation User[] @relation("friends")
@@ -60,6 +62,18 @@ model Notification {
 	notification_seen Boolean
 }
 
+model Set {
+	set_id Int @id @default(autoincrement())
+	set_games Game[] @relation("set_games")
+	set_type Game_mode
+	set_winner_login String
+	set_winner User? @relation("set_winner", fields: [set_winner_login], references: [login])
+	set_loser_login String
+	set_loser User? @relation("set_loser", fields: [set_loser_login], references: [login])
+	set_winner_score Int
+	set_loser_score Int
+}
+
 model Game {
 	game_id String @id @default(cuid())
 	game_date DateTime
@@ -67,6 +81,8 @@ model Game {
 	game_loser_login String
 	game_winner User? @relation("winner", fields: [game_winner_login], references: [login])
 	game_loser User? @relation("loser", fields: [game_loser_login], references: [login])
+	game_set_id Int
+	game_set Set  @relation("set_games", fields: [game_set_id], references: [set_id])
 	game_winner_score Int?
 	game_loser_score Int?
 }
@@ -137,4 +153,10 @@ enum Notification_type {
 enum Message_type {
 	USER
 	SYSTEM
+}
+
+enum Game_mode {
+	ONE
+	NORMAL
+	RANKED
 }

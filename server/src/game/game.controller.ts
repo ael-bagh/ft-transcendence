@@ -27,4 +27,9 @@ export class GameController {
   async getGame(@Param('id') id: string): Promise<GameModel> {
     return this.gameService.game({ game_id: id });
   }
+//   @Get('deleteGames')
+//   async deleteAllGames()
+//   {
+// 	return this.gameService.deleteGames();
+//   }
 }
