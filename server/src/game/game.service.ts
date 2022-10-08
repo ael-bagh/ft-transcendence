@@ -3,7 +3,7 @@ import { PrismaService } from '@/common/services/prisma.service';
 import { Game, User, Prisma, Status } from '@prisma/client';
 import { Server } from 'socket.io';
 import { CustomSocket } from '@/auth/auth.adapter';
-import { GameObject } from './game.object';
+import { GameObject, GameEnded } from './game.object';
 import { UserService } from '@/user/user.service';
 
 @Injectable()
@@ -61,7 +61,7 @@ export class GameService {
       where,
     });
   }
-  async startGame(server: Server, roomId:string) {
+  async startGame(server: Server, roomId:string, numberOfGames : number) {
       console.log('start game');
       
       const room = server.sockets.adapter.rooms.get(roomId);
@@ -79,7 +79,7 @@ export class GameService {
       player1.user_nb = 0;
       player2.user_nb = 1;
       server.to(roomId).emit('game_accepted', roomId);
-      const game = new GameObject(server, roomId);
+      const game = new GameObject(server, roomId, numberOfGames, player1.user.login, player2.user.login);
       player1.game_lobby = game;
       player2.game_lobby = game;
       const score = await Promise.all([
@@ -93,21 +93,6 @@ export class GameService {
 				}),
 				game.run(),
 			]);
-      let gameData: {
-				game_winner_login: string;
-				game_loser_login: string;
-				game_winner_score: number;
-				game_loser_score: number;
-			};
-			if (score[2][0] < score[2][1]) {
-				[player1, player2] = [player2, player1];
-			}
-			gameData = {
-				game_winner_login: player1.user.login,
-				game_loser_login: player2.user.login,
-				game_winner_score: score[2][player1.user_nb],
-				game_loser_score: score[2][player2.user_nb],
-			};
 			const data = await Promise.all([
 				this.userService.updateUser({
 					where: { login: player1.user.login },
@@ -117,10 +102,10 @@ export class GameService {
 					where: { login: player2.user.login },
 					data: { current_lobby: null, status: Status.ONLINE },
 				}),
-				this.saveGame(gameData),
+				// this.saveGame(gameData),
 			]);
-			console.log(data);
-			server.to(roomId).emit('game_ended', gameData);
+			console.log(score[2]);
+			server.to(roomId).emit('game_ended', score[2]);
     }
   
   async deleteGame(where: Prisma.GameWhereUniqueInput): Promise<Game> {
@@ -133,3 +118,4 @@ export class GameService {
     return this.prisma.game.deleteMany({});
   }
 }
+

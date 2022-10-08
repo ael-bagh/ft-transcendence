@@ -37,64 +37,63 @@ export class GameGateway {
 	@WebSocketServer()
 	server: Server;
 
-	// @SubscribeMessage('invite_to_game')
-	// async sendRequest(
-	// 	@MessageBody() userData: { target_login: string },
-	// 	@ConnectedSocket() client: CustomSocket,
-	// ) {
-	// 	// console.log(1,userData);
-	// 	let login = client.user.login;
-	// 	let target_login = userData.target_login;
-	// 	if (!target_login) {
-	// 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-	// 	}
-	// 	let allowed = await this.userService.permissionToDoAction({
-	// 		action_performer: login,
-	// 		action_target: target_login,
-	// 		action_mutual: true
-	// 	});
-	// 	if (!allowed)
-	// 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-	// 	return(await this.userService.sendFriendRequest({
-	// 		login, friend_login: target_login, onFinish: (user, target_login, broadcast) => {
-	// 			// FIXME: REVISE THIS
-	// 			if (broadcast) {
-	// 				this.gateWayService.emitBroadcast(this.server, target_login, login);
-	// 			} else {
-	// 				this.server.to(`__connected_${target_login}`).emit('game_request', user.login);
-	// 				client.join(client.user.login + target_login);
-	// 			}
-	// 		}
-	// 	}))
-	// }
+	@SubscribeMessage('invite_to_game')
+	async sendRequest(
+		@MessageBody() userData: { target_login: string , mode: number},
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		let login = client.user.login;
+		let target_login = userData.target_login;
+		if (!target_login) {
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		}
+		let allowed = await this.userService.permissionToDoAction({
+			action_performer: login,
+			action_target: target_login,
+			action_mutual: true
+		});
+		if (!allowed)
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		client.join(client.user.login + target_login);
+		this.server.to(`__connected_${target_login}`).emit('game_request', client.user.login, userData.mode);
+	}
 
-	// @SubscribeMessage('accept_game_request')
-	// async acceptGameRequest(
-	// 	@MessageBody() userData: { target_login: string ,socket_id: string},
-	// 	@ConnectedSocket() client: CustomSocket,
-	// ) {
-	// 	let login = client.user.login;
-	// 	let target_login = userData?.target_login
-	// 	if (!target_login) {
-	// 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-	// 	}
-	// 	let allowed = await this.userService.permissionToDoAction({
-	// 		action_performer: login,
-	// 		action_target: target_login,
-	// 		action_mutual: true
-	// 	});
-	// 	if (!allowed)
-	// 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-	// 	this.userService.remove_request({
-	// 		login, friend_login: target_login, onFinish: (login: string, target_login) => {
-	// 			this.gateWayService.emitBroadcast(this.server, target_login, login);
-	// 		}
-	// 	});
-	// 	client.join(target_login+client.user.login);
+	@SubscribeMessage('accept_game_request')
+	async acceptGameRequest(
+		@MessageBody() userData: { target_login: string, isAccepted: boolean, mode: number},
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		let login = client.user.login;
+		let target_login = userData.target_login
+		if (!target_login) {
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		}
+		let allowed = await this.userService.permissionToDoAction({
+			action_performer: login,
+			action_target: target_login,
+			action_mutual: true
+		});
+		if (!allowed)
+			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+		const room = target_login+client.user.login;
 		
-
-	// 	return userData?.target_login;
-	// }
+		if (this.server.sockets.adapter.rooms.get(room).size !== 1)
+		{
+			throw new Error('player gone');
+		}
+		if (!userData.isAccepted)
+		{
+			this.server.to(room).emit('game_accepted', 'refused');
+			const queue = this.server.sockets.adapter.rooms.get(room);
+			let matching_opp = this.server.sockets.sockets.get(
+				queue.values().next().value,
+			) as CustomSocket;
+			matching_opp.leave(room);
+			return;
+		}
+		client.join(room);
+		this.gameService.startGame(this.server, room, userData.mode);
+	}
 	
 	@SubscribeMessage('join_game_queue')
 	async joinGameQueue(
@@ -150,7 +149,7 @@ export class GameGateway {
 		
 		if (res[0] == true && res[1] == true) {
 			console.log('starting game');
-			this.gameService.startGame(this.server, game_lobby);
+			this.gameService.startGame(this.server, game_lobby, 3);
 		}
 		else
 		{
