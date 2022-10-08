@@ -12,6 +12,7 @@ export interface CustomSocket extends Socket {
     token_expire_at: number;
     game_lobby?: GameObject;
     user_nb?: number;
+    inQueue: boolean;
 }
 
 export class AuthAdapter extends IoAdapter {

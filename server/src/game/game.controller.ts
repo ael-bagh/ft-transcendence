@@ -54,6 +54,14 @@ export class GameController {
 	// 		throw new HttpException('Page Not Found', HttpStatus.NOT_FOUND);
 	// 	return this.userService.users({ orderBy: { KDA: 'desc' }, take: 20, skip: page * 20 });
 	// }
+	@Get('leaderboard/')
+	async getLeaderboard(@Param('page') page: number): Promise<UserModel[]> {
+		if (Number(page) == NaN)
+			throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+		if (Number(page) * 20 > (await this.userService.users({})).length)
+			throw new HttpException('Page Not Found', HttpStatus.NOT_FOUND);
+		return await this.gameService.leaderboard(0);
+	}
 	@Get('leaderboard/:page')
 	async getLeaderboardPage(@Param('page') page: number): Promise<UserModel[]> {
 		if (Number(page) == NaN)
