@@ -22,11 +22,16 @@ export class GameService {
 		return this.prisma.game.findMany(params);
 	}
 
+	async sets(params: Prisma.SetFindManyArgs): Promise<Set[]> {
+		return this.prisma.set.findMany(params);
+	}
+
 	async prismaCreateGame(data: Prisma.GameCreateInput): Promise<Game> {
 		return this.prisma.game.create({
 			data,
 		});
 	}
+
 
 	async saveGame(gameEnded: GameEnded) {
 		let set = await this.prisma.set.create({

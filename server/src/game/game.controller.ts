@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 
 import { GameService } from '@/game/game.service';
-import { Game as GameModel, User as UserModel, Prisma } from '@prisma/client';
+import { Game as GameModel, User as UserModel, Prisma, Set as SetModel } from '@prisma/client';
 import { UserModule } from '@/user/user.module';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { CurrentUser } from '@/user/user.decorator';
@@ -27,6 +27,11 @@ export class GameController {
   async getGame(@Param('id') id: string): Promise<GameModel> {
     return this.gameService.game({ game_id: id });
   }
+  @Get('/:login/sets')
+  async getSets(@Param('login') login: string): Promise<SetModel[]> {
+	return this.gameService.sets({ where: { set_winner_login: login } });
+  }
+
 //   @Get('deleteGames')
 //   async deleteAllGames()
 //   {
