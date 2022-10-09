@@ -97,9 +97,9 @@ export function useSocket() {
       });
     });
   };
-  const queueUp = () => {
+  const queueUp = (mode: 'ONE' | 'NORMAL' | 'RANKED') => {
     return new Promise((resolve, reject) => {
-      socket.emit("join_game_queue");
+      socket.emit("join_game_queue", { mode });
       socket.on("accept_game", (data, err) => {
         if (err) return reject(err);
         resolve(data);
@@ -107,9 +107,9 @@ export function useSocket() {
     });
   };
 
-  const quitQueue = () => {
+  const quitQueue = (mode: 'ONE' | 'NORMAL' | 'RANKED') => {
     return new Promise((resolve, reject) => {
-      socket.emit("quit_queue");
+      socket.emit("quit_queue", { mode });
       socket.on("queue_quitted", (data, err) => {
         if (err) return reject(err);
         resolve(data);

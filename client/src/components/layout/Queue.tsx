@@ -17,13 +17,13 @@ export default function Queue() {
         if (data === "refused") {
           setQueue({
             inQueue: true,
-            match: "normal1",
+            match: queue.match,
             matchFound: false,
           });
-            queueUp().then(()=> {
+            queueUp(queue.match).then(()=> {
             setQueue({
               inQueue: true,
-              match: "normal1",
+              match: queue.match,
               matchFound: true,
             });
           }).catch((err) => {
@@ -32,7 +32,7 @@ export default function Queue() {
         } else {
           setQueue({
             inQueue: false,
-            match: null,
+            match: 'ONE',
             matchFound: false,
           });
           navigate("/game/" + data);
@@ -43,16 +43,16 @@ export default function Queue() {
     acceptGame({ isAccepted: false }).finally(() => {
       setQueue({
         inQueue: false,
-        match: null,
+        match: 'ONE',
         matchFound: false,
       });
     });
   };
   const cancelQueue = () => {
-    quitQueue().finally(() => {
+    quitQueue(queue.match).finally(() => {
     setQueue({
       inQueue: false,
-      match: null,
+      match: 'ONE',
       matchFound: false,
     });});
   };

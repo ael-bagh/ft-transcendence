@@ -6,24 +6,24 @@ import { useNavigate } from "react-router-dom";
 import { useSocket } from "../../hooks/api/useSocket";
 
 export default function Dashboard() {
-  const {queue, setQueue} = useContext(QueueContext);
-  const {queueUp} = useSocket();
+  const { queue, setQueue } = useContext(QueueContext);
+  const { queueUp } = useSocket();
   let navigate = useNavigate();
-  const queueUpNormal1 = () => {
+  const queueUpByMode = (mode: "ONE" | "NORMAL" | "RANKED") => {
     setQueue({
       inQueue: true,
-      match: "normal1",
+      match: mode,
       matchFound: false,
     });
-      queueUp().then(()=> {
-      setQueue({
-        inQueue: true,
-        match: "normal1",
-        matchFound: true,
-      });
-    }).catch((err) => {
-      console.log("already in queue");}
-      );
+    queueUp(mode)
+      .then(() => {
+        setQueue({
+          inQueue: true,
+          match: mode,
+          matchFound: true,
+        });
+      })
+      .catch((err) => console.log("already in queue"));
   };
   return (
     <MainLayout>
@@ -32,11 +32,41 @@ export default function Dashboard() {
           <>
             <div
               className="flex flex-row h-20 bg-gray-700 w-full"
-              onClick={queueUpNormal1}
+              onClick={() => queueUpByMode("ONE")}
             >
               <div className="w-44 h-full bg-purple-500"></div>
               <div className="grow h-full m-auto text-center min-w-44">
-                Normal Game 11
+                ONE: single Match
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+      <div className="flex flex-col h-full w-screen m-4 gap-2">
+        {!queue.inQueue && (
+          <>
+            <div
+              className="flex flex-row h-20 bg-gray-700 w-full"
+              onClick={() => queueUpByMode("NORMAL")}
+            >
+              <div className="w-44 h-full bg-purple-500"></div>
+              <div className="grow h-full m-auto text-center min-w-44">
+                NORMAL : Best of 3
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+      <div className="flex flex-col h-full w-screen m-4 gap-2">
+        {!queue.inQueue && (
+          <>
+            <div
+              className="flex flex-row h-20 bg-gray-700 w-full"
+              onClick={() => queueUpByMode("RANKED")}
+            >
+              <div className="w-44 h-full bg-purple-500"></div>
+              <div className="grow h-full m-auto text-center min-w-44">
+                RANKED : Best of 3
               </div>
             </div>
           </>

@@ -1,7 +1,8 @@
 interface Notification {
-  notification_type: string;
   notification_id: number;
-  message_id: number;
-  user_login: string;
-  room_id: number;
+  notification_type: string;
+  notification_date: string;
+  notification_receiver_login: string;
+  notification_sender_login: string;
+  notification_seen: boolean;
 }

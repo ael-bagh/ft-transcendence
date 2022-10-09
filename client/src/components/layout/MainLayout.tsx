@@ -3,6 +3,8 @@ import { AuthUserContext } from "../../contexts/authUser.context";
 import NavBar from "../NavBar/NavBar";
 import { QueueContext } from "../../contexts/queue.context";
 import Queue from "./Queue";
+import { NotificationsContext } from "../../contexts/notifications.context";
+import Notification from "../NavBar/Notification";
 
 export default function MainLayout({
   children,
@@ -10,6 +12,7 @@ export default function MainLayout({
   children?: React.ReactNode;
 }) {
   const { isAuthLoaded } = useContext(AuthUserContext);
+  const {notifications} = useContext(NotificationsContext);
   return (
     <>
       {isAuthLoaded && (
@@ -18,7 +21,12 @@ export default function MainLayout({
             <NavBar />
             <Queue />
           </div>
-          <div className="flex h-full">{children}</div>
+          <div className="flex h-full">
+            {/* {notifications.map((notification, index) => (
+              <Notification notification={notification} key={index} />
+            ))} */}
+            {children}
+          </div>
         </div>
       )}
     </>

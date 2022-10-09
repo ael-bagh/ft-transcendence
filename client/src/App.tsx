@@ -9,6 +9,7 @@ import Profile from "./routes/Profile";
 import LeaderBoard from "./routes/LeaderBoard";
 import Chat from "./routes/Chat";
 import AuthUserProvider from "./contexts/authUser.context";
+import  NotificationsProvider  from "./contexts/notifications.context";
 import { useContext ,useEffect} from "react";
 import { AuthUserContext } from "./contexts/authUser.context";
 import useProfile from "./hooks/api/useProfile";
@@ -19,6 +20,7 @@ import  axiosInstance from "./lib/axios"
 import ProfileEdit from "./components/profile/ProfileEdit";
 import Dashboard from "./components/dashboard/Dashboard";
 import QueueContextProvider from "./contexts/queue.context";
+import ChatRooms from "./components/chat/ChatRooms";
 
 
 const router = createBrowserRouter([
@@ -86,15 +88,22 @@ const router = createBrowserRouter([
     element: <Dashboard />,
     errorElement: <ErrorPage />,
   },
+  {
+    path: "/rooms",
+    element: <ChatRooms />,
+    errorElement: <ErrorPage />,
+  },
 ]);
 
 function App() {
   return (
     <AuthUserProvider>
+      <NotificationsProvider>
       <QueueContextProvider>
         <GetAuthuser />
         <RouterProvider router={router}/>
       </QueueContextProvider>
+      </NotificationsProvider>
     </AuthUserProvider>
   );
 }
