@@ -17,6 +17,7 @@ import { Server } from 'socket.io';
 import { GatewayService } from '../services/gateway.service';
 import { PrismaService } from '../services/prisma.service';
 import * as dotenv from 'dotenv'
+import { compareSync } from 'bcrypt';
 dotenv.config()
 
 @WebSocketGateway({
@@ -108,6 +109,7 @@ export class GameGateway {
 				status: Status.INQUEUE
 			}
 		})
+		client.inQueue = true;
 		userData.mode = Game_mode.RANKED;
 		console.log(client.user);
 		this.gateWayService.broadcastStatusChangeToFriends(
@@ -130,6 +132,7 @@ export class GameGateway {
 			this.server.to('__connected_' + client.user.login).emit('i_am_you');
 			return;
 		}
+		matching_opp.inQueue = false;
 		console.log(matching_opp.user, 'hihi');
 		matching_opp.leave('__game_queue' + userData.mode);
 		console.log('accepting game');
@@ -165,18 +168,22 @@ export class GameGateway {
 		@MessageBody() userData: { mode: Game_mode },
         @ConnectedSocket() client: CustomSocket,
     ) {
-
-        if (client.rooms.has('__game_queue' + userData.mode))
-        {
-            client.leave('__game_queue' + userData.mode);
-			
-            client.emit('queue_quitted', 'ok');
-			console.log('quitted queue');
-        }
-        else
-        {
+		let found = false;
+		if (client.user.status == Status.INQUEUE)
+		{
+			this.server.sockets.adapter.rooms.get('__game_queue' + userData.mode).forEach((socketId) => {
+				const socket = this.server.sockets.sockets.get(socketId) as CustomSocket;
+				if (socket.rooms.has('__game_queue' + userData.mode))
+				{
+					socket.leave('__game_queue' + userData.mode);
+					socket.inQueue = false;
+					client.emit('queue_quitted', 'ok');
+					found = true;
+				}
+			});
+		}
+        if (!found)
             throw new Error('not in queue');
-        }
     }
 
 	@SubscribeMessage('move')

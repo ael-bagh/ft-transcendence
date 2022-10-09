@@ -1,3 +1,4 @@
+import { CustomSocket } from '@/auth/auth.adapter';
 import { Game_mode } from '@prisma/client';
 import {
   Body,
@@ -333,5 +334,55 @@ export class GameObject {
       this.server.to(this.room).volatile.emit('correction', corr[0], corr[1], corr[2], corr[3]);
     }
   }
+  public forceEnd(login : string){
+      if (this.gameStarted)
+      {
+        Runner.stop(this.runner);
+        this.gameStarted = false;
+      }
+      if (login == this.player1){
+        const games: {winner: string, loser: string, winner_score: number, loser_score: number}[] = [];
+        for (let i = 0; i < Math.ceil(this.number_of_games / 2); ++i)
+        {
+          games.push({winner: this.player2, loser: this.player1, winner_score: 5, loser_score: 0});
+        }
+        const new_data : GameEnded = {
+          game_id: this.room,
+          game_type: this.mode,
+          games: games,
+          winner: this.player2,
+          loser: this.player1,
+          winner_score: Math.ceil(this.number_of_games / 2),
+          loser_score: 0,
+        }
+        console.log('disconnected', new_data);
+        this.gameEvents.next({
+          event: 'GAME_FINISHED',
+          payload: new_data,
+        });
+      }
+      else if (login == this.player2){
+        const games: {winner: string, loser: string, winner_score: number, loser_score: number}[] = [];
+        for (let i = 0; i < Math.ceil(this.number_of_games / 2); ++i)
+        {
+          games.push({winner: this.player1, loser: this.player2, winner_score: 5, loser_score: 0});
+        }
+        const new_data : GameEnded = {
+          game_id: this.room,
+          game_type: this.mode,
+          games: games,
+          winner: this.player1,
+          loser: this.player2,
+          winner_score: Math.ceil(this.number_of_games / 2),
+          loser_score: 0,
+        }
+        console.log('disconnected', new_data);
+        this.gameEvents.next({
+          event: 'GAME_FINISHED',
+          payload: new_data,
+        });
+      }
+  }
 }
+
 

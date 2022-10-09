@@ -46,7 +46,16 @@ export class EventsGateway {
 
 	async handleDisconnect(client: CustomSocket) {
 		// console.log(new Date(),this.server.sockets.adapter.rooms);
-		client.leave('__connected_' + client.user.login);
+		console.log('Client rooms', client.rooms);
+		// client.leave('__connected_' + client.user.login);
+
+		// get user from db
+		
+		let leftGame = false;
+		if (client.game_lobby !== undefined) {
+			leftGame = true;
+			client.game_lobby.forceEnd(client.user.login);
+		}
 		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.login]) {
 			client.user = await this.prisma.user.update({
 				where: { login: client.user.login },
@@ -55,6 +64,26 @@ export class EventsGateway {
 				}
 			});
 		}
+		else if (leftGame || client.inQueue) {
+			client.user = await this.prisma.user.update({
+				where: { login: client.user.login },
+				data: {
+					status: Status.ONLINE,
+				}
+			});
+		}
+		// else
+		// {
+		// 	if (client.user.status !== Status.INGAME)
+		// 	{
+		// 		client.user = await this.prisma.user.update({
+		// 			where: { login: client.user.login },
+		// 			data: {
+		// 				status: Status.ONLINE,
+		// 			}
+		// 		});
+		// 	}
+		// }
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
 			this.userService,

@@ -112,7 +112,6 @@ export class GameService {
 	}
 	async startGame(server: Server, roomId: string, mode: Game_mode) {
 		console.log('start game');
-
 		const room = server.sockets.adapter.rooms.get(roomId);
 		if (!room || room.size !== 2)
 			return;
