@@ -123,19 +123,28 @@ export class EventsGateway {
 		return this.userService.getRelationship(client.user.login, userData.target_login)
 	}
 
-	@SubscribeMessage('notifications')
-	async getNotifications(
-		@ConnectedSocket() client: CustomSocket,
-	) {
-		return await this.notificationService.getNotifications(client.user.login);
-	}
 
-	@SubscribeMessage('seen_notification')
-	async seenNotification(
-		@ConnectedSocket() client:CustomSocket,
-	){
-		await this.notificationService.turnSeenToUseen(client.user.login);
+	
+
+
+@SubscribeMessage('seen_notification')
+async seenNotification(
+	@ConnectedSocket() client:CustomSocket,
+){
+	await this.notificationService.turnSeenToUseen(client.user.login);
+}
+
+@SubscribeMessage('delete_notification')
+async deleteNotification(
+	@MessageBody() userData: { notification_id },
+	@ConnectedSocket() client: CustomSocket,
+) {
+	const notification = await this.notificationService.getNotification(userData.notification_id);
+	if (notification.notification_receiver_login !== client.user.login) {
+		throw new HttpException('You are not allowed to delete this notification', HttpStatus.UNAUTHORIZED);
 	}
+	return await this.notificationService.deleteNotification(userData.notification_id);
+}
 		
 
 @SubscribeMessage('add_friend_request')
@@ -161,6 +170,14 @@ async sendRequest(
 		login, friend_login: target_login, onFinish:async (user, target_login, broadcast) => {
 			// FIXME: REVISE THIS
 			if (broadcast) {
+				const oldNotification = await this.notificationService.findNotification({
+					notification_receiver_login: login,
+					notification_sender_login: target_login,
+					notification_type: 'FRIEND_REQUEST'
+				});
+				if (oldNotification) {
+					await this.notificationService.deleteNotification(oldNotification.notification_id);
+				}
 				const notification1 = await this.notificationService.addNotification({
 					notification_type: 'NEW_FRIEND',
 					notification_date: new Date(),
@@ -219,6 +236,14 @@ async acceptFriendRequest(
 	});
 	this.userService.addfriends(login, target_login);
 
+	const oldNotification = await this.notificationService.findNotification({
+		notification_receiver_login: login,
+		notification_sender_login: target_login,
+		notification_type: 'FRIEND_REQUEST'
+	});
+	if (oldNotification) {
+		await this.notificationService.deleteNotification(oldNotification.notification_id);
+	}
 	const notification1 = await this.notificationService.addNotification({
 		notification_type: 'NEW_FRIEND',
 		notification_date: new Date(),
@@ -249,7 +274,7 @@ delete_friend(
 }
 
 @SubscribeMessage('delete_friend_request')
-delete_friend_request(
+async delete_friend_request(
 		@MessageBody() userData: { target_login: string },
 @ConnectedSocket() client: CustomSocket,
 	) {
@@ -262,14 +287,25 @@ delete_friend_request(
 	if (!client?.user || !friend)
 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 
-	this.userService.remove_request({
+	await this.userService.remove_request({
 		login, friend_login: target_login,
 	});
+	const notif = await this.notificationService.findNotification({
+		notification_receiver_login: login,
+		notification_sender_login: target_login,
+		notification_type: 'FRIEND_REQUEST'
+	});
+	if (notif)
+	{
+		const notif_id = notif.notification_id;
+		await this.notificationService.deleteNotification(notif.notification_id);
+		this.server.to(`__connected_${login}`).emit('notification', {notification_id: notif_id, notification_type: ''});
+	}
 	return target_login
 }
 
 @SubscribeMessage('delete_sent_friend_request')
-delete_sent_friend_request(
+async delete_sent_friend_request(
 		@MessageBody() userData: { target_login: string },
 @ConnectedSocket() client: CustomSocket,
 	) {
@@ -279,9 +315,20 @@ delete_sent_friend_request(
 	if (!client?.user || !friend)
 		throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 
-	this.userService.remove_request({
+	await this.userService.remove_request({
 		login: target_login, friend_login: login,
 	});
+	const notif = await this.notificationService.findNotification({
+		notification_receiver_login: target_login,
+		notification_sender_login: login,
+		notification_type: 'FRIEND_REQUEST'
+	});
+	if (notif)
+	{
+		const notif_id = notif.notification_id;
+		await this.notificationService.deleteNotification(notif.notification_id);
+		this.server.to(`__connected_${target_login}`).emit('notification', {notification_id: notif_id, notification_type: ''});
+	}
 	client.emit('cancel_friend_request', target_login)
 }
 

@@ -28,6 +28,8 @@ import { CurrentUser } from './user.decorator';
 import { HttpService } from '@nestjs/axios';
 import { NOTFOUND } from 'dns';
 import { MessageBody } from '@nestjs/websockets';
+import { NotificationService } from '@/notification/notification.service';
+
 
 enum status {
 	'OFFLINE' = 0,
@@ -46,7 +48,8 @@ export class UserController {
 	constructor(
 		private readonly userService: UserService,
 		private readonly gameService: GameService,
-		private readonly roomService: RoomService
+		private readonly roomService: RoomService,
+		
 	) { }
 
 	@Get('me')
@@ -348,7 +351,8 @@ export class UsersController {
 	constructor(
 		private readonly userService: UserService,
 		private readonly gameService: GameService,
-		private readonly roomService: RoomService
+		private readonly roomService: RoomService,
+		private readonly notificationService : NotificationService,
 		) { }
 
 	@Get('users')
@@ -356,15 +360,4 @@ export class UsersController {
 		return this.userService.users({});
 	}
 
-	
-
-	
-
-	@Delete('/users/delete')
-	async deleteAllUsers() {
-		this.gameService.deleteGames();
-		// this.roomService.deleteMessages({});
-		this.roomService.deleteRooms({});
-		this.userService.deleteAllUsers();
-	}
 }

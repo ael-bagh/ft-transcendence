@@ -23,7 +23,7 @@ model User {
 	current_lobby String?
 	is_banned Boolean?
 	KDA	Decimal?
-	wins Decimal?
+	wins Int @default(0)
 	games_won Game[] @relation("winner")
 	games_lost Game[] @relation ("loser")
 	set_won Set[] @relation("set_winner")

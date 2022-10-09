@@ -95,7 +95,7 @@ export class GameGateway {
 		client.join(room);
 		this.gameService.startGame(this.server, room, userData.mode);
 	}
-	
+	// TODO: add a way to invite a friend to a game
 	@SubscribeMessage('join_game_queue')
 	async joinGameQueue(
 		@MessageBody() userData: { mode: Game_mode },
@@ -110,7 +110,7 @@ export class GameGateway {
 			}
 		})
 		client.inQueue = true;
-		userData.mode = Game_mode.RANKED;
+		userData['mode'] = userData['mode'] || Game_mode.NORMAL;
 		console.log(client.user);
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
