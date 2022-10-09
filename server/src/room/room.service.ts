@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { Room, User, Prisma, Message, Message_type } from '@prisma/client';
-import { genSalt, hash } from "bcrypt";
+import { compare, genSalt, hash } from "bcrypt";
 
 @Injectable()
 export class RoomService {
@@ -35,9 +35,23 @@ export class RoomService {
 		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
 		password?: string,
 	): Promise<Room | null> {
-		const room = await this.prisma.room.findUnique({
+		let room = await this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
 		});
+		console.log(await compare(password, room.room_password));
+		if (!room.room_private || await compare(password, room.room_password))
+		{
+			console.log("ok?")
+			room = await this.prisma.room.update({
+				where: roomWhereUniqueInput,
+				data: {
+					room_users: {
+						connect: userWhereUniqueInput,
+					},
+				}
+			});
+			return room
+		}
 		throw new Error('Wrong password');
 	}
 
@@ -45,7 +59,7 @@ export class RoomService {
 		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
 		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
 	): Promise<Room | null> {
-		return this.prisma.room.update({
+		return await this.prisma.room.update({
 			where: roomWhereUniqueInput,
 			data: {
 				room_users: {
@@ -205,8 +219,27 @@ export class RoomService {
 					}).then((count) => count > 0));
 			case 'seeMessages':
 				return (await this.seemessages(action_room.room_id,action_perfomer))
-
-
+			// case 'editRoom':
+			// 	return await this.prisma.room.count({
+			// 		where: {
+			// 			room_id: action_room.room_id,
+			// 			OR:[
+			// 				{
+			// 					room_creator: {
+			// 						login: action_perfomer
+			// 					}
+			// 				},
+			// 				{
+			// 					room_admins:{
+			// 						some:{
+			// 							login: action_perfomer
+			// 						}
+			// 					}
+			// 				}
+			// 			]
+						
+			// 		}
+			// 	}).then((count) => count > 0);
 
 			default:
 				return false;
@@ -230,7 +263,7 @@ export class RoomService {
 			room_private: roomData['room_private'],
 			room_direct_message: roomData['room_direct_message'],
 			room_creation_date: new Date(),
-			room_password: await hash(roomData['room_password'], 12),
+			room_password: (roomData['room_private'] ? await hash(roomData['room_password'], 12):null),
 			room_users: {
 				connect: {
 					login: roomData['room_creator_login']
@@ -274,6 +307,13 @@ export class RoomService {
 								login: true,
 							}
 						}
+					}
+				},
+				room_admins:{
+					select: {
+						login: true,
+						nickname: true,
+						avatar: true,
 					}
 				},
 			},
@@ -529,4 +569,18 @@ export class RoomService {
 	){
 		return this.prisma.message.deleteMany({})
 	}
+
+	// async editRoom(
+	// 	where: Prisma.RoomWhereUniqueInput,
+	// 	data: {name: string, password: string, is_private: boolean},
+	// ) {
+	// 	this.prisma.room.update({
+	// 		where,
+	// 		data: {
+	// 			room_name: data.name,
+	// 			room_password: data.password,
+	// 			room_private: data.is_private
+	// 		}
+	// 	});
+	// }
 }

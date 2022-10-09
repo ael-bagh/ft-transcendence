@@ -8,6 +8,7 @@ import { Room, Status, User } from "@prisma/client";
 import { Socket, Server } from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
 import * as dotenv from 'dotenv'
+import { compare } from "bcrypt";
 dotenv.config()
 
 @WebSocketGateway({
@@ -37,7 +38,7 @@ export class RoomsGateway {
 		if (!this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id },)) {
 			throw new WsException('Not found');
 		}
-		if (!(result.room_private) || room_password == (result.room_password)) {
+		if (!(result.room_private) || await compare(room_password, result.room_password)) {
 			this.roomService.joinRoom({room_id: room_id}, {login:client.user.login});
 			client.join('room_id_'+result.room_id);
 			client.emit('joined_room');
