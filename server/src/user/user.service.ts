@@ -9,8 +9,8 @@ export class UserService {
 
 	async user(
 		userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-		include? : Prisma.UserInclude
-		
+		include?: Prisma.UserInclude
+
 	): Promise<User | null> {
 		if (userWhereUniqueInput == null)
 			return null;
@@ -24,47 +24,46 @@ export class UserService {
 	async getUserFriends(
 		login: string,
 		segment?: string
-	): Promise<User[] | null>
-	{
-		if ((await this.user({login: login}) == null))
+	): Promise<User[] | null> {
+		if ((await this.user({ login: login }) == null))
 			return null;
-		return await this.users({
+		const users = await this.users({
 			where: {
-				OR:[
-					{
-						nickname:{
-							contains: segment,
-						},
-					},
-					{
-						login: {
-							contains: segment,
-						},
-					}
-				],
 				friends: {
 					some: {
 						login: login
 					}
 				}
 			}
+			// OR:[
+			// 	{
+			// 		nickname:{
+			// 			contains: segment,
+			// 		},
+			// 	},
+			// 	{
+			// 		login: {
+			// 			contains: segment,
+			// 		},
+			// 	},
+			//	]
 		})
+		console.log(users)
+		return users;
 	}
 
 
 	async getRelationship(
 		login: string,
 		friend_login: string,
-	): Promise<{is_friend: boolean, is_request_sent:boolean,is_request_received: boolean, is_blocked: boolean}>
-	{
-		let relationships = {is_request_sent: false, is_request_received: false, is_friend: false, is_blocked: false, is_self: false};
-		if (login == friend_login)
-		{
+	): Promise<{ is_friend: boolean, is_request_sent: boolean, is_request_received: boolean, is_blocked: boolean }> {
+		let relationships = { is_request_sent: false, is_request_received: false, is_friend: false, is_blocked: false, is_self: false };
+		if (login == friend_login) {
 			relationships.is_self = true;
 			return relationships;
 		}
 		// console.log(new Date(),friend_login);
-		if( await this.getFriendBool({
+		if (await this.getFriendBool({
 			where: {
 				login: login,
 				friends: {
@@ -73,9 +72,9 @@ export class UserService {
 					}
 				}
 			}
-		}) )
+		}))
 			relationships['is_friend'] = true;
-		if ( await this.getFriendBool({
+		if (await this.getFriendBool({
 			where: {
 				login: login,
 				friend_requests_sent: {
@@ -86,7 +85,7 @@ export class UserService {
 			}
 		}))
 			relationships['is_request_sent'] = true;
-		if ( await this.getFriendBool({
+		if (await this.getFriendBool({
 			where: {
 				login: login,
 				friend_requests: {
@@ -98,7 +97,7 @@ export class UserService {
 		}))
 			relationships['is_request_received'] = true;
 		// is blocked
-		if ( await this.getFriendBool({
+		if (await this.getFriendBool({
 			where: {
 				login: login,
 				blocked_users: {
@@ -116,33 +115,31 @@ export class UserService {
 		includename: string
 	)
 		: Promise<User[] | null> {
-		if (includename == 'sent_requests')
-		{
+		if (includename == 'sent_requests') {
 
 			let users = await this.prisma.user.findUnique({
-				where:{
+				where: {
 					login: login
 				},
 				select: {
 					friend_requests_sent: true,
 				}
-				
+
 			});
-			console.log(new Date(),users)
+			console.log(new Date(), users)
 			return users.friend_requests_sent;
 		}
-		else if (includename == 'received_requests')
-		{
+		else if (includename == 'received_requests') {
 			let users = await this.prisma.user.findUnique({
-				where:{
+				where: {
 					login: login
 				},
 				select: {
 					friend_requests: true,
 				}
-				
+
 			});
-			console.log(new Date(),users)
+			console.log(new Date(), users)
 			return users.friend_requests;
 		}
 		else
@@ -332,45 +329,43 @@ export class UserService {
 		action_mutual: boolean,
 	}): Promise<boolean> {
 		const { action_performer, action_target, action_mutual } = params;
-		const action_performer_user = await this.user({login: action_performer});
-		const action_target_user = await this.user({login: action_target});
+		const action_performer_user = await this.user({ login: action_performer });
+		const action_target_user = await this.user({ login: action_target });
 		if (action_performer_user == null || action_target_user == null)
 			return false;
-		if (action_mutual == true)
-		{
-		
-		if ((await this.prisma.user.count({
-			where: {
-				OR: [
-					{
-						login: action_performer,
-						blocked_users: {
-							some: {
-								login: action_target,
-							}
-						}
-					},
-					{
-						login: action_target,
-						blocked_by_users: {
-							some: {
-								login : action_performer,
-							}
-						}
-					}
-				]
-			}
-		})) > 0)
-			return false;
-			
-		}
-		else
-		{
+		if (action_mutual == true) {
+
 			if ((await this.prisma.user.count({
-				where:{
-					login:action_performer,
-					blocked_by_users:{
-						some:{
+				where: {
+					OR: [
+						{
+							login: action_performer,
+							blocked_users: {
+								some: {
+									login: action_target,
+								}
+							}
+						},
+						{
+							login: action_target,
+							blocked_by_users: {
+								some: {
+									login: action_performer,
+								}
+							}
+						}
+					]
+				}
+			})) > 0)
+				return false;
+
+		}
+		else {
+			if ((await this.prisma.user.count({
+				where: {
+					login: action_performer,
+					blocked_by_users: {
+						some: {
 							login: action_target,
 						}
 					}
@@ -382,11 +377,11 @@ export class UserService {
 	}
 
 	async signupUser(
-		userData: { login: string; nickname: string; avatar: string, email: string},
+		userData: { login: string; nickname: string; avatar: string, email: string },
 	): Promise<User> {
 		const user_exists = await this.user({ login: userData['login'] });
 		if (user_exists != null) {
-			console.log(new Date(),user_exists, "hi");
+			console.log(new Date(), user_exists, "hi");
 			return user_exists;
 		}
 		userData['KDA'] = 0;
@@ -451,20 +446,20 @@ export class UserService {
 	}
 	): Promise<Boolean> {
 		const { login, friend_login } = params;
-		console.log(new Date(),login, friend_login);
+		console.log(new Date(), login, friend_login);
 		const friend = await this.user({ login: friend_login });
 		const user = await this.user({ login: login });
 		if (!user || !friend)
 			return null;
 		// if not mutual request
-		console.log(new Date(),'survived')
+		console.log(new Date(), 'survived')
 		let mutual = await this.prisma.user.count({
 			where: {
 				friend_requests: { some: { login: friend_login } },
 				login: login
 			}
 		});
-		console.log(new Date(),'mutual:', mutual);
+		console.log(new Date(), 'mutual:', mutual);
 		if (mutual == 0) {
 			await this.updateUser({
 				where: { login: (friend_login) },
@@ -489,6 +484,7 @@ export class UserService {
 			params.onFinish && params.onFinish(user, friend_login, false);
 		}
 		else {
+			console.log('yo bitch wtf?')
 			await this.addfriends(login, friend_login);
 			await this.updateUser({
 				where: { login: (login) },

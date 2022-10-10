@@ -146,6 +146,7 @@ export class UserController {
 	}
 	@Get('friends')
 	async getUserFriends(@CurrentUser() user: UserModel): Promise<UserModel[]> {
+		console.log('current user: yihssan');
 		return (await this.userService.getUserFriends(user.login));
 	}
 

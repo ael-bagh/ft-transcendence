@@ -41,11 +41,6 @@ export class ChatGateway {
 		users.map(async user =>{
 			this.server.to('__connected_'+user.login).emit("message", message)
 		});
-		// GET ROOM
-		// LOOP THROUGH USERIDS
-		// SEND MESSAGES TO THEM
-		// this.server.to('rooom_id_'+data.currentRoom).emit("message", message);
-		// console.log("test_me ", message);
 		return message;
 	}
 	@SubscribeMessage('get_room_messages')
