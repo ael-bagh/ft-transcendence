@@ -10,6 +10,7 @@ interface User {
   login: string;
   nickname: string;
   password: string;
+  email: string;
   avatar: string;
   status: string;
   creation_date: Date;

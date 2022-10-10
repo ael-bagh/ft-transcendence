@@ -1,3 +1,7 @@
+import React from "react";
+import ReactDOM from "react-dom";
+import CryptoJS from "crypto-js";
+import QRCode from "react-qr-code";
 import MainLayout from "../layout/MainLayout";
 import { Form } from "react-router-dom";
 import ImageUploading from "react-images-uploading";
@@ -5,10 +9,30 @@ import { useLoaderData } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axiosInstance from "../../lib/axios";
 import { Spinner } from "../layout/Loading";
+// import crypto from 'crypto';
+
+// const isValid = (token: string, secret: string) =>
+  // authenticator.check(token, secret);
+
+function generateToken() {
+  const { data: user } = useLoaderData() as { data: User };
+
+  const mail = user?.email;
+  const service = 'ft_transcendance';
+  
+  const secret = CryptoJS.HmacSHA1(mail, service).toString();
+  const otpauth = `otpauth://totp/${service}:${mail}?secret=${secret}&issuer=${service}`;
+
+  return { secret, otpauth };
+}
 
 export default function ProfileEdit() {
   const { data: user } = useLoaderData() as { data: User | null };
-  const [avatar, setAvatar] = useState(user?.avatar || `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`);
+  const [mfa] = useState(generateToken());
+  const [avatar, setAvatar] = useState(
+    user?.avatar ||
+      `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
+  );
   const [image, setImage] = useState([]);
   const [base64, setBase64] = useState(user?.avatar || "");
   const onChange = (imageList: any, addUpdateIndex: any) => {
@@ -17,6 +41,7 @@ export default function ProfileEdit() {
     setBase64(imageList[0]?.data_url);
   };
   const [name, setName] = useState(user?.nickname);
+  const [showQRCode, setShowQr] = useState(user?.two_factor_auth_boolean);
   const [is_available, setIsAvailable] = useState("unchanged");
   const [isLoading, setIsLoading] = useState(false);
   const divStyle = {
@@ -69,9 +94,7 @@ export default function ProfileEdit() {
                   {" "}
                   <img
                     className="sm:absolute sm:h-44 sm:w-44 h-full  sm:rounded-full w-screen sm:object-contain"
-                    src={
-                      avatar
-                    }
+                    src={avatar}
                     alt="avatar"
                   />
                   <div className="flex flex-row gap-2 items-center justify-center">
@@ -85,7 +108,9 @@ export default function ProfileEdit() {
                       className="relative bg-red-500 p-2"
                       onClick={() => {
                         setBase64("");
-                        setAvatar(`https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`);
+                        setAvatar(
+                          `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
+                        );
                       }}
                     >
                       delete
@@ -142,15 +167,25 @@ export default function ProfileEdit() {
               />
             </div>
             <div className="flex items-center pl-4">
-              <input
-                id="bordered-checkbox-2"
-                type="checkbox"
-                name="two_factor_auth_enabled"
-                className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 dark:focus:ring-purple-600 focus:ring-2"
-              />
-              <label className="py-4 ml-2 w-full text-sm font-mediumtext-gray-300">
-                2 factor Auth
-              </label>
+              {!user?.two_factor_auth_boolean && (
+                <div
+                  onClick={() => setShowQr(!showQRCode)}
+                  className="relative bg-gray-500 p-2 hover:cursor-pointer"
+                >
+                  {!showQRCode ? "Enable 2FA" : "Disable 2FA"}
+                  {/* {"Enable 2FA"} */}
+                </div>
+              )}
+              {showQRCode && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2">
+                    <div style={{ background: "white", padding: "16px" }}>
+                      <QRCode value={mfa.otpauth} />
+                    </div>
+                    <input type="text" name="secret" />
+                  </div>
+                </div>
+              )}
             </div>
 
             <input
