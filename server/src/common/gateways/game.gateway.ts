@@ -1,23 +1,19 @@
 import { CustomSocket } from '@/auth/auth.adapter';
-import { GameObject } from '@/game/game.object';
 import { GameService } from '@/game/game.service';
 import { UserService } from '@/user/user.service';
-import { HttpException, HttpStatus } from "@nestjs/common";
 import {
 	ConnectedSocket,
 	MessageBody,
 	SubscribeMessage,
 	WebSocketGateway,
 	WebSocketServer,
+	WsException,
 } from '@nestjs/websockets';
 import { Game_mode, Status } from '@prisma/client';
-import { Socket } from 'dgram';
-import { resolve } from 'path';
 import { Server } from 'socket.io';
 import { GatewayService } from '../services/gateway.service';
 import { PrismaService } from '../services/prisma.service';
 import * as dotenv from 'dotenv'
-import { compareSync } from 'bcrypt';
 dotenv.config()
 
 @WebSocketGateway({
@@ -43,18 +39,17 @@ export class GameGateway {
 		@MessageBody() userData: { target_login: string , mode: Game_mode},
 		@ConnectedSocket() client: CustomSocket,
 	) {
+		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || !userData?.target_login)
+			throw new WsException('data not given');
 		let login = client.user.login;
 		let target_login = userData.target_login;
-		if (!target_login) {
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-		}
 		let allowed = await this.userService.permissionToDoAction({
 			action_performer: login,
 			action_target: target_login,
 			action_mutual: true
 		});
 		if (!allowed)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+			throw new WsException('Not found');
 		client.join(client.user.login + target_login);
 		this.server.to(`__connected_${target_login}`).emit('game_request', client.user.login, userData.mode);
 	}
@@ -64,10 +59,12 @@ export class GameGateway {
 		@MessageBody() userData: { target_login: string, isAccepted: boolean, mode: Game_mode},
 		@ConnectedSocket() client: CustomSocket,
 	) {
+		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || !userData?.target_login || !userData?.isAccepted)
+			throw new WsException('data not given');
 		let login = client.user.login;
 		let target_login = userData.target_login
 		if (!target_login) {
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+			throw new WsException('Not found');
 		}
 		let allowed = await this.userService.permissionToDoAction({
 			action_performer: login,
@@ -75,7 +72,7 @@ export class GameGateway {
 			action_mutual: true
 		});
 		if (!allowed)
-			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+			throw new WsException('Not found');
 		const room = target_login+client.user.login;
 		
 		if (this.server.sockets.adapter.rooms.get(room).size !== 1)
@@ -95,12 +92,16 @@ export class GameGateway {
 		client.join(room);
 		this.gameService.startGame(this.server, room, userData.mode);
 	}
-	// TODO: add a way to invite a friend to a game
+
 	@SubscribeMessage('join_game_queue')
 	async joinGameQueue(
 		@MessageBody() userData: { mode: Game_mode },
 		@ConnectedSocket() client: CustomSocket) {
+		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode))
+			throw new WsException('data not given');
 		console.log('join game queue');
+		if (client.user.status != Status.ONLINE)
+			throw new WsException('already in queue');
 		client.user = await this.userService.updateUser({
 			where: {
 				login: client.user.login
@@ -110,7 +111,6 @@ export class GameGateway {
 			}
 		})
 		client.inQueue = true;
-		userData['mode'] = userData['mode'] || Game_mode.NORMAL;
 		console.log(client.user);
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
@@ -165,9 +165,11 @@ export class GameGateway {
 
 	@SubscribeMessage('quit_queue')
     async quitQueue(
-		@MessageBody() userData: { mode: Game_mode },
+		@MessageBody() userData: {mode: Game_mode},
         @ConnectedSocket() client: CustomSocket,
     ) {
+		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode))
+			throw new WsException('data not given');
 		let found = false;
 		if (client.user.status == Status.INQUEUE)
 		{
@@ -183,7 +185,7 @@ export class GameGateway {
 			});
 		}
         if (!found)
-            throw new Error('not in queue');
+            throw new WsException('not in queue');
     }
 
 	@SubscribeMessage('move')
@@ -192,11 +194,13 @@ export class GameGateway {
 		@MessageBody() data: number,
 	) {
 		console.log(data);
-		if (!client.game_lobby || !client.game_lobby.gameStarted) return;
+		if (!client.game_lobby || !client.game_lobby.gameStarted)
+			return;
 		console.log(data);
 		const game = client.game_lobby;
 		if (data > 0) game.mov[client.user_nb] = 1;
 		else if (data < 0) game.mov[client.user_nb] = -1;
 		else game.mov[client.user_nb] = 0;
 	}
+
 }

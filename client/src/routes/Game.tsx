@@ -7,9 +7,9 @@ import { useSocket } from "../hooks/api/useSocket";
 export default function Game() {
   const { Move, Correction, CorrectionOff } = useSocket();
   const engine = useRef(Engine.create());
-  const bar1 = useRef(Bodies.rectangle(50, 300, 10, 100, { isStatic: true }));
-  const bar2 = useRef(Bodies.rectangle(1230, 300, 10, 100, { isStatic: true }));
-  const ball = useRef(Bodies.circle(640, 360, 10, { isStatic: true }));
+  const bar1 = useRef(Bodies.rectangle(50/ 1280, 300/ 720, 10/ 1280, 100/ 720, { isStatic: true }));
+  const bar2 = useRef(Bodies.rectangle(1230/ 1280, 300/ 720, 10/ 1280, 100/ 720, { isStatic: true }));
+  const ball = useRef(Bodies.circle(640/ 1280, 360/ 720, 10/ 1280, { isStatic: true }));
   const key = useRef({ up: false, down: false });
   const [score1, setScore1] = useState(0);
   const [score2, setScore2] = useState(0);
@@ -85,21 +85,38 @@ export default function Game() {
     };
 
     p5.draw = () => {
-      p5.background(51);
+      p5.background(50);
+      
       let pos = ball.current.position;
       let angle = ball.current.angle;
+
+      p5.push();
+      p5.translate(cwidth / 2, 0);
+      p5.rotate(angle);
+      p5.fill(255);
+      p5.rectMode(p5.CENTER);
+      p5.rect(0, cheight / 2, 0.002 * cwidth, cheight);
+      p5.noFill();
+      p5.stroke(255);
+      p5.ellipse(0, cheight / 2, ballRadiusRatio * cwidth * 40, ballRadiusRatio * cwidth * 40);
+      p5.pop();
+
       p5.push();
       p5.translate(pos.x * cwidth, pos.y * cheight);
       p5.rotate(angle);
+      p5.fill(255);
       p5.rectMode(p5.CENTER);
+      p5.noStroke();
       p5.ellipse(0, 0, ballRadiusRatio * cwidth, ballRadiusRatio * cwidth);
       p5.pop();
       pos = bar1.current.position;
       angle = bar1.current.angle;
       p5.push();
       p5.translate(pos.x * cwidth, pos.y * cheight);
+      p5.fill(0);
       p5.rotate(angle);
       p5.rectMode(p5.CENTER);
+      p5.noStroke();
       p5.rect(0, 0, barWidthRatio * cwidth, barHeightRatio * cheight);
       p5.pop();
       pos = bar2.current.position;
@@ -108,6 +125,7 @@ export default function Game() {
       p5.translate(pos.x * cwidth, pos.y * cheight);
       p5.rotate(angle);
       p5.rectMode(p5.CENTER);
+      p5.noStroke();
       p5.rect(0, 0, barWidthRatio * cwidth, barHeightRatio * cheight);
       p5.pop();
       p5.textSize(32);
@@ -116,7 +134,6 @@ export default function Game() {
 
     };
   };
-  // const { data: Game } = useLoaderData() as { data: Game | null };
   return (
     <MainLayout>
       <div className="flex  justify-center items-center w-screen h-full">
