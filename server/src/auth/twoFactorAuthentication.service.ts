@@ -8,6 +8,7 @@ export class TwoFactorAuthenticationService {
   constructor(private readonly usersService: UserService, private readonly configService: ConfigService) {}
 
   public isTwoFactorAuthenticationCodeValid(code: string, secret: string) {
+    
     return authenticator.check(code, secret);
   }
 }

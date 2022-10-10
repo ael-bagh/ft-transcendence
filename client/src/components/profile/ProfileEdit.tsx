@@ -1,12 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { Dialog, Transition } from "@headlessui/react";
 import CryptoJS from "crypto-js";
 import QRCode from "react-qr-code";
 import MainLayout from "../layout/MainLayout";
 import { Form } from "react-router-dom";
 import ImageUploading from "react-images-uploading";
 import { useLoaderData } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, Fragment, useEffect } from "react";
 import axiosInstance from "../../lib/axios";
 import { Spinner } from "../layout/Loading";
 // import crypto from 'crypto';
@@ -41,6 +42,7 @@ export default function ProfileEdit() {
     setBase64(imageList[0]?.data_url);
   };
   const [name, setName] = useState(user?.nickname);
+  // const [code, setCode] = useState(user?);
   const [is_available, setIsAvailable] = useState("unchanged");
   const [isLoading, setIsLoading] = useState(false);
   const divStyle = {
@@ -165,7 +167,16 @@ export default function ProfileEdit() {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            <TwoFAComponent user={user} />
+            {
+              user?.two_factor_auth_boolean && (
+                <TwoFAOff user={user}/>
+              )
+            }
+            {
+              !user?.two_factor_auth_boolean && (
+                <TwoFAOn user={user}/>
+              )
+            }
             <input
               type="text"
               name="avatar"
@@ -188,20 +199,13 @@ export default function ProfileEdit() {
   );
 }
 
-function TwoFAComponent({ user }: { user: User | null }) {
+function TwoFsAComponent({ user }: { user: User | null }) {
   const [mfa] = useState(generateToken());
   const [showQRCode, setShowQr] = useState(user?.two_factor_auth_boolean);
 
   return (
     <div className="flex items-center pl-4">
-      {!user?.two_factor_auth_boolean && (
-        // <div
-
-        //   className="relative bg-gray-500 p-2 hover:cursor-pointer"
-        // >
-        //   {/* {!showQRCode ? "Enable 2FA" : "Disable 2FA"} */}
-        //   {"Enable 2FA"}
-        // </div>
+      {user?.two_factor_auth_boolean && (
         <div className="w-11/12 mx-auto mb-4 my-6 md:w-5/12 shadow sm:px-10 sm:py-6 py-4 px-4 bg-white dark:bg-gray-800 rounded-md">
           <div>
             <p className="text-lg text-gray-800 dark:text-gray-100 font-semibold pb-3">
@@ -223,15 +227,60 @@ function TwoFAComponent({ user }: { user: User | null }) {
                 className="toggle-label bg-gray-200 block w-12 h-6 overflow-hidden rounded-full bg-gray-300 cursor-pointer"
               />
             </div>
-              {showQRCode && (
-                <div className="w-5/12 mx-auto mb-4 my-6 md:w-5/12 shadow sm:px-10 sm:py-6 py-4 px-4 bg-white dark:bg-gray-800 rounded-md content-center">
-                  <div style={{ background: "white", padding: "16px" }}>
-                    <QRCode value={mfa.otpauth} />
-                  </div>
-                  <input type="text" name="secret" className="w-full " />
-                  <button className="bg-purple-500 p-2 w-full">Confirm</button>
+            {showQRCode && (
+              <div className="w-5/12 mx-auto mb-4 my-6 md:w-5/12 shadow sm:px-10 sm:py-6 py-4 px-4 bg-white dark:bg-gray-800 rounded-md content-center">
+                <div style={{ background: "white", padding: "16px" }}>
+                  <QRCode value={mfa.otpauth} />
                 </div>
-              )}
+                <input type="text" name="secret" className="w-full " />
+                <button className="bg-purple-500 p-2 w-full">Confirm</button>
+              </div>
+            )}
+          </div>
+          <style>{`
+          .checkbox:checked {
+              /* Apply class right-0*/
+              right: 0;
+          }
+          .checkbox:checked + .toggle-label {
+              /* Apply class bg-indigo-700 */
+              background-color: #4c51bf;
+          }
+          `}</style>
+        </div>
+      )}
+
+      {!user?.two_factor_auth_boolean && (
+        <div className="w-11/12 mx-auto mb-4 my-6 md:w-5/12 shadow sm:px-10 sm:py-6 py-4 px-4 bg-white dark:bg-gray-800 rounded-md">
+          <div>
+            <p className="text-lg text-gray-800 dark:text-gray-100 font-semibold pb-3">
+              Enable 2FA
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 pb-3 font-normal">
+              You can cancel the 2FA at any time
+            </p>
+            <div className="w-12 h-6 cursor-pointer rounded-full relative shadow-sm">
+              <input
+                onClick={() => setShowQr(!showQRCode)}
+                type="checkbox"
+                name="toggle"
+                id="toggle1"
+                className="focus:outline-none checkbox w-4 h-4 rounded-full bg-white absolute m-1 shadow-sm appearance-none cursor-pointer"
+              />
+              <label
+                htmlFor="toggle1"
+                className="toggle-label bg-gray-200 block w-12 h-6 overflow-hidden rounded-full bg-gray-300 cursor-pointer"
+              />
+            </div>
+            {showQRCode && (
+              <div className="w-5/12 mx-auto mb-4 my-6 md:w-5/12 shadow sm:px-10 sm:py-6 py-4 px-4 bg-white dark:bg-gray-800 rounded-md content-center">
+                <div style={{ background: "white", padding: "16px" }}>
+                  <QRCode value={mfa.otpauth} />
+                </div>
+                <input type="text" name="secret" className="w-full " />
+                <button className="bg-purple-500 p-2 w-full">Confirm</button>
+              </div>
+            )}
           </div>
           <style>{`
           .checkbox:checked {
@@ -247,5 +296,178 @@ function TwoFAComponent({ user }: { user: User | null }) {
         // </div>
       )}
     </div>
+  );
+}
+
+function TwoFAOff({ user }: { user: User | null }) {
+  const [mfa] = useState(generateToken());
+  let [isOpen, setIsOpen] = useState(false);
+  function closeModal() {
+    setIsOpen(false);
+  }
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 flex items-center justify-center">
+        <button
+          type="button"
+          onClick={openModal}
+          className="rounded-md bg-green-500  px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+        >
+          Enable 2FA
+        </button>
+      </div>
+
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={closeModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Scan To Enable Your Two Factor Authentication
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                      <QRCode value={mfa.otpauth} />
+                    </div>
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                      <input type="text" name="secret" className="w-full " />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={() => closeModal()}
+                    >
+                      Activate
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    </>
+  );
+}
+
+function TwoFAOn({ user }: { user: User | null }) {
+  //const [mfa] = useState(generateToken());
+  const [isOpen, setIsOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [retry, setRetry] = useState("");
+  function closeModal() {
+    axiosInstance.post(import.meta.env.VITE_API_URL + "/2fa/disable", {code}, {
+      withCredentials: true,
+    }).then((res) => {
+      console.log(res);
+      window.location.reload();
+      // navigate("/profile/" + login);
+      }).catch(() => {
+          setRetry("Wrong code");
+      });
+  
+    setIsOpen(false);
+  }
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 flex items-center justify-center">
+        <button
+          type="button"
+          onClick={openModal}
+          className="rounded-md bg-green-500  px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+        >
+          Enable 2FA
+        </button>
+      </div>
+
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setIsOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Enter Your Two Factor Authentication
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                      <input type="text" name="code" id="code" onChange={(e)=>setCode(e.target.value)} className="w-full "  />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={() => closeModal()}
+                    >
+                      Disable
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    </>
   );
 }

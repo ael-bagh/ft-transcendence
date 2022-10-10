@@ -76,13 +76,14 @@ export class TwoFactorAuthenticationController {
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async turnOffTwoFactorAuthentication(@Body() { code }: { code: string }, @CurrentUser() user: UserModel) {
-    const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
+     console.log(user);const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
       code,
       user.two_factor_auth,
     );
     if (!isCodeValid) {
       throw new BadRequestException('Wrong authentication code');
     }
+   
     await this.usersService.turnTwoFactorAuthentication(user.user_id, false, null);
     return { message: 'Two factor authentication disabled' };
   }
