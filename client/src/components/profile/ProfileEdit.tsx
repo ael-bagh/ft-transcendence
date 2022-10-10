@@ -12,14 +12,14 @@ import { Spinner } from "../layout/Loading";
 // import crypto from 'crypto';
 
 // const isValid = (token: string, secret: string) =>
-  // authenticator.check(token, secret);
+// authenticator.check(token, secret);
 
 function generateToken() {
   const { data: user } = useLoaderData() as { data: User };
 
   const mail = user?.email;
-  const service = 'ft_transcendance';
-  
+  const service = "ft_transcendance";
+
   const secret = CryptoJS.HmacSHA1(mail, service).toString();
   const otpauth = `otpauth://totp/${service}:${mail}?secret=${secret}&issuer=${service}`;
 
@@ -28,7 +28,7 @@ function generateToken() {
 
 export default function ProfileEdit() {
   const { data: user } = useLoaderData() as { data: User | null };
-  const [mfa] = useState(generateToken());
+
   const [avatar, setAvatar] = useState(
     user?.avatar ||
       `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
@@ -41,7 +41,6 @@ export default function ProfileEdit() {
     setBase64(imageList[0]?.data_url);
   };
   const [name, setName] = useState(user?.nickname);
-  const [showQRCode, setShowQr] = useState(user?.two_factor_auth_boolean);
   const [is_available, setIsAvailable] = useState("unchanged");
   const [isLoading, setIsLoading] = useState(false);
   const divStyle = {
@@ -166,28 +165,7 @@ export default function ProfileEdit() {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            <div className="flex items-center pl-4">
-              {!user?.two_factor_auth_boolean && (
-                <div
-                  onClick={() => setShowQr(!showQRCode)}
-                  className="relative bg-gray-500 p-2 hover:cursor-pointer"
-                >
-                  {!showQRCode ? "Enable 2FA" : "Disable 2FA"}
-                  {/* {"Enable 2FA"} */}
-                </div>
-              )}
-              {showQRCode && (
-                <div className="flex flex-col gap-2">
-                  <div className="flex flex-col gap-2">
-                    <div style={{ background: "white", padding: "16px" }}>
-                      <QRCode value={mfa.otpauth} />
-                    </div>
-                    <input type="text" name="secret" />
-                  </div>
-                </div>
-              )}
-            </div>
-
+            <TwoFAComponent user={user} />
             <input
               type="text"
               name="avatar"
@@ -207,5 +185,67 @@ export default function ProfileEdit() {
         </Form>
       </div>
     </MainLayout>
+  );
+}
+
+function TwoFAComponent({ user }: { user: User | null }) {
+  const [mfa] = useState(generateToken());
+  const [showQRCode, setShowQr] = useState(user?.two_factor_auth_boolean);
+
+  return (
+    <div className="flex items-center pl-4">
+      {!user?.two_factor_auth_boolean && (
+        // <div
+
+        //   className="relative bg-gray-500 p-2 hover:cursor-pointer"
+        // >
+        //   {/* {!showQRCode ? "Enable 2FA" : "Disable 2FA"} */}
+        //   {"Enable 2FA"}
+        // </div>
+        <div className="w-11/12 mx-auto mb-4 my-6 md:w-5/12 shadow sm:px-10 sm:py-6 py-4 px-4 bg-white dark:bg-gray-800 rounded-md">
+          <div>
+            <p className="text-lg text-gray-800 dark:text-gray-100 font-semibold pb-3">
+              Enable 2FA
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 pb-3 font-normal">
+              You can cancel the 2FA at any time
+            </p>
+            <div className="w-12 h-6 cursor-pointer rounded-full relative shadow-sm">
+              <input
+                onClick={() => setShowQr(!showQRCode)}
+                type="checkbox"
+                name="toggle"
+                id="toggle1"
+                className="focus:outline-none checkbox w-4 h-4 rounded-full bg-white absolute m-1 shadow-sm appearance-none cursor-pointer"
+              />
+              <label
+                htmlFor="toggle1"
+                className="toggle-label bg-gray-200 block w-12 h-6 overflow-hidden rounded-full bg-gray-300 cursor-pointer"
+              />
+            </div>
+              {showQRCode && (
+                <div className="w-5/12 mx-auto mb-4 my-6 md:w-5/12 shadow sm:px-10 sm:py-6 py-4 px-4 bg-white dark:bg-gray-800 rounded-md content-center">
+                  <div style={{ background: "white", padding: "16px" }}>
+                    <QRCode value={mfa.otpauth} />
+                  </div>
+                  <input type="text" name="secret" className="w-full " />
+                  <button className="bg-purple-500 p-2 w-full">Confirm</button>
+                </div>
+              )}
+          </div>
+          <style>{`
+          .checkbox:checked {
+              /* Apply class right-0*/
+              right: 0;
+          }
+          .checkbox:checked + .toggle-label {
+              /* Apply class bg-indigo-700 */
+              background-color: #4c51bf;
+          }
+          `}</style>
+        </div>
+        // </div>
+      )}
+    </div>
   );
 }
