@@ -1,6 +1,7 @@
 import {
   Res,
   Body,
+  Get,
   Post,
   HttpCode,
   UseGuards,
@@ -57,6 +58,15 @@ export class TwoFactorAuthenticationController {
     return user;
   }
 
+  // @Get('generate')
+  // // @UseGuards(JwtAuthGuard)
+  // async register(@Res() response: Response, @CurrentUser() user: UserModel) {
+  //   const { otpauthUrl } = await this.twoFactorAuthenticationService.generateTwoFactorAuthenticationSecret(user);
+  //   return otpauthUrl
+
+  //   // return this.twoFactorAuthenticationService.pipeQrCodeStream(response, otpauthUrl);
+  // }  
+
   @Post('enable')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
@@ -64,6 +74,7 @@ export class TwoFactorAuthenticationController {
     @Body() { code, secret }: { code: string; secret: string },
     @CurrentUser() user: UserModel,
   ) {
+    console.log(code, secret);
     const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(code, secret);
     if (!isCodeValid) {
       throw new BadRequestException('Wrong authentication code');
@@ -76,7 +87,7 @@ export class TwoFactorAuthenticationController {
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async turnOffTwoFactorAuthentication(@Body() { code }: { code: string }, @CurrentUser() user: UserModel) {
-     console.log(user);const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
+    const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
       code,
       user.two_factor_auth,
     );
