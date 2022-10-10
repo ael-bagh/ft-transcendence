@@ -20,20 +20,24 @@ export default function NewConversationModal() {
     formState: { errors },
   } = useForm<Inputs>();
   /* once i submit the data the response gotta return the id of the conversation created */
-  const [friends, setFriends] = useState<User[]>([]);
+  interface Friend {
+    value: string;
+    label: string;
+  }
+  const [friends, setFriends] = useState<Friend[]>([]);
   useEffect(() => {
     axiosInstance.get("/user/friends").then((res) => {
-      setFriends(res.data);
+      console.log(res.data);
+      setFriends(res.data.map((friend: User) => ({
+        value: friend.user_id,
+        label: friend.login,
+      }))
+      );
+      console.log("friends",friends);
     });
   },[currentGroup])
 
   const [roomLogin, setRoomLogin] = useState<string | undefined>("");
-  const friendsList = 
-    friends.map((friend: User) => ({
-      value: friend.user_id,
-      label: friend.login,
-    }))
-  ;
   const navigate = useNavigate();
   const onSendMessage = () => {
     axiosInstance.post("/rooms/create_direct_message/"+ roomLogin).then((ret) => {
@@ -50,7 +54,7 @@ export default function NewConversationModal() {
         rules={{ required: true }}
         render= {({ field: { onChange } }) => (
           <Select
-        options={friendsList}
+        options={friends}
         onChange={(e) => setRoomLogin(e?.label)}
         theme={(theme) => ({
           ...theme,

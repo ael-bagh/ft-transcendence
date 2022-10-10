@@ -35,7 +35,7 @@ export default function Notifications() {
       >
         <Menu.Items className="absolute right-0 z-10 mt-2 w-72 origin-top-right max-h-96 overflow-scroll rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
           <div className="py-1">
-            {notifications.map((notification) => (
+            {notifications?.map((notification) => (
               <Menu.Item key={notification.notification_id}>
                 <Notification notification={notification} />
               </Menu.Item>
