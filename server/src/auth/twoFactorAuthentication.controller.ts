@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { UserService } from '@/user/user.service';
 import { AuthService } from '@/auth/auth.service';
 import { CurrentUser } from '@/user/user.decorator';
+import { authenticator } from 'otplib';
 
 @Controller('2fa')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -71,6 +72,14 @@ export class TwoFactorAuthenticationController {
 
   //   // return this.twoFactorAuthenticationService.pipeQrCodeStream(response, otpauthUrl);
   // }  
+
+  @Get("generate")
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async generateSecret()
+  {
+	return {secret: authenticator.generateSecret()};
+  }
 
   @Post('enable')
   @HttpCode(200)

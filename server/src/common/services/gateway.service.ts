@@ -1,3 +1,4 @@
+import { CustomSocket } from "@/auth/auth.adapter";
 import { UserService } from "@/user/user.service";
 import { Injectable } from "@nestjs/common";
 import { WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
@@ -21,16 +22,13 @@ export class GatewayService {
 		server: Server,
 		userService: UserService,
 		user: User) {
-			// const friends = await userService.getUserFriends(user.login);
-			// for (let index = 0; index < friends.length; index++) {
-			// 	server.to('__connected_' + friends[index])
-			// 	.emit(
-			// 		"friend_updated_status",
-			// 		{ login: user.login, status: user.status }
-			// 		);
-			// }
+			const friends = await userService.getUserFriends(user.login);
+			for (let index = 0; index < friends.length; index++) {
+				server.to('__connected_' + friends[index])
+				.emit(
+					"friend_updated_status",
+					{ login: user.login, status: user.status }
+					);
+			}
 	}
-
-
-
 };

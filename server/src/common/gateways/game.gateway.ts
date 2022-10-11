@@ -39,8 +39,12 @@ export class GameGateway {
 		@MessageBody() userData: { target_login: string , mode: Game_mode},
 		@ConnectedSocket() client: CustomSocket,
 	) {
+		client.user = await this.userService.user({login: client.user.login})
+		console.log(client.user.login, client.user.status ,userData.target_login)
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || !userData?.target_login)
 			throw new WsException('data not given');
+		if (userData.target_login === client.user.login || client.user.status !== Status.ONLINE)
+			throw new WsException('Action Unavailable');
 		let login = client.user.login;
 		let target_login = userData.target_login;
 		let allowed = await this.userService.permissionToDoAction({
@@ -50,16 +54,35 @@ export class GameGateway {
 		});
 		if (!allowed)
 			throw new WsException('Not found');
+			const target_rooms = this.server.sockets.adapter.rooms.get('__connected_' + target_login);
+			console.log(target_login,target_rooms);
+		const opp = await this.userService.user({login: target_login})
+		if (opp.status !== Status.ONLINE)
+		{
+			throw new WsException('Player Unavailable')
+		}
+		client.user = await this.userService.updateUser({
+			where: {
+				login: client.user.login
+			},
+			data: {
+				status: Status.INQUEUE
+			}
+		})
+		console.log(client.user.login, client.user.status)
 		client.join(client.user.login + target_login);
 		this.server.to(`__connected_${target_login}`).emit('game_request', {target_login : client.user.login, mode : userData.mode});
 	}
+
 
 	@SubscribeMessage('accept_game_request')
 	async acceptGameRequest(
 		@MessageBody() userData: { target_login: string, isAccepted: boolean, mode: Game_mode},
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || !userData?.target_login || !userData?.isAccepted)
+		client.user = await this.userService.user({login: client.user.login})
+		console.log(client.id);
+		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || userData?.target_login === undefined || userData?.isAccepted === undefined)
 			throw new WsException('data not given');
 		let login = client.user.login;
 		let target_login = userData.target_login
@@ -86,6 +109,16 @@ export class GameGateway {
 				queue.values().next().value,
 			) as CustomSocket;
 			matching_opp.leave(room);
+			console.log('nop chhh')
+			matching_opp.user = await this.userService.updateUser({
+				where: {
+					login: matching_opp.user.login
+				},
+				data: {
+					status: Status.ONLINE
+				}
+			})
+			console.log(matching_opp.user.login, matching_opp.user.status)
 			return;
 		}
 		client.join(room);
@@ -96,11 +129,12 @@ export class GameGateway {
 	async joinGameQueue(
 		@MessageBody() userData: { mode: Game_mode },
 		@ConnectedSocket() client: CustomSocket) {
+		client.user = await this.userService.user({login: client.user.login})
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode))
 			throw new WsException('data not given');
 		console.log('join game queue');
 		if (client.user.status != Status.ONLINE)
-			throw new WsException('already in queue');
+			throw new WsException('Action Unavailable');
 		client.user = await this.userService.updateUser({
 			where: {
 				login: client.user.login
@@ -167,12 +201,13 @@ export class GameGateway {
 		@MessageBody() userData: {mode: Game_mode},
         @ConnectedSocket() client: CustomSocket,
     ) {
+		client.user = await this.userService.user({login: client.user.login})
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode))
 			throw new WsException('data not given');
 		let found = false;
 		if (client.user.status == Status.INQUEUE)
 		{
-			this.server.sockets.adapter.rooms.get('__game_queue' + userData.mode).forEach((socketId) => {
+			this.server.sockets.adapter.rooms.get('__game_queue' + userData.mode).forEach( async (socketId) => {
 				const socket = this.server.sockets.sockets.get(socketId) as CustomSocket;
 				if (socket.rooms.has('__game_queue' + userData.mode))
 				{
@@ -180,6 +215,14 @@ export class GameGateway {
 					socket.inQueue = false;
 					client.emit('queue_quitted', 'ok');
 					found = true;
+					client.user = await this.userService.updateUser({
+						where: {
+							login: client.user.login
+						},
+						data: {
+							status: Status.ONLINE
+						}
+					})
 				}
 			});
 		}
@@ -192,6 +235,7 @@ export class GameGateway {
 		@ConnectedSocket() client: CustomSocket,
 		@MessageBody() data: number,
 	) {
+		
 		console.log(data);
 		if (!client.game_lobby || !client.game_lobby.gameStarted)
 			return;

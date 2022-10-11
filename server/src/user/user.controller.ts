@@ -186,9 +186,11 @@ export class UserController {
 	
 	@Get(':login')
 	async getUserByLogin(@CurrentUser() user: UserModel, @Param('login') profile_login: string): Promise<UserModel> {
-		// console.log(!Number(login));
+		console.log("whuuuut",user);
 		let profile_user: UserModel | null;
 		if (!Number(profile_login)) {
+			if (user.login == profile_login)
+				return user;
 			profile_user = await this.userService.user({ login: profile_login, },
 				{
 					_count: {
@@ -204,6 +206,9 @@ export class UserController {
 			);
 		}
 		else
+		{
+			if (user.user_id == Number(profile_login))
+				return user;
 			profile_user = await this.userService.user({ user_id: Number(profile_login) },
 				{
 					_count: {
@@ -217,6 +222,8 @@ export class UserController {
 					}
 				}
 			);
+		}
+		console.log("oooooo", profile_user)
 		if (profile_user == null)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		let allowed = await this.userService.permissionToDoAction({
