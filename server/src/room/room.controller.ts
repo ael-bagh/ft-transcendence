@@ -34,7 +34,7 @@ export class RoomController {
 		return await this.roomService.getMessages();
 	}
 
-	@Get(":room_id/banned_users")
+	@Get(":room_id/bannedusers")
 	async getBannedUsers(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<User[]> {
 		if (Number(room_id) == NaN)
 			return null;
@@ -60,6 +60,7 @@ export class RoomController {
 		const { user_login }: { user_login: string } = body;
 		if (Number(room_id) == NaN)
 			return null;
+		console.log("tf",await this.roomService.roomPermissions(user.login, 'removeAdmin', { login: user_login }, { room_id: Number(room_id) },))
 		if (await (this.roomService.roomPermissions(user.login, 'addAdmin', { login: user_login }, { room_id: Number(room_id) },)) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		this.roomService.addAdmin({ room_id: Number(room_id) }, { login: user_login });
@@ -88,7 +89,7 @@ export class RoomController {
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		return this.roomService.joinRoom({ room_id: Number(room_id) }, { login: user.login }, password.password);
 	}
-	@Delete(":room_id/leave_room")
+	@Delete(":room_id/leaveroom")
 	async leaveRoom(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<Room[]> {
 		console.log(room_id, "not here");
 		if (Number(room_id) == NaN)
@@ -96,12 +97,14 @@ export class RoomController {
 		const room = await this.roomService.room({ room_id: Number(room_id) });
 		if ((await this.roomService.roomUsersCount( {room_id: Number(room_id) })) == 1)
 		{
-			this.roomService.deleteRoom({room_id: Number(room_id)});
+			console.log("wut", room_id);
+			await this.roomService.deleteRoom({room_id: Number(room_id)});
 			return [];
 		}
 		if (room.room_creator_login == user.login)
 		{
-			const next_creator = await this.roomService.greedySuccessor({ room_id: Number(room_id)} );
+			console.log("yay")
+			await this.roomService.greedySuccessor({ room_id: Number(room_id)} );
 		}
 		this.roomService.leaveRoom({ room_id: Number(room_id) }, { login: user.login });
 		return this.roomService.rooms({
@@ -120,6 +123,7 @@ export class RoomController {
 		const { user_login }: { user_login: string } = body;
 		if (Number(room_id) == NaN)
 			return null;
+		console.log("tf",await this.roomService.roomPermissions(user.login, 'removeAdmin', { login: user_login }, { room_id: Number(room_id) },))
 		if (await (this.roomService.roomPermissions(user.login, 'removeAdmin', { login: user_login }, { room_id: Number(room_id) },)) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		this.roomService.removeAdmin({ room_id: Number(room_id) }, { login: user_login });
@@ -323,10 +327,11 @@ export class RoomController {
 	// 	const { room_id }: { room_id: string } = params;
 	// 	const { user_login }: { user_login: string } = body;
 
-	@Patch(":room_id/:user_login/ban_user")
+	@Patch(":room_id/banuser")
 	async banUser(@CurrentUser() user: User,  @Param() params: { room_id: string}, @Body() body : {user_login: string}): Promise<Room | null> {
 		const { room_id }: { room_id: string } = params;
 		const { user_login }: { user_login: string } = body;
+		console.log("dcnjdnckwd");
 		if (Number(room_id) == NaN)
 			return null;
 		if (await (this.roomService.roomPermissions(user.login, 'banFromRoom', { login: user_login }, { room_id: Number(room_id) })) == false)
@@ -334,7 +339,7 @@ export class RoomController {
 		return this.roomService.banFromRoom({ room_id: Number(room_id) }, { login: user_login });
 	}
 
-	@Patch(":room_id/:user_login/unban_user")
+	@Patch(":room_id/unbanuser")
 	async unbanUser(@CurrentUser() user: User,  @Param() params: { room_id: string}, @Body() body : {user_login: string}): Promise<Room | null> {
 		const { room_id }: { room_id: string } = params;
 		const { user_login }: { user_login: string } = body;
@@ -355,7 +360,7 @@ export class RoomController {
 			return "CREATOR";
 		if (await this.roomService.isRoomAdmin(Number(params.room_id), params.user_login))
 			return "ADMIN";
-		return "NORMAL";
+		throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 	}
 
 

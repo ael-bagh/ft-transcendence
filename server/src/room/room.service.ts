@@ -38,7 +38,7 @@ export class RoomService {
 		let room = await this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
 		});
-		console.log(await compare(password, room.room_password));
+		// console.log(await compare(password, room.room_password));
 		if (!room.room_private || await compare(password, room.room_password))
 		{
 			console.log("ok?")
@@ -90,12 +90,39 @@ export class RoomService {
 			include: {
 				room_users: true,
 				room_admins: true,
+				room_creator: true,
 			},
 		});
+		room.room_users = room.room_users.filter((user) => user.login != room.room_creator_login)
+		room.room_admins = room.room_admins.filter((user) => user.login != room.room_creator_login)
+		let nextSuccessor: User;
 		if (room.room_admins.length > 0)
-			return room.room_admins[0];
-		if (room.room_users.length > 0)
-			return room.room_users[0];
+			nextSuccessor = room.room_admins[0];
+		else if (room.room_users.length > 0)
+			nextSuccessor = room.room_users[0];
+		await this.prisma.room.update({
+			where: roomWhereUniqueInput,
+			select: {
+				room_id: true,
+			},
+			data: {
+				room_creator: {
+					connect: {
+						login: nextSuccessor.login
+					},
+				},
+				room_admins: {
+					disconnect:{
+						login:room.room_creator_login
+					}
+				},
+				room_users: {
+					disconnect:{
+						login:room.room_creator_login
+					}
+				}
+			},
+		})
 		return null;
 	}
 
@@ -126,14 +153,28 @@ export class RoomService {
 						}
 					}
 				}).then((count) => count > 0);
-			case ('addAdmin' || 'removeAdmin'):
+			case 'removeAdmin':
+			case 'addAdmin':
+				console.log("yo", action_room)
 				// Check if user is creator of the room
 				return await this.prisma.room.count({
 					where: {
 						room_id: action_room.room_id,
-						room_creator: {
-							login: action_perfomer
-						}
+						OR: [
+							{
+								room_admins: {
+									some:
+									{
+										login: action_perfomer,
+									},
+								},
+							},
+							{
+								room_creator: {
+									login: action_target?.login
+								},
+							}
+						]
 					}
 				}).then((count) => count > 0);
 			// Check if user is creator of the room
@@ -281,7 +322,8 @@ export class RoomService {
 		roomData: { room_password?: string; room_name: string; room_creator_login: string; room_private: boolean;room_direct_message : boolean }
 	): Promise<Partial<Room>> {
 		let data: Prisma.RoomCreateInput = {
-			room_name: roomData['room_name'], room_creator: {
+			room_name: roomData['room_name'], 
+			room_creator: {
 				connect: {
 					login: roomData['room_creator_login']
 				},
@@ -390,7 +432,7 @@ export class RoomService {
 	}
 
 	async deleteRoom(where: Prisma.RoomWhereUniqueInput){
-		this.prisma.room.delete({
+		await this.prisma.room.delete({
 			where,
 		});
 	}
@@ -545,6 +587,9 @@ export class RoomService {
 				},
 				room_users: {
 					disconnect: data
+				},
+				room_admins:{
+					disconnect: data
 				}
 			},
 			where,
@@ -559,7 +604,10 @@ export class RoomService {
 			data: {
 				room_banned_users: {
 					disconnect: data
-				}
+				},
+				room_users: {
+					connect: data
+				},
 			},
 			where,
 		});
