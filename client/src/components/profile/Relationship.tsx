@@ -4,8 +4,9 @@ import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import { useSocket } from "../../hooks/api/useSocket";
 import { useRelation } from "../../hooks/api/useUser";
-import { Link , useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../lib/axios";
+import sock from "../../lib/socket";
 
 export default function Relationship(props: { user: User | null }) {
   const { relation } = useRelation(props.user?.login);
@@ -28,13 +29,12 @@ export default function Relationship(props: { user: User | null }) {
       target_login: props.user?.login,
     })
       .then((ret) => {
-        console.log(ret);
+        console.log("ha ana:" ,ret)
         if (isRequestReceived) {
           setIsFriend(true);
           setIsRequestReceived(false);
           setIsRequestSent(false);
         } else {
-          console.log("request sent");
           if (ret) setIsFriend(true);
           else setIsRequestSent(true);
         }
@@ -83,10 +83,17 @@ export default function Relationship(props: { user: User | null }) {
   };
   const navigate = useNavigate();
   const onSendMessage = () => {
-    axiosInstance.post("/rooms/create_direct_message/"+ props.user?.login).then((ret) => {
-      navigate("/chat/" + ret.data);
-    })
-  }
+    axiosInstance
+      .post("/rooms/create_direct_message/" + props.user?.login)
+      .then((ret) => {
+        navigate("/chat/" + ret.data);
+      });
+  };
+  const onChallenge = () => {
+    sock.emit("invite_to_game", {target_login: props.user?.login, mode: "ONE"} ,(data: any) => {
+      navigate("/game/" + data);
+    });
+  };
   useEffect(() => {
     if (relation.is_self) setIsSelf(true);
     if (relation?.is_friend) setIsFriend(true);
@@ -170,9 +177,34 @@ export default function Relationship(props: { user: User | null }) {
                   )}
                 </Menu.Item>
               )}
+              {!isSelf && !isBlocked && (
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={onChallenge}
+                      className={`${
+                        active ? "bg-violet-500 text-white" : "text-gray-900"
+                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                      {active ? (
+                        <DuplicateActiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <DuplicateInactiveIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Challenge
+                    </button>
+                  )}
+                </Menu.Item>
+              )}
               {!isFriend &&
-                !isRequestReceived &&
                 !isRequestSent &&
+                !isRequestReceived &&
                 !isSelf &&
                 !isBlocked && (
                   <Menu.Item>

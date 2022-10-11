@@ -16,7 +16,6 @@ function Room(props: { room: Room }) {
         password: password,
       })
       .then((res) => {
-        console.log(res.data.room_id);
         navigate(`/chat/${res.data.room_id}`);
       })
       .catch(() => {

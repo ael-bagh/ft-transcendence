@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import NavBar from "../NavBar/NavBar";
-import { QueueContext } from "../../contexts/queue.context";
 import Queue from "./Queue";
 import { NotificationsContext } from "../../contexts/notifications.context";
 import Notification from "../NavBar/Notification";
+import GameInvite from "./GameInvite";
 
 export default function MainLayout({
   children,
@@ -20,6 +20,7 @@ export default function MainLayout({
           <div className="flex flex-col w-screen">
             <NavBar />
             <Queue />
+            <GameInvite />
           </div>
           <div className="flex h-full">
             {/* {notifications.map((notification, index) => (

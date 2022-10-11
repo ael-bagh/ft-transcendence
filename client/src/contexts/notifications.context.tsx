@@ -30,7 +30,6 @@ const NotificationsProvider = ({
       setNotifications(res.data);
     });
     socket.on("notification", (notification: Notification) => {
-        console.log('recieved', notification)
       if (notification.notification_type)
         setNotifications((prev) => [notification, ...prev]);
       else
@@ -38,7 +37,6 @@ const NotificationsProvider = ({
           prev.filter((n) => n.notification_id !== notification.notification_id)
         );
     });
-    console.log("notifications", notifications);
     
     return () => {
       socket.off("notifications");

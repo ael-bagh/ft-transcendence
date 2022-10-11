@@ -15,3 +15,8 @@ interface GameData {
     winnner_score: number;
     loser_score: number;
 }
+
+interface GameInv {
+    target_login: string;
+    mode: "ONE" | "NORMAL" | "RANKED";
+  }

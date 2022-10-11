@@ -25,7 +25,6 @@ export default function ChatHistory() {
     axiosInstance
     .get("/rooms")
     .then((res : any) => {
-      console.log(res.data)
       setChatHistory(res.data?.sort(
         (b: any, a: any) =>{
           return new Date((a.room_messages.length > 0)? a.room_messages?.[0]?.message_time : a.room_creation_date).valueOf() -

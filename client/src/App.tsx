@@ -23,6 +23,8 @@ import QueueContextProvider from "./contexts/queue.context";
 import ChatRooms from "./components/chat/ChatRooms";
 import RoomCreate from "./components/chat/RoomCreate";
 import RoomManagement from "./components/chat/RoomManagement";
+import GameInviteContextProvider from "./contexts/gameinvite.context";
+import ProfileByLogin from "./routes/ProfileByLogin";
 
 const router = createBrowserRouter([
   {
@@ -36,8 +38,13 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
-    path: "/profile/:id",
+    path: "/profile/me",
     element: <Profile />,
+    errorElement: <UserNotFound />,
+  },
+  {
+    path: "/profile/:id",
+    element: <ProfileByLogin />,
     loader: async ({ params }) => {
       return axiosInstance.get("/user/" + params.id)
     },
@@ -51,7 +58,6 @@ const router = createBrowserRouter([
     },
     action: async ({ request }) => {
       const data = Object.fromEntries(await request.formData());
-      console.log(data);
       const user = await axiosInstance.patch("/user/update", data);
       return redirect(`/profile/${user.data.user_id}`);
     },
@@ -110,10 +116,12 @@ function App() {
   return (
     <AuthUserProvider>
       <NotificationsProvider>
+      <GameInviteContextProvider>
       <QueueContextProvider>
         <GetAuthuser />
         <RouterProvider router={router}/>
       </QueueContextProvider>
+      </GameInviteContextProvider>
       </NotificationsProvider>
     </AuthUserProvider>
   );

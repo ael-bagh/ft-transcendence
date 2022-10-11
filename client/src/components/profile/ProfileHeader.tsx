@@ -1,7 +1,10 @@
 import { GiRank1, GiPodiumWinner, GiDeathJuice } from "react-icons/gi";
 import Relationship from "./Relationship";
+import sock from "../../lib/socket";
+import { useNavigate } from "react-router-dom";
 
-function ProfileHeader(props: { user: User | null }) {
+export default function ProfileHeader(props: { user: User | null }) {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col w-full">
       <div className="sm:h-96 w-full flex justify-center items-center">
@@ -31,4 +34,4 @@ function ProfileHeader(props: { user: User | null }) {
   );
 }
 
-export default ProfileHeader;
+// export default ProfileHeader;

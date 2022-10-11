@@ -71,12 +71,10 @@ function Example() {
         )
       );
       res.data.room_users.map((user: User) => {
-        console.log("here", JSON.stringify(authUser));
         if (user.login === authUser?.login) setIsAuthAdmin(true);
       });
     });
     axiosInstance.get("/rooms/" + id + "/bannedusers").then((res) => {
-      console.log("banned users", res.data);
       setBannedUsers(res.data);
     });
   }, []);
@@ -173,7 +171,6 @@ export default function RoomManagement() {
   const navigate = useNavigate();
   useEffect(() => {
       axiosInstance.get("/rooms/" + id + "/" + authUser?.login + "/role").catch((err) => {
-          console.log(err);
           navigate("/chat");
       });
     axiosInstance.get("/rooms/" + id).then((res) => {

@@ -28,10 +28,7 @@ export default function MessageCard({
         <div
           className={"block relative p-2 hover:cursor-pointer" + cardCss}
           onClick={() => {
-            console.log("before:",room)
             markMessagesAsRead(room).finally(() =>{
-            console.log("messages marked as read");
-            console.log(room)
             setCurrentGroup({ ...room, unread_messages_count: 0 })}
             );
           }

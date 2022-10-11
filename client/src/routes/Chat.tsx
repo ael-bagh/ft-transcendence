@@ -23,7 +23,6 @@ function ChatComponent() {
   const {id} = useParams();
   const { socket } = useSocket();
   useEffect(() => {
-    console.log("allllllloooooooo");
     socket.on("message", ((message: Message) => {
       axiosInstance
       .get("/rooms")

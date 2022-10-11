@@ -58,10 +58,7 @@ export default function Queue() {
   };
   useEffect(() => {
     const timer = setTimeout(() => {  
-    console.log("accepted", accepted);
-    console.log("Match found", queue.matchFound);
     if (queue.matchFound && accepted===false) {
-        console.log("wallah ma dkhelt hna");
         declineMatch();
       }
       }, 5000);

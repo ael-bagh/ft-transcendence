@@ -27,13 +27,11 @@ export default function NewConversationModal() {
   const [friends, setFriends] = useState<Friend[]>([]);
   useEffect(() => {
     axiosInstance.get("/user/friends").then((res) => {
-      console.log(res.data);
       setFriends(res.data.map((friend: User) => ({
         value: friend.user_id,
         label: friend.login,
       }))
       );
-      console.log("friends",friends);
     });
   },[currentGroup])
 

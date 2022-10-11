@@ -1,18 +1,22 @@
 import MainLayout from "../components/layout/MainLayout";
 import { ReactP5Wrapper, P5Instance } from "react-p5-wrapper";
 import { Engine, Bodies, Composite } from "matter-js";
-import { useEffect, useRef, useState, Fragment, } from "react";
+import { useEffect, useRef, useState, Fragment, useContext, SetStateAction, Dispatch, } from "react";
 import { useSocket } from "../hooks/api/useSocket";
 import { Dialog, Transition } from '@headlessui/react'
-import { GiPodiumWinner } from "react-icons/gi";
+import { GiPodiumWinner, GiDeadHead } from "react-icons/gi";
+import { AuthUserContext } from "../contexts/authUser.context";
+import { Link, useNavigate } from "react-router-dom";
+import sock from "../lib/socket";
+import { useParams } from "react-router-dom";
 
-function Example(props:{open: boolean}) {
-  // const [open, setOpen] = useState(true)
-
+function Example(props:{open: boolean ,gameData: GameData | undefined}) {
   const cancelButtonRef = useRef(null)
+  const {authUser} = useContext(AuthUserContext);
 
   return (
-    <Transition.Root show={props.open} as={Fragment}>
+    <>
+    {(<Transition.Root show={props.open} as={Fragment}>
       <Dialog as="div" className="fixed z-10 inset-0 overflow-y-auto" initialFocus={cancelButtonRef} onClose={()=>open}>
         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
           <Transition.Child
@@ -43,46 +47,37 @@ function Example(props:{open: boolean}) {
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div>
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                  <GiPodiumWinner className="h-6 w-6 text-green-600" aria-hidden="true" />
+                {(props.gameData?.winner === authUser?.login)?  <GiPodiumWinner className="h-6 w-6 text-green-600" aria-hidden="true" /> : <GiDeadHead className="h-6 w-6 text-red-600" aria-hidden="true" />}
+                 
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
                   <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
-                    You won!
+                    {(props.gameData?.winner === authUser?.login)? "You won!" : "You lost!"}
                   </Dialog.Title>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      {}
-                    </p>
-                  </div>
                 </div>
               </div>
               <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                <button
-                  type="button"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm"
-                  // onClick={{onChallenge()}}
-                >
-                  Deactivate
-                </button>
-                <button
+                <Link
+                  to={"/dashboard"}
                   type="button"
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
-                  // onClick={() => setOpen(false)}
                   ref={cancelButtonRef}
                 >
-                  Cancel
-                </button>
+                  Back to dashboard
+                </Link>
               </div>
             </div>
           </Transition.Child>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition.Root>)}
+    </>
   )
 }
 
 
 export default function Game() {
+  const {id} = useParams();
   const { Move, Correction, CorrectionOff } = useSocket();
   const engine = useRef(Engine.create());
   const bar1 = useRef(Bodies.rectangle(50/ 1280, 300/ 720, 10/ 1280, 100/ 720, { isStatic: true }));
@@ -144,7 +139,7 @@ export default function Game() {
       socket.off("game_ended");
       CorrectionOff();
     };
-  }, []);
+  }, [id]);
   const sketch = (p5: P5Instance) => {
     const ballRadiusRatio = 10 / 1280;
     const barWidthRatio = 10 / 1280;
@@ -217,10 +212,11 @@ export default function Game() {
 
     };
   };
+
   return (
     <MainLayout>
       <div className="flex  justify-center items-center w-screen h-full">
-      <Example open={visible}/>
+      <Example open={visible} gameData={gameData}/>
       <ReactP5Wrapper sketch={sketch} />
       </div>
     </MainLayout>

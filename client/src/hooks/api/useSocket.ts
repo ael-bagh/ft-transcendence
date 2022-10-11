@@ -36,10 +36,8 @@ export function useSocket() {
   // human relationships are just like sockets...so complicated
   const sendFriendRequest = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-      socket.emit("add_friend_request",object);
-      socket.on("friend_request_sent", (obj, err) => {
-        if (err) return reject(err);
-        resolve(obj);
+      socket.emit("add_friend_request", object, (obj: any) => {
+        resolve(obj?.isFriend);
       });
     });
   };
@@ -145,7 +143,6 @@ export function useSocket() {
       Body.setPosition(myball, {x: ball[0], y: ball[1]});
       score1(score[0]);
       score2(score[1]);
-      // console.log(score);
     });
   }
   const CorrectionOff = () => {
