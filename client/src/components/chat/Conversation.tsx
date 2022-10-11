@@ -1,7 +1,7 @@
 import { useContext, useState, ChangeEvent, useEffect, useRef } from "react";
 import { ChatContext } from "../../contexts/chat.context";
 import TextMessage from "./TextMessage";
-import { GiCrossedSwords } from "react-icons/gi";
+import { GiCrossedSwords, GiExitDoor } from "react-icons/gi";
 import { BiLeftArrow } from "react-icons/bi";
 import UserStatus from "../user/UserStatus";
 import UserAvatar from "../user/UserAvatar";
@@ -10,6 +10,16 @@ import { useSocket } from "../../hooks/api/useSocket";
 import { getRoomName } from "../../lib/helpers";
 import { Loading } from "../layout/Loading";
 import { markMessagesAsRead } from "../../hooks/api/useRoom";
+import {Link} from "react-router-dom";
+import {FaUserEdit} from "react-icons/fa";
+import axiosInstance from "../../lib/axios";
+
+interface roomUser {
+  login: string;
+  nickname: string;
+  avatar: string;
+  is_admin: boolean;
+}
 
 export default function Conversation() {
   const {
@@ -21,9 +31,25 @@ export default function Conversation() {
   } = useContext(ChatContext);
   const { authUser } = useContext(AuthUserContext);
   const [message, setMessage] = useState("");
+  const [isAuthAdmin, setIsAuthAdmin] = useState(false);
   const { socket, sendMessage } = useSocket();
 
   const chatboxRef = useRef<HTMLDivElement>(null);
+
+  const onLeaveRoom = async() => {
+    await axiosInstance.delete("/rooms/" + currentGroup?.room_id + "/leaveroom");
+    setCurrentGroup(null);
+    await axiosInstance
+    .get("/rooms")
+    .then((res : any) => {
+      console.log(res.data)
+      setChatHistory(res.data?.sort(
+        (b: any, a: any) =>{
+          return new Date((a.room_messages.length > 0)? a.room_messages?.[0]?.message_time : a.room_creation_date).valueOf() -
+          new Date((b.room_messages.length > 0)? b.room_messages?.[0]?.message_time : b.room_creation_date).valueOf()}
+      ));
+    })
+  };
 
   const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) =>
     setMessage(e.currentTarget.value);
@@ -46,7 +72,16 @@ export default function Conversation() {
   };
 
   const [isLoading, setIsLoading] = useState(false);
-
+  useEffect(() => {
+    if (currentGroup) {
+      (currentGroup?.room_creator_login === authUser?.login) && setIsAuthAdmin(true);
+      (currentGroup?.room_users.map((u:roomUser) => {
+        if(u.login === authUser?.login && u.is_admin) {      
+          setIsAuthAdmin(true);
+        }
+      }))
+    }
+  }, [currentGroup]);
   useEffect(() => {
     if (isLoading) return;
     setIsLoading(true);
@@ -65,7 +100,7 @@ export default function Conversation() {
       className={
         !currentGroup
           ? "absolute w-0 md:w-3/4 h-0 md:h-full hidden"
-          : "flex flex-col w-screen md:w-3/4 h-full"
+          : "flex flex-col md:w-3/4 h-full"
       }
     >
       <div className="flex flex-row justify-between items-center border-b border-gray-200 p-4">
@@ -91,10 +126,16 @@ export default function Conversation() {
             <UserStatus username="Hamid nef7a" id={1} />
           </div>
         </div>
-        <div className="action-icons flex flex-row gap-2">
-          <div className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+        <div className="action-icons flex flex-row gap-2 hover:cursor-pointer" onClick={onLeaveRoom}>
+          {!currentGroup?.room_direct_message && <div  className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+            <GiExitDoor className="w-5 h-5" />
+          </div>}
+          {currentGroup?.room_direct_message && <div className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
             <GiCrossedSwords className="w-5 h-5" />
-          </div>
+          </div>}
+          {!currentGroup?.room_direct_message && isAuthAdmin  &&<Link to={"/rooms/"+currentGroup?.room_id+"/edit"} className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+            <FaUserEdit className="w-5 h-5" />
+          </Link>}
         </div>
       </div>
       {isLoading && <Loading />}

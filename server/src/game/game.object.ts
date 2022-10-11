@@ -37,6 +37,7 @@ export class GameObject {
   public games_played :number;
   public data : GameEnded;
   public number_of_games : number;
+  public speed : number;
   constructor(
     private readonly server: Server,
     private readonly room: string,
@@ -117,6 +118,7 @@ export class GameObject {
       games: [],
     }
     // this.runner.
+    this.speed = 10;
   }
   run() :Promise<GameEnded>
   {
@@ -164,6 +166,7 @@ export class GameObject {
           // Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
           this.reset();
           ++this.score[this.games_played][1];
+          this.speed = 10;
         } else if (
           pair.bodyA === this.walls['right'] ||
           pair.bodyB === this.walls['right']
@@ -171,6 +174,7 @@ export class GameObject {
           console.log('right player 1 goaal');
           this.reset();
           ++this.score[this.games_played][0];
+          this.speed = 10;
           // Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
         } else {
           console.log('bar');
@@ -256,8 +260,8 @@ export class GameObject {
 
     const teta = Math.atan2(vty, vtx);
     // console.log(teta * 180 / Math.PI);
-    const vx = 10 * Math.cos(teta);
-    const vy = 10 * Math.sin(teta);
+    const vx = this.speed * Math.cos(teta);
+    const vy = this.speed * Math.sin(teta);
     return [vx, vy];
   }
   private col_end(event: IEventCollision<Engine>) {
@@ -301,6 +305,7 @@ export class GameObject {
             Body.setVelocity(this.ball, { x: v[0], y: v[1] });
             console.log(v);
           }
+          this.speed *= 1.05;
         }
       }
     }

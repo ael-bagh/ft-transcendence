@@ -11,11 +11,11 @@ export default function MainLayout({
 }: {
   children?: React.ReactNode;
 }) {
-  const { isAuthLoaded } = useContext(AuthUserContext);
+  const { isAuthLoaded, authUser } = useContext(AuthUserContext);
   const {notifications} = useContext(NotificationsContext);
   return (
     <>
-      {isAuthLoaded && (
+      {isAuthLoaded && authUser && (
         <div className="text-white flex flex-col h-screen">
           <div className="flex flex-col w-screen">
             <NavBar />

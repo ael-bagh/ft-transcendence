@@ -21,7 +21,8 @@ import ProfileEdit from "./components/profile/ProfileEdit";
 import Dashboard from "./components/dashboard/Dashboard";
 import QueueContextProvider from "./contexts/queue.context";
 import ChatRooms from "./components/chat/ChatRooms";
-
+import RoomCreate from "./components/chat/RoomCreate";
+import RoomManagement from "./components/chat/RoomManagement";
 
 const router = createBrowserRouter([
   {
@@ -91,6 +92,16 @@ const router = createBrowserRouter([
   {
     path: "/rooms",
     element: <ChatRooms />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/rooms/create",
+    element: <RoomCreate />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/rooms/:id/edit",
+    element: <RoomManagement />,
     errorElement: <ErrorPage />,
   },
 ]);

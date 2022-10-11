@@ -43,7 +43,7 @@ function ChatComponent() {
   }, [id]);
 
   return (
-    <div className="flex flex-grow flex-col md:flex-row w-screen divide-x divide-gray-200">
+    <div className="flex flex-grow flex-col md:flex-row w-screen">
       <ChatHistory />
       {currentGroup && <Conversation />}
     </div>

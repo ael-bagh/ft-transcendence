@@ -11,8 +11,8 @@ import Notifications from "./Notifications";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", current: true },
-  { name: "Team", href: "/profile", current: false },
-  { name: "Chat Rooms", href: "/chat", current: false },
+  { name: "Chat Rooms", href: "/rooms", current: false },
+  { name: "Conversations", href: "/chat", current: false },
 ];
 
 function classNames(...classes: string[]) {

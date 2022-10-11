@@ -26,10 +26,10 @@ export default function ChatHistory() {
     .get("/rooms")
     .then((res : any) => {
       console.log(res.data)
-      setChatHistory(res.data.filter((r : any) => r.room_messages.length > 0)?.sort(
-        (b: any, a: any) =>
-          new Date(a.room_messages[0].message_time).valueOf() -
-          new Date(b.room_messages[0].message_time).valueOf()
+      setChatHistory(res.data?.sort(
+        (b: any, a: any) =>{
+          return new Date((a.room_messages.length > 0)? a.room_messages?.[0]?.message_time : a.room_creation_date).valueOf() -
+          new Date((b.room_messages.length > 0)? b.room_messages?.[0]?.message_time : b.room_creation_date).valueOf()}
       ));
     })
     setShowNewConversation(false);
@@ -38,8 +38,8 @@ export default function ChatHistory() {
     <div
       className={
         !currentGroup
-          ? "flex flex-col grow h-full md:w-1/3 md:shrink-0 justify-between"
-          : "hidden md:flex md:flex-col md:h-full md:w-1/3 md:shrink-0 md:min-w-1/3"
+          ? "flex flex-col grow h-full md:w-1/4 md:shrink-0 justify-between"
+          : "hidden md:flex md:flex-col md:h-full md:w-1/4 md:shrink-0 md:min-w-1/4"
       }
     >
       <div className="w-full">
@@ -70,8 +70,22 @@ export default function ChatHistory() {
       <div className="flex flex-col grow">
         <div className="p-4 overflow-x-auto h-full w-full flex flex-col gap-4">
           <h1 className="font-bold text-gray-100">Messages</h1>
-          <div className="">
-            {chatHistory?.map((room: Room, idx: Number) => (
+          <div className="h-2/6 overflow-scroll">
+            <div className="flex items-center justify-between">
+              <h1 className="text-gray-100 text-xl">Direct messages</h1>
+              </div>
+            {chatHistory?.filter((r) => r.room_direct_message).map((room: Room, idx: Number) => (
+                <MessageCard
+                  key={room.room_id + "-" + idx}
+                  room={room}
+                />
+              ))}
+          </div>
+          <div className="h-2/6 overflow-scroll">
+            <div className="flex items-center justify-between">
+              <h1 className="text-gray-100 text-xl">Group chat</h1>
+              </div>
+            {chatHistory?.filter((r) => !r.room_direct_message).map((room: Room, idx: Number) => (
                 <MessageCard
                   key={room.room_id + "-" + idx}
                   room={room}

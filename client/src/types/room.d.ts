@@ -1,3 +1,11 @@
+
+interface roomUser {
+  login: string;
+  nickname: string;
+  avatar: string;
+  is_admin: boolean;
+}
+
 interface Room {
   room_id: string;
   room_password: string;
@@ -9,7 +17,7 @@ interface Room {
   room_creator: User;
   room_admins: User[];
   room_messages: Message[];
-  room_users: User[];
+  room_users: roomUser[];
   room_banned_users: User[];
   unread_messages_count?: number;
 }
