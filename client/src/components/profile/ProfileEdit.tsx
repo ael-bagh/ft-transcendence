@@ -12,7 +12,6 @@ export default function ProfileEdit() {
   const [image, setImage] = useState([]);
   const [base64, setBase64] = useState(user?.avatar || "");
   const onChange = (imageList: any, addUpdateIndex: any) => {
-    console.log(imageList[0]?.data_url);
     setImage(imageList);
     setBase64(imageList[0]?.data_url);
   };
@@ -23,14 +22,12 @@ export default function ProfileEdit() {
     backgroundImage: "url(" + user?.avatar + ")",
   };
   useEffect(() => {
-    console.log(name);
     if (name && name != "" && name?.length > 3) {
       if (name === user?.nickname) {
         setIsAvailable("unchanged");
       } else {
         setIsLoading(true);
         axiosInstance.get("/user/is_available/" + name).then((res) => {
-          console.log("response", res.data);
           setIsAvailable(res.data ? "available" : "unavailable");
           setIsLoading(false);
         });
@@ -38,8 +35,6 @@ export default function ProfileEdit() {
     } else {
       setIsAvailable("unavailable");
     }
-    console.log(name);
-    console.log(is_available);
   }, [name, is_available]);
 
   return (
