@@ -8,6 +8,9 @@ import { AuthAdapter } from '@/auth/auth.adapter';
 import { ConfigService } from '@nestjs/config';
 import { AuthController } from '@/auth/auth.controller';
 import { HttpModule } from '@nestjs/axios';
+import { TwoFactorAuthenticationController } from '@/auth/twoFactorAuthentication.controller';
+import { TwoFactorAuthenticationService } from '@/auth/twoFactorAuthentication.service';
+
 
 @Module({
 	imports: [
@@ -19,8 +22,8 @@ import { HttpModule } from '@nestjs/axios';
 			signOptions: { expiresIn: '2h' },
 		}),
 	],
-	controllers: [AuthController],
-	providers: [AuthService, JwtStrategy, AuthAdapter, ConfigService],
+	controllers: [AuthController, TwoFactorAuthenticationController],
+	providers: [AuthService, JwtStrategy, AuthAdapter, ConfigService, TwoFactorAuthenticationService],
 	exports: [AuthService, AuthAdapter],
 })
 export class AuthModule { }

@@ -547,5 +547,26 @@ export class UserService {
 				}
 			}
 		}));
+		
 	}
+	/**
+	 * 2FA methods, Added by @Hescanor
+	 */
+
+	 async setTwoFactorAuthenticationSecret(secret: string, userId: number) {
+		return await this.prisma.user.update({
+		  where: { user_id: userId },
+		  data: { two_factor_auth: secret },
+		});
+	  }
+	  
+	  async turnTwoFactorAuthentication(userId: number, turn: boolean, secret?: string) {
+		return this.prisma.user.update({
+		  where: { user_id: userId },
+		  data: {
+			two_factor_auth_enabled: turn,
+			two_factor_auth: secret,
+		  },
+		});
+	  }
 }

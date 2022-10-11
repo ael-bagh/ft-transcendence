@@ -23,6 +23,7 @@ import QueueContextProvider from "./contexts/queue.context";
 import ChatRooms from "./components/chat/ChatRooms";
 import RoomCreate from "./components/chat/RoomCreate";
 import RoomManagement from "./components/chat/RoomManagement";
+import TwoFactorAuth from "./components/2FA/TwoFactorAuth";
 
 const router = createBrowserRouter([
   {
@@ -31,8 +32,8 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
-    path: "/2fa/login",
-    element: <Home />,
+    path: "/2fa/:login",
+    element: <TwoFactorAuth />,
     errorElement: <ErrorPage />,
   },
   {

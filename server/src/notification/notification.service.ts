@@ -6,7 +6,7 @@ import { User, Prisma, Game, Status, Notification, Notification_type } from '@pr
 export class NotificationService {
 	constructor(private prisma: PrismaService) { }
 
-	async createNotification( data: Prisma.NotificationCreateInput): Promise<Notification> {
+	async createNotification(data: Prisma.NotificationCreateInput): Promise<Notification> {
 		return this.prisma.notification.create({
 			data
 		});

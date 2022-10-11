@@ -1,14 +1,40 @@
+import { Dialog, Transition } from "@headlessui/react";
+import CryptoJS from "crypto-js";
+import QRCode from "react-qr-code";
 import MainLayout from "../layout/MainLayout";
 import { Form } from "react-router-dom";
 import ImageUploading from "react-images-uploading";
-import { useLoaderData } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useLoaderData, useNavigate} from "react-router-dom";
+import { useState, Fragment, useEffect } from "react";
 import axiosInstance from "../../lib/axios";
 import { Spinner } from "../layout/Loading";
 
+
+
+
+function generateToken() {
+  const { data: user } = useLoaderData() as { data: User };
+  // var base32 = require('base32')
+  const mail = user?.email;
+  const service = "ft_transcendance";
+  // const secret =base32.encode(mail + service);
+  const secret = '6L4OH6DDC4PLNQBA5422GM67KXRDIQQP';
+  const otpauth = `otpauth://totp/${mail}?secret=${secret}&issuer=${service}`;
+  //otpauth://totp/?secret=&issuer=ft_transcendance
+  //otpauth://totp/EQWESDsfgsdg?secret=ahmed.shite@gmail.com&issuer=Google&algorithm=SHA1&digits=6&period=30
+  return { secret, otpauth };
+}
+
 export default function ProfileEdit() {
   const { data: user } = useLoaderData() as { data: User | null };
-  const [avatar, setAvatar] = useState(user?.avatar || `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`);
+
+  const [avatar, setAvatar] = useState(
+    user?.avatar ||
+      `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
+  );
+  console.log(user);
+  
+  const [choice, setChoice] = useState(user?.two_factor_auth_enabled);
   const [image, setImage] = useState([]);
   const [base64, setBase64] = useState(user?.avatar || "");
   const onChange = (imageList: any, addUpdateIndex: any) => {
@@ -17,6 +43,7 @@ export default function ProfileEdit() {
     setBase64(imageList[0]?.data_url);
   };
   const [name, setName] = useState(user?.nickname);
+  // const [code, setCode] = useState(user?);
   const [is_available, setIsAvailable] = useState("unchanged");
   const [isLoading, setIsLoading] = useState(false);
   const divStyle = {
@@ -40,7 +67,7 @@ export default function ProfileEdit() {
     }
     console.log(name);
     console.log(is_available);
-  }, [name, is_available]);
+  }, [name, is_available, choice]);
 
   return (
     <MainLayout>
@@ -69,9 +96,7 @@ export default function ProfileEdit() {
                   {" "}
                   <img
                     className="sm:absolute sm:h-44 sm:w-44 h-full  sm:rounded-full w-screen sm:object-contain"
-                    src={
-                      avatar
-                    }
+                    src={avatar}
                     alt="avatar"
                   />
                   <div className="flex flex-row gap-2 items-center justify-center">
@@ -85,7 +110,9 @@ export default function ProfileEdit() {
                       className="relative bg-red-500 p-2"
                       onClick={() => {
                         setBase64("");
-                        setAvatar(`https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`);
+                        setAvatar(
+                          `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
+                        );
                       }}
                     >
                       delete
@@ -141,17 +168,6 @@ export default function ProfileEdit() {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            <div className="flex items-center pl-4">
-              <input
-                id="bordered-checkbox-2"
-                type="checkbox"
-                name="two_factor_auth_enabled"
-                className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 dark:focus:ring-purple-600 focus:ring-2"
-              />
-              <label className="py-4 ml-2 w-full text-sm font-mediumtext-gray-300">
-                2 factor Auth
-              </label>
-            </div>
 
             <input
               type="text"
@@ -170,7 +186,226 @@ export default function ProfileEdit() {
             submit
           </button>
         </Form>
+        <div className="relative">
+          {
+          choice ? <TwoFAOff user={user} /> : <TwoFAOn user={user} />
+          }
+        </div>
+        
       </div>
     </MainLayout>
+  );
+}
+
+function TwoFAOn({ user }: { user: User | null }) {
+  
+  const [mfa] = useState(generateToken());
+  const navigate = useNavigate();
+  const [code, setCode] = useState("");
+  const [retry, setRetry] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  function closeModal() {
+    axiosInstance
+      .post(
+        import.meta.env.VITE_API_URL + "/2fa/enable",
+        { code, secret: mfa.secret },
+        {
+          withCredentials: true,
+        }
+      )
+      .then((res) => {
+        console.log(res);
+        window.location.reload();
+      // navigate("/profile/me");
+
+      })
+      .catch(() => {
+        setRetry("Wrong code");
+      });
+
+    setIsOpen(false);
+  }
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  return (
+    <>
+      <div className=" inset-0 flex items-center justify-center">
+        <button
+          type="button"
+          onClick={openModal}
+          className="rounded-md bg-green-500  px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+        >
+          Enable 2FA
+        </button>
+      </div>
+
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setIsOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Scan To Enable Your Two Factor Authentication
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                      <QRCode value={mfa.otpauth} />
+                    </div>
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                      <input onChange={(e) => setCode(e.target.value)} type="text" name="secret" className="w-full " />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={() => closeModal()}
+                    >
+                      Activate
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    </>
+  );
+}
+
+function TwoFAOff({ user }: { user: User | null }) {
+  //const [mfa] = useState(generateToken());
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [retry, setRetry] = useState("");
+  function closeModal() {
+    axiosInstance
+      .post(
+        import.meta.env.VITE_API_URL + "/2fa/disable",
+        { code },
+        {
+          withCredentials: true,
+        }
+      )
+      .then((res) => {
+        console.log(res);
+        window.location.reload();
+        // navigate("/profile/me");
+      })
+      .catch(() => {
+        setRetry("Wrong code");
+      });
+
+    setIsOpen(false);
+  }
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  return (
+    <>
+      <div className=" inset-0 flex items-center justify-center">
+        <button
+          type="button"
+          onClick={openModal}
+          className="rounded-md bg-green-500  px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+        >
+             Disable 2FA
+        </button>
+      </div>
+
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => setIsOpen(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Enter Your Two Factor Authentication
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                      <input
+                        type="text"
+                        name="code"
+                        id="code"
+                        onChange={(e) => setCode(e.target.value)}
+                        className="w-full "
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={() => closeModal()}
+                    >
+                      Disable
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    </>
   );
 }
