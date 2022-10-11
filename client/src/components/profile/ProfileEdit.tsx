@@ -4,21 +4,21 @@ import QRCode from "react-qr-code";
 import MainLayout from "../layout/MainLayout";
 import { Form } from "react-router-dom";
 import ImageUploading from "react-images-uploading";
-import { useLoaderData, useNavigate} from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import { useState, Fragment, useEffect } from "react";
 import axiosInstance from "../../lib/axios";
 import { Spinner } from "../layout/Loading";
 
+async function generateToken(user: User) {
+  const { secret } = await axiosInstance
+    .get("/2fa/generate")
+    .then((res) => res.data);
 
-
-
-function generateToken() {
-  const { data: user } = useLoaderData() as { data: User };
   // var base32 = require('base32')
   const mail = user?.email;
   const service = "ft_transcendance";
   // const secret =base32.encode(mail + service);
-  const secret = '6L4OH6DDC4PLNQBA5422GM67KXRDIQQP';
+  // const secret = '6L4OH6DDC4PLNQBA5422GM67KXRDIQQP';
   const otpauth = `otpauth://totp/${mail}?secret=${secret}&issuer=${service}`;
   //otpauth://totp/?secret=&issuer=ft_transcendance
   //otpauth://totp/EQWESDsfgsdg?secret=ahmed.shite@gmail.com&issuer=Google&algorithm=SHA1&digits=6&period=30
@@ -33,7 +33,7 @@ export default function ProfileEdit() {
       `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
   );
   console.log(user);
-  
+
   const [choice, setChoice] = useState(user?.two_factor_auth_enabled);
   const [image, setImage] = useState([]);
   const [base64, setBase64] = useState(user?.avatar || "");
@@ -184,19 +184,15 @@ export default function ProfileEdit() {
           </button>
         </Form>
         <div className="relative">
-          {
-          choice ? <TwoFAOff user={user} /> : <TwoFAOn user={user} />
-          }
+          {choice ? <TwoFAOff user={user} /> : <TwoFAOn user={user} />}
         </div>
-        
       </div>
     </MainLayout>
   );
 }
 
 function TwoFAOn({ user }: { user: User | null }) {
-  
-  const [mfa] = useState(generateToken());
+  const [mfa, setMFA] = useState(null as any);
   const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [retry, setRetry] = useState("");
@@ -213,8 +209,7 @@ function TwoFAOn({ user }: { user: User | null }) {
       .then((res) => {
         console.log(res);
         window.location.reload();
-      // navigate("/profile/me");
-
+        // navigate("/profile/me");
       })
       .catch(() => {
         setRetry("Wrong code");
@@ -225,6 +220,10 @@ function TwoFAOn({ user }: { user: User | null }) {
   function openModal() {
     setIsOpen(true);
   }
+
+  useEffect(() => {
+    user && generateToken(user).then((res) => setMFA(res));
+  }, []);
 
   return (
     <>
@@ -239,7 +238,11 @@ function TwoFAOn({ user }: { user: User | null }) {
       </div>
 
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => setIsOpen(false)}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => setIsOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -272,10 +275,15 @@ function TwoFAOn({ user }: { user: User | null }) {
                   </Dialog.Title>
                   <div className="mt-2">
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
-                      <QRCode value={mfa.otpauth} />
+                      {mfa && <QRCode value={mfa.otpauth} />}
                     </div>
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
-                      <input onChange={(e) => setCode(e.target.value)} type="text" name="secret" className="w-full " />
+                      <input
+                        onChange={(e) => setCode(e.target.value)}
+                        type="text"
+                        name="secret"
+                        className="w-full "
+                      />
                     </div>
                   </div>
 
@@ -336,7 +344,7 @@ function TwoFAOff({ user }: { user: User | null }) {
           onClick={openModal}
           className="rounded-md bg-green-500  px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
         >
-             Disable 2FA
+          Disable 2FA
         </button>
       </div>
 
