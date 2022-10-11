@@ -71,7 +71,6 @@ export class AuthController {
             // delete user.password;
             // Generate both refreshToken and accessToken
             // if (!user.two_factor_auth_enabled && !user.two_factor_auth) {
-            // 	// response.redirect("https://localhost:8080/2fa/turn-on");
             // 	// return user;
             // }
             if (user.two_factor_auth_enabled) {
@@ -80,14 +79,18 @@ export class AuthController {
             }
             const refreshToken = await this.authService.loginAndGenerateRefreshToken(user);
             const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
+			console.log(refreshToken,);
+			
             // const refreshExpires = new Date();
             // refreshExpires.setSeconds(refreshExpires.getSeconds() + 2);
             response.cookie('refresh_token', refreshToken, {
               httpOnly: true,
+			  domain: process.env.DOMAIN,
               path: '/auth/refresh',
             });
             response.cookie('access_token', accessToken, {
               httpOnly: true,
+			  domain: process.env.DOMAIN,
               // expires: refreshExpires,
               path: '/',
             });
@@ -101,8 +104,10 @@ export class AuthController {
 
   @Get('refresh')
   async getRefreshTockenAndRegenerateAccessToken(@Req() req: Request, @Res() response: Response) {
-    const refreshToken = req.cookies.refresh_token;
+    const refreshToken = req.cookies["refresh_token"];
     try {
+		console.log(refreshToken);
+		
       const payload = jwt.verify(refreshToken, process.env.SECRET_TOKEN) as Record<string, any>;
       const user = await this.userService.user({ login: payload.login });
       if (!user) {
@@ -111,6 +116,7 @@ export class AuthController {
       const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
       response.cookie('access_token', accessToken, {
         httpOnly: true,
+		domain: process.env.DOMAIN,
         path: '/',
       });
       response.json(req.cookies);

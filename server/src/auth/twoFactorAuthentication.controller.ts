@@ -35,6 +35,8 @@ export class TwoFactorAuthenticationController {
     @Body('code') code: string,
     @Res({ passthrough: true }) response: Response,
   ) {
+	console.log("mamak");
+	
     const user = await this.usersService.user({ login: login });
     if (!user) throw new BadRequestException('User with this login does not exist');
     const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
@@ -43,15 +45,18 @@ export class TwoFactorAuthenticationController {
     );
     if (!isCodeValid) throw new BadRequestException('Wrong authentication code');
     const refreshToken = await this.authenticationService.loginAndGenerateRefreshToken(user);
+	console.log('real one', refreshToken);
     const accessToken = await this.authenticationService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
+	  domain: process.env.DOMAIN,
       path: '/auth/refresh',
     });
     const expireDate = new Date(); // 2 hours
     expireDate.setHours(expireDate.getHours() + 2);
     response.cookie('access_token', accessToken, {
       httpOnly: true,
+	  domain: process.env.DOMAIN,
       expires: expireDate, // TODO: DON'T FORGET TO CHECK IF IT WORKS
       path: '/',
     });
