@@ -51,7 +51,7 @@ export class GameGateway {
 		if (!allowed)
 			throw new WsException('Not found');
 		client.join(client.user.login + target_login);
-		this.server.to(`__connected_${target_login}`).emit('game_request', client.user.login, userData.mode);
+		this.server.to(`__connected_${target_login}`).emit('game_request', {target_login : client.user.login, mode : userData.mode});
 	}
 
 	@SubscribeMessage('accept_game_request')
@@ -74,10 +74,9 @@ export class GameGateway {
 		if (!allowed)
 			throw new WsException('Not found');
 		const room = target_login+client.user.login;
-		
 		if (this.server.sockets.adapter.rooms.get(room).size !== 1)
 		{
-			throw new Error('player gone');
+			throw new WsException('player gone');
 		}
 		if (!userData.isAccepted)
 		{

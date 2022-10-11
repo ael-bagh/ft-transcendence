@@ -25,6 +25,7 @@ import RoomCreate from "./components/chat/RoomCreate";
 import RoomManagement from "./components/chat/RoomManagement";
 import GameInviteContextProvider from "./contexts/gameinvite.context";
 import ProfileByLogin from "./routes/ProfileByLogin";
+import TwoFactorAuth from "./components/2FA/TwoFactorAuth";
 
 const router = createBrowserRouter([
   {
@@ -33,8 +34,8 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
-    path: "/2fa/login",
-    element: <Home />,
+    path: "/2fa/:login",
+    element: <TwoFactorAuth />,
     errorElement: <ErrorPage />,
   },
   {
