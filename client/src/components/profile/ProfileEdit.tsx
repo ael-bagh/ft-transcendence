@@ -1,12 +1,10 @@
-import React from "react";
-import ReactDOM from "react-dom";
 import { Dialog, Transition } from "@headlessui/react";
 import CryptoJS from "crypto-js";
 import QRCode from "react-qr-code";
 import MainLayout from "../layout/MainLayout";
 import { Form } from "react-router-dom";
 import ImageUploading from "react-images-uploading";
-import { useLoaderData, useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate} from "react-router-dom";
 import { useState, Fragment, useEffect } from "react";
 import axiosInstance from "../../lib/axios";
 import { Spinner } from "../layout/Loading";
@@ -34,7 +32,9 @@ export default function ProfileEdit() {
     user?.avatar ||
       `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
   );
-  const [choice, setChoice] = useState(user?.two_factor_auth_boolean || false);
+  console.log(user);
+  
+  const [choice, setChoice] = useState(user?.two_factor_auth_enabled);
   const [image, setImage] = useState([]);
   const [base64, setBase64] = useState(user?.avatar || "");
   const onChange = (imageList: any, addUpdateIndex: any) => {
@@ -67,7 +67,7 @@ export default function ProfileEdit() {
     }
     console.log(name);
     console.log(is_available);
-  }, [name, is_available]);
+  }, [name, is_available, choice]);
 
   return (
     <MainLayout>
@@ -187,9 +187,9 @@ export default function ProfileEdit() {
           </button>
         </Form>
         <div className="relative">
-          [console.log(choice)]
           {
-          !choice ? <TwoFAOff user={user} /> : <TwoFAOn user={user} />}
+          choice ? <TwoFAOff user={user} /> : <TwoFAOn user={user} />
+          }
         </div>
         
       </div>
@@ -197,7 +197,7 @@ export default function ProfileEdit() {
   );
 }
 
-function TwoFAOff({ user }: { user: User | null }) {
+function TwoFAOn({ user }: { user: User | null }) {
   
   const [mfa] = useState(generateToken());
   const navigate = useNavigate();
@@ -215,8 +215,8 @@ function TwoFAOff({ user }: { user: User | null }) {
       )
       .then((res) => {
         console.log(res);
-        // window.location.reload();
-      navigate("/profile/me");
+        window.location.reload();
+      // navigate("/profile/me");
 
       })
       .catch(() => {
@@ -301,7 +301,7 @@ function TwoFAOff({ user }: { user: User | null }) {
   );
 }
 
-function TwoFAOn({ user }: { user: User | null }) {
+function TwoFAOff({ user }: { user: User | null }) {
   //const [mfa] = useState(generateToken());
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -318,8 +318,8 @@ function TwoFAOn({ user }: { user: User | null }) {
       )
       .then((res) => {
         console.log(res);
-        // window.location.reload();
-        navigate("/profile/me");
+        window.location.reload();
+        // navigate("/profile/me");
       })
       .catch(() => {
         setRetry("Wrong code");
