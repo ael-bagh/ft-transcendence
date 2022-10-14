@@ -19,6 +19,7 @@ interface User {
   _count: Count;
   player_level: number;
   two_factor_auth_enabled?: boolean;
+  current_lobby: string;
 }
 
 interface GamePlayer {

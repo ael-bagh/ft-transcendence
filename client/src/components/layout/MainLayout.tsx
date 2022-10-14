@@ -12,7 +12,6 @@ export default function MainLayout({
   children?: React.ReactNode;
 }) {
   const { isAuthLoaded, authUser } = useContext(AuthUserContext);
-  const {notifications} = useContext(NotificationsContext);
   return (
     <>
       {isAuthLoaded && authUser && (
@@ -23,9 +22,6 @@ export default function MainLayout({
             <GameInvite />
           </div>
           <div className="flex h-full">
-            {/* {notifications.map((notification, index) => (
-              <Notification notification={notification} key={index} />
-            ))} */}
             {children}
           </div>
         </div>

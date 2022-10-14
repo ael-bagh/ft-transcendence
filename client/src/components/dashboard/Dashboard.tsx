@@ -153,22 +153,24 @@ function Friends() {
                   <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 gap-3">
                     <Link
                       to={"/profile/" + friend.login}
-                      className="bg-purple-500 p-2 text-white text-sm rounded-full"
+                      className="bg-purple-500 p-2 text-white text-sm rounded-full  hover:cursor-pointer"
                     >
                       <CgProfile className="w-5 h-5 rounded-full" />
                     </Link>
                     {friend.status === "INGAME" && (
-                      <Link
-                        to={"/game/"}
-                        className="bg-purple-500 p-2 text-white text-sm flex flex-row rounded-full"
+                      <button
+                        onClick={() => {
+                          navigate("/game/" + friend.current_lobby);
+                        }}
+                        className="bg-purple-500 p-2 text-white text-sm flex flex-row rounded-full hover:cursor-pointer"
                       >
                         <FaRegEye className="w-5 h-5 rounded-full" />
-                      </Link>
+                      </button>
                     )}
                     {friend.status === "ONLINE" && (
                       <div
                         onClick={() => {onChallenge(friend.login)}}
-                        className="bg-purple-500 p-2 text-white text-sm rounded-full"
+                        className="bg-purple-500 p-2 text-white text-sm rounded-full hover:cursor-pointer"
                       >
                         <GiCrossedSwords className="w-5 h-5 rounded-full" />
                       </div>

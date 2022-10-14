@@ -61,8 +61,7 @@ export function useSocket() {
   };
   const deleteFriend = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-      socket.emit("delete_friend", object);
-      socket.on("friend_deleted", (obj, err) => {
+      socket.emit("delete_friend", object,  (obj, err) => {
         if (err) return reject(err);
         resolve(obj);
       });
