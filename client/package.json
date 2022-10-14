@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 80 --host 0.0.0.0",
+    "dev": "vite -p 3000",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "serve": "serve -s dist -p 3000"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.3",
