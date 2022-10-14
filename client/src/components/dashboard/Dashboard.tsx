@@ -1,15 +1,25 @@
 import MainLayout from "../layout/MainLayout";
-import { Searching } from "../layout/Loading";
 import { useContext, useEffect, useState } from "react";
 import { QueueContext } from "../../contexts/queue.context";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useSocket } from "../../hooks/api/useSocket";
 import axiosInstance from "../../lib/axios";
+import { FaRegEye } from "react-icons/fa";
+import { CgProfile } from "react-icons/cg";
+import { GiCrossedSwords } from "react-icons/gi";
+import { MdPersonSearch } from "react-icons/md";
+import sock from "../../lib/socket";
+import { useNavigate } from "react-router-dom";
+import UserAvatar from "../user/UserAvatar";
 
 export default function Dashboard() {
   const { queue, setQueue } = useContext(QueueContext);
   const { queueUp } = useSocket();
-  let navigate = useNavigate();
+  const [segment, setSegment] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchTimer, setSearchTimer] = useState<any>(null);
+
   const queueUpByMode = (mode: "ONE" | "NORMAL" | "RANKED") => {
     setQueue({
       inQueue: true,
@@ -26,12 +36,45 @@ export default function Dashboard() {
       })
       .catch((err) => console.log("already in queue"));
   };
-
-
-
+  useEffect(() => {
+    if (segment)
+      axiosInstance.get("/user/some/" + segment).then((res: any) => {
+        setUsers(res.data);
+      });
+    else setUsers([]);
+  }, [segment]);
   return (
     <MainLayout>
       <div className="flex flex-col w-full p-2 gap-2">
+        <div className="flex justify-center px-2 w-full h-fit">
+          <div className="w-full">
+            <label htmlFor="search" className="sr-only">
+              Search
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MdPersonSearch
+                  className="h-5 w-5 text-gray-400"
+                  aria-hidden="true"
+                />
+              </div>
+              <input
+                onChange={(e) => {
+                  searchTimer && clearTimeout(searchTimer);
+                  setSearchTimer(
+                    setTimeout(() => setSegment(e.target.value), 500)
+                  );
+                }}
+                id="search"
+                name="search"
+                className="block w-full pl-10 pr-3 py-2 border border-transparent rounded-md leading-5 bg-gray-700 text-gray-300 placeholder-gray-400 focus:outline-none focus:bg-white focus:border-white focus:ring-white focus:text-gray-900 sm:text-sm"
+                placeholder="Search"
+                type="search"
+              />
+            </div>
+          </div>
+        </div>
+        <Example users={users} />
         {!queue.inQueue && (
           <div className="flex flex-col md:flex-row">
             <div className="flex flex-col w-full p-4 gap-2">
@@ -69,41 +112,24 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        <div className="w-full">
-          <div className="relative w-full">
-            <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
-              <svg
-                aria-hidden="true"
-                className="w-5 h-5 text-gray-500 dark:text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                  clipRule="evenodd"
-                ></path>
-              </svg>
-            </div>
-            <input
-              type="text"
-              id="simple-search"
-              className="bg-gray-900  text-gray-100 text-sm  focus:ring-purple-500 focus:border-purple-500 block w-full pl-10 p-2.5"
-              placeholder="Search"
-            />
-          </div>
-        </div>
-          <Friends />
+        <Friends />
       </div>
     </MainLayout>
   );
 }
 
 function Friends() {
+  const navigate = useNavigate();
   const [friends, setFriends] = useState<User[]>([]);
+  const onChallenge = (user_login: string) => {
+    sock.emit("invite_to_game", {target_login: user_login, mode: "ONE"} ,(data: any) => {
+      navigate("/game/" + data);
+    });
+  };
   useEffect(() => {
-    axiosInstance.get("/user/friends").then((res) => {setFriends(res.data)});
+    axiosInstance.get("/user/friends").then((res) => {
+      setFriends(res.data);
+    });
   }, []);
   return (
     <div className="bg-gray-900 shadow overflow-scroll sm:rounded-md flex-grow p-4">
@@ -112,29 +138,41 @@ function Friends() {
           <li key={friend.user_id}>
             <div className="block">
               <div className="px-4 py-4 sm:px-6">
-                  <span className="inline-block relative">
-                    <img
-                      className="h-10 w-10 rounded-full"
-                      src={friend.avatar}
-                      alt=""
-                    />
-                    <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white bg-green-400" />
-                  </span>
+                <UserAvatar user={{...friend , is_admin:false}} />
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-purple-600 truncate">
                     {friend.nickname}
                   </p>
                   <div className="ml-2 flex-shrink-0 flex">
                     <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      {friend.login}
+                      {friend.status}
                     </p>
                   </div>
                 </div>
                 <div className="mt-2 sm:flex sm:justify-between">
-                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    <Link to={"/profile/" + friend.login} className="bg-purple-500 p-2 text-white text-sm">
-                      Visit profile
+                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 gap-3">
+                    <Link
+                      to={"/profile/" + friend.login}
+                      className="bg-purple-500 p-2 text-white text-sm rounded-full"
+                    >
+                      <CgProfile className="w-5 h-5 rounded-full" />
                     </Link>
+                    {friend.status === "INGAME" && (
+                      <Link
+                        to={"/game/"}
+                        className="bg-purple-500 p-2 text-white text-sm flex flex-row rounded-full"
+                      >
+                        <FaRegEye className="w-5 h-5 rounded-full" />
+                      </Link>
+                    )}
+                    {friend.status === "ONLINE" && (
+                      <div
+                        onClick={() => {onChallenge(friend.login)}}
+                        className="bg-purple-500 p-2 text-white text-sm rounded-full"
+                      >
+                        <GiCrossedSwords className="w-5 h-5 rounded-full" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -143,5 +181,27 @@ function Friends() {
         ))}
       </ul>
     </div>
+  );
+}
+
+function Example(props: { users: User[] }) {
+  return (
+    <ul role="list" className="divide-y divide-gray-200">
+      {props.users.map((user) => (
+        <li key={user.user_id} className="py-4">
+          <Link to={"/profile/" + user.login}>
+            <div className="flex space-x-3">
+              <img className="h-6 w-6 rounded-full" src={user.avatar} alt="" />
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">{user.nickname}</h3>
+                </div>
+                <p className="text-sm text-gray-500">{user.login}</p>
+              </div>
+            </div>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

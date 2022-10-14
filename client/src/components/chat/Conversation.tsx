@@ -10,9 +10,10 @@ import { useSocket } from "../../hooks/api/useSocket";
 import { getRoomName } from "../../lib/helpers";
 import { Loading } from "../layout/Loading";
 import { markMessagesAsRead } from "../../hooks/api/useRoom";
-import {Link} from "react-router-dom";
-import {FaUserEdit} from "react-icons/fa";
+import { Link } from "react-router-dom";
+import { FaUserEdit } from "react-icons/fa";
 import axiosInstance from "../../lib/axios";
+import RoomAvatar from "./RoomAvatar";
 
 interface roomUser {
   login: string;
@@ -36,18 +37,29 @@ export default function Conversation() {
 
   const chatboxRef = useRef<HTMLDivElement>(null);
 
-  const onLeaveRoom = async() => {
-    await axiosInstance.delete("/rooms/" + currentGroup?.room_id + "/leaveroom");
+  const onLeaveRoom = async () => {
+    await axiosInstance.delete(
+      "/rooms/" + currentGroup?.room_id + "/leaveroom"
+    );
     setCurrentGroup(null);
-    await axiosInstance
-    .get("/rooms")
-    .then((res : any) => {
-      setChatHistory(res.data?.sort(
-        (b: any, a: any) =>{
-          return new Date((a.room_messages.length > 0)? a.room_messages?.[0]?.message_time : a.room_creation_date).valueOf() -
-          new Date((b.room_messages.length > 0)? b.room_messages?.[0]?.message_time : b.room_creation_date).valueOf()}
-      ));
-    })
+    await axiosInstance.get("/rooms").then((res: any) => {
+      setChatHistory(
+        res.data?.sort((b: any, a: any) => {
+          return (
+            new Date(
+              a.room_messages.length > 0
+                ? a.room_messages?.[0]?.message_time
+                : a.room_creation_date
+            ).valueOf() -
+            new Date(
+              b.room_messages.length > 0
+                ? b.room_messages?.[0]?.message_time
+                : b.room_creation_date
+            ).valueOf()
+          );
+        })
+      );
+    });
   };
 
   const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) =>
@@ -73,12 +85,13 @@ export default function Conversation() {
   const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     if (currentGroup) {
-      (currentGroup?.room_creator_login === authUser?.login) && setIsAuthAdmin(true);
-      (currentGroup?.room_users.map((u:roomUser) => {
-        if(u.login === authUser?.login && u.is_admin) {      
+      currentGroup?.room_creator_login === authUser?.login &&
+        setIsAuthAdmin(true);
+      currentGroup?.room_users.map((u: roomUser) => {
+        if (u.login === authUser?.login && u.is_admin) {
           setIsAuthAdmin(true);
         }
-      }))
+      });
     }
   }, [currentGroup]);
   useEffect(() => {
@@ -114,27 +127,47 @@ export default function Conversation() {
           >
             <BiLeftArrow className="w-10 h-10 text-purple-500" />
           </div>
-          <UserAvatar
-            avatar={`https://avatars.dicebear.com/api/initials/${getRoomName(
-              currentGroup,
-              authUser
-            )}.svg`}
-          />
+          {!currentGroup?.room_direct_message && (
+            <RoomAvatar
+              avatar={`https://avatars.dicebear.com/api/initials/${getRoomName(
+                currentGroup,
+                authUser
+              )}.svg`}
+            />
+          )}
+          {currentGroup?.room_direct_message && (
+            <UserAvatar
+              user={currentGroup.room_users.find(
+                (u: roomUser) => u.login !== authUser?.login
+              )}
+            />
+          )}
           <div className="flex flex-col">
             <div>{getRoomName(currentGroup, authUser)}</div>
-            <UserStatus username="Hamid nef7a" id={1} />
           </div>
         </div>
-        <div className="action-icons flex flex-row gap-2 hover:cursor-pointer" onClick={onLeaveRoom}>
-          {!currentGroup?.room_direct_message && <div  className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-            <GiExitDoor className="w-5 h-5" />
-          </div>}
-          {currentGroup?.room_direct_message && <div className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-            <GiCrossedSwords className="w-5 h-5" />
-          </div>}
-          {!currentGroup?.room_direct_message && isAuthAdmin  &&<Link to={"/rooms/"+currentGroup?.room_id+"/edit"} className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-            <FaUserEdit className="w-5 h-5" />
-          </Link>}
+        <div
+          className="action-icons flex flex-row gap-2 hover:cursor-pointer"
+          onClick={onLeaveRoom}
+        >
+          {!currentGroup?.room_direct_message && (
+            <div className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+              <GiExitDoor className="w-5 h-5" />
+            </div>
+          )}
+          {currentGroup?.room_direct_message && (
+            <div className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+              <GiCrossedSwords className="w-5 h-5" />
+            </div>
+          )}
+          {!currentGroup?.room_direct_message && isAuthAdmin && (
+            <Link
+              to={"/rooms/" + currentGroup?.room_id + "/edit"}
+              className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+            >
+              <FaUserEdit className="w-5 h-5" />
+            </Link>
+          )}
         </div>
       </div>
       {isLoading && <Loading />}
@@ -165,10 +198,10 @@ export default function Conversation() {
           value={message}
           onChange={onChangeHandler}
           onFocus={() => {
-            if(currentGroup)
-            markMessagesAsRead(currentGroup).finally(() => {
-              setCurrentGroup({ ...currentGroup, unread_messages_count: 0 });
-            });
+            if (currentGroup)
+              markMessagesAsRead(currentGroup).finally(() => {
+                setCurrentGroup({ ...currentGroup, unread_messages_count: 0 });
+              });
           }}
         />
         <button

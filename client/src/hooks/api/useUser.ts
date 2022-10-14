@@ -37,14 +37,14 @@ export function useUpdateUser(oldUserData: Record<string, any>) {
 }
 
 export function useHistory(id: string | undefined) {
-  const [history, setHistory] = useState<History[] | undefined>(undefined);
+  const [history, setHistory] = useState<Sett[] | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | undefined>(undefined);
 
   const mutate = (id: string | undefined) =>
     id &&
     axiosInstance
-      .get("/user/" + id + "/history")
+      .get("/" + id + "/sets")
       .then((res) => {
         setHistory(res.data);
         setLoading(false);

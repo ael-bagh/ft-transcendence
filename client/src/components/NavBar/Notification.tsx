@@ -1,10 +1,16 @@
 /* This example requires Tailwind CSS v2.0+ */
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useSocket } from "../../hooks/api/useSocket";
+import axiosInstance from "../../lib/axios";
 
 function Notification(props: { notification: Notification }, ref: any) {
   const [show, setShow] = useState(true);
-
+  const [avatar, setAvatar] = useState("");
+  useEffect(() => {
+      axiosInstance.get("/user/"+props.notification.notification_sender_login).then((res) => {
+              setAvatar(res.data.avatar)
+      });
+      }, [])
   return (
     <div
       ref={ref}
@@ -15,7 +21,7 @@ function Notification(props: { notification: Notification }, ref: any) {
           <div className="flex-shrink-0 pt-0.5">
             <img
               className="h-10 w-10 rounded-full"
-              src={`https://avatars.dicebear.com/api/avataaars/${props.notification.notification_sender_login}.svg`}
+              src={avatar}
               alt=""
             />
           </div>

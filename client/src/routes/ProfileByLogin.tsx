@@ -16,7 +16,7 @@ function  ProfileByLogin() {
         <ProfileHeader user={user}/>
         <ProfileInfo user={user}/>
         <Badges />
-        <MatchHistory />
+        <MatchHistory user={user!}/>
       </div>
     </MainLayout>
   );

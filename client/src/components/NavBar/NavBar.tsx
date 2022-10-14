@@ -5,9 +5,7 @@ import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import logo from "../imgs/logo.png";
 import { Link } from "react-router-dom";
 import { AuthUserContext } from "../../contexts/authUser.context";
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import Notifications from "./Notifications";
-
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", current: true },
@@ -72,16 +70,15 @@ export default function NavBar() {
                 </div>
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-
-                <Notifications/>
+                <Notifications />
                 {/* Profile dropdown */}
                 <Menu as="div" className="relative ml-3">
                   <div>
                     <Menu.Button className="flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                       <span className="sr-only">Open user menu</span>
                       <img
-                        className="h-8 w-8 rounded-full"
-                        src={`https://avatars.dicebear.com/api/avataaars/${authUser?.login}.svg`}
+                        className="h-8 w-8 rounded-full object-contain"
+                        src={authUser?.avatar}
                         alt=""
                       />
                     </Menu.Button>
@@ -112,7 +109,7 @@ export default function NavBar() {
                       <Menu.Item>
                         {({ active }) => (
                           <Link
-                            to={`/profile/${authUser?.user_id}/edit`}
+                            to={`/profile/edit`}
                             className={classNames(
                               active ? "bg-gray-100" : "",
                               "block px-4 py-2 text-sm text-gray-700"

@@ -1,13 +1,13 @@
 import { Dialog, Transition } from "@headlessui/react";
-import CryptoJS from "crypto-js";
 import QRCode from "react-qr-code";
 import MainLayout from "../layout/MainLayout";
 import { Form } from "react-router-dom";
 import ImageUploading from "react-images-uploading";
-import { useLoaderData, useNavigate } from "react-router-dom";
-import { useState, Fragment, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState, Fragment, useEffect, useContext } from "react";
 import axiosInstance from "../../lib/axios";
 import { Spinner } from "../layout/Loading";
+import { AuthUserContext } from "../../contexts/authUser.context";
 
 async function generateToken(user: User) {
   const { secret } = await axiosInstance
@@ -26,31 +26,26 @@ async function generateToken(user: User) {
 }
 
 export default function ProfileEdit() {
-  const { data: user } = useLoaderData() as { data: User | null };
 
+  const {authUser} = useContext(AuthUserContext);
   const [avatar, setAvatar] = useState(
-    user?.avatar ||
-      `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
+    authUser?.avatar
   );
-  console.log(user);
 
-  const [choice, setChoice] = useState(user?.two_factor_auth_enabled);
+  const [choice, setChoice] = useState(authUser?.two_factor_auth_enabled);
   const [image, setImage] = useState([]);
-  const [base64, setBase64] = useState(user?.avatar || "");
+  const [base64, setBase64] = useState(authUser?.avatar || "");
   const onChange = (imageList: any, addUpdateIndex: any) => {
     setImage(imageList);
     setBase64(imageList[0]?.data_url);
   };
-  const [name, setName] = useState(user?.nickname);
+  const [name, setName] = useState(authUser?.nickname);
   // const [code, setCode] = useState(user?);
   const [is_available, setIsAvailable] = useState("unchanged");
   const [isLoading, setIsLoading] = useState(false);
-  const divStyle = {
-    backgroundImage: "url(" + user?.avatar + ")",
-  };
   useEffect(() => {
     if (name && name != "" && name?.length > 3) {
-      if (name === user?.nickname) {
+      if (name === authUser?.nickname) {
         setIsAvailable("unchanged");
       } else {
         setIsLoading(true);
@@ -62,8 +57,6 @@ export default function ProfileEdit() {
     } else {
       setIsAvailable("unavailable");
     }
-    console.log(name);
-    console.log(is_available);
   }, [name, is_available, choice]);
 
   return (
@@ -78,9 +71,7 @@ export default function ProfileEdit() {
           {({
             imageList,
             onImageUpload,
-            onImageUpdate,
             onImageRemove,
-            isDragging,
             dragProps,
           }) => (
             // write your building UI
@@ -106,9 +97,9 @@ export default function ProfileEdit() {
                     <button
                       className="relative bg-red-500 p-2"
                       onClick={() => {
-                        setBase64("");
+                        setBase64(`https://avatars.dicebear.com/api/micah/${authUser?.login}.svg`);
                         setAvatar(
-                          `https://avatars.dicebear.com/api/avataaars/${user?.login}.svg`
+                          `https://avatars.dicebear.com/api/micah/${authUser?.login}.svg`
                         );
                       }}
                     >
@@ -146,7 +137,7 @@ export default function ProfileEdit() {
         </ImageUploading>
         <Form
           method="put"
-          action={"/profile/" + user + "/edit"}
+          action={"/profile/edit"}
           className="p-4 flex-col gap-4"
         >
           <div className="flex flex-col">
@@ -184,7 +175,7 @@ export default function ProfileEdit() {
           </button>
         </Form>
         <div className="relative">
-          {choice ? <TwoFAOff user={user} /> : <TwoFAOn user={user} />}
+          {choice ? <TwoFAOff user={authUser!} /> : <TwoFAOn user={authUser!} />}
         </div>
       </div>
     </MainLayout>
@@ -209,7 +200,6 @@ function TwoFAOn({ user }: { user: User | null }) {
       .then((res) => {
         console.log(res);
         window.location.reload();
-        // navigate("/profile/me");
       })
       .catch(() => {
         setRetry("Wrong code");
@@ -324,7 +314,6 @@ function TwoFAOff({ user }: { user: User | null }) {
       .then((res) => {
         console.log(res);
         window.location.reload();
-        // navigate("/profile/me");
       })
       .catch(() => {
         setRetry("Wrong code");

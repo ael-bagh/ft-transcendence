@@ -52,11 +52,8 @@ const router = createBrowserRouter([
     errorElement: <UserNotFound />,
   },
   {
-    path: "/profile/:id/edit",
+    path: "/profile/edit",
     element: <ProfileEdit />,
-    loader: async ({ params }) => {
-      return axiosInstance.get("/user/" + params.id)
-    },
     action: async ({ request }) => {
       const data = Object.fromEntries(await request.formData());
       const user = await axiosInstance.patch("/user/update", data);

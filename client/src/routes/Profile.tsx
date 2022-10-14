@@ -16,7 +16,7 @@ export default function Profile() {
           <ProfileHeader user={authUser} />
           <ProfileInfo user={authUser} />
           <Badges />
-          <MatchHistory />
+          <MatchHistory user={authUser}/>
         </div>
       )}
     </MainLayout>

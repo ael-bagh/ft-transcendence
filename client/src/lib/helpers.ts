@@ -4,7 +4,7 @@ export function truncate(str: string | undefined, n: number) {
 
 export function getRoomName(room: Room | null, authUser?: User) : string{
   if (room?.room_direct_message) {
-    return room.room_users.filter((user: User) => user.login !== authUser?.login)[0].login;
+    return room.room_users.filter((user: roomUser) => user.login !== authUser?.login)[0].login;
   }
     return room?.room_name ?? "UNKNOWN";
 }

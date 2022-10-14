@@ -79,7 +79,7 @@ function Room(props: { room: Room }) {
                     <img
                       key={user.nickname}
                       className="inline-block h-6 w-6 rounded-full ring-2 ring-purple-500"
-                      src={`https://avatars.dicebear.com/api/avataaars/${user.login}.svg`}
+                      src={user.avatar}
                       alt={user.nickname}
                     />
                   )

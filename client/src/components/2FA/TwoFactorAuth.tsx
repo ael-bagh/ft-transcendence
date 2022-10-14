@@ -19,9 +19,6 @@ export default function TwoFactorAuth() {
         }
       )
       .then((res) => {
-        console.log(res);
-        // window.navigator.vibrate(100);
-        // navigate("/profile/me");
         window.location.href = '/profile/me';
       })
       .catch(() => {

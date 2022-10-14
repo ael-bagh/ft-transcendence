@@ -7,14 +7,6 @@ import { useRooms } from "../../hooks/api/useRoom";
 import Conversation from "./Conversation";
 import axiosInstance from "../../lib/axios";
 
-function updateRoomDataInsideRoomsArray(
-  rooms: Room[],
-  setRooms: (rooms: Room[]) => void,
-  _room: Room
-) {
-  setRooms(rooms.map((r) => (r.room_id === _room.room_id ? _room : r)));
-}
-
 export default function ChatHistory() {
   const {currentGroup ,chatHistory,  setChatHistory, conversation} = useContext(ChatContext);
   const [showNewConversation, setShowNewConversation] = useState(false);
