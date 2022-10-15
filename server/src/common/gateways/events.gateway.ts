@@ -41,7 +41,7 @@ export class EventsGateway {
 			this.userService,
 			client.user
 		);
-		// console.log(new Date(), "a user connected", client.user);
+		// console.error(new Date(), "a user connected", this.server.sockets.adapter.rooms.get('__connected_' + client.user.login));
 	}
 
 	async handleDisconnect(client: CustomSocket) {
@@ -50,7 +50,9 @@ export class EventsGateway {
 			leftGame = true;
 			client.game_lobby.forceEnd(client.user.login);
 		}
-		if (!this.server.sockets.adapter.rooms['__connected_' + client.user.login]) {
+		// console.error(client.user.status, this.server.sockets.adapter.rooms.get('__connected_' + client.user.login));
+		
+		if (!this.server.sockets.adapter.rooms.get('__connected_' + client.user.login)) {
 			client.user = await this.prisma.user.update({
 				where: { login: client.user.login },
 				data: {
@@ -65,13 +67,17 @@ export class EventsGateway {
 					status: Status.ONLINE,
 				}
 			});
+			client.inQueue = false;
+			this.server.to('__connected_' + client.user.login).emit('queue_quitted', 'ok');
 		}
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
 			this.userService,
 			client.user
 		);
-		console.log(new Date(), "a user disconnected", client.user);
+		// console.error(client.user.status);
+
+		// console.log(new Date(), "a user disconnected", client.user);
 	}
 
 	@SubscribeMessage('relationship')
@@ -130,7 +136,10 @@ export class EventsGateway {
 							notification_type: 'FRIEND_REQUEST'
 						});
 						if (oldNotification) {
+							const notif_id = oldNotification.notification_id;
 							await this.notificationService.deleteNotification(oldNotification.notification_id);
+							this.server.to(`__connected_${target_login}`).emit('notification', { notification_id: notif_id, notification_type: '' });
+							this.server.to(`__connected_${login}`).emit('notification', { notification_id: notif_id, notification_type: '' });
 						}
 						const notification1 = await this.notificationService.addNotification({
 							notification_type: 'NEW_FRIEND',
@@ -198,7 +207,10 @@ export class EventsGateway {
 			notification_type: 'FRIEND_REQUEST'
 		});
 		if (oldNotification) {
+			const notif_id = oldNotification.notification_id;
 			await this.notificationService.deleteNotification(oldNotification.notification_id);
+			this.server.to(`__connected_${target_login}`).emit('notification', { notification_id: notif_id, notification_type: '' });
+			this.server.to(`__connected_${login}`).emit('notification', { notification_id: notif_id, notification_type: '' });
 		}
 		const notification1 = await this.notificationService.addNotification({
 			notification_type: 'NEW_FRIEND',

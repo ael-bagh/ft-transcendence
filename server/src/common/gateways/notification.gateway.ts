@@ -38,6 +38,7 @@ export class NotificationGateway{
 		@ConnectedSocket() client: CustomSocket 
 	) : Promise<number> {
 		await this.notificationService.deleteNotification(data.id);
+		this.server.to(`__connected_${client.user.login}`).emit('notification', { notification_id: data.id, notification_type: '' });
 		return data.id;
 	}
 

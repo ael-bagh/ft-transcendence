@@ -61,6 +61,7 @@ model Notification {
 	notification_receiver User? @relation("notification_receiver", fields: [notification_receiver_login], references: [login])
 	notification_sender_login String
 	notification_sender User? @relation("notification_sender", fields: [notification_sender_login], references: [login])
+	notification_payload String?
 	notification_seen Boolean
 }
 
@@ -152,7 +153,7 @@ enum Achievements_name {
 }
 
 enum Notification_type {
-	GAME_INVIT
+	GAME_INVITE
 	FRIEND_REQUEST
 	NEW_FRIEND
 }

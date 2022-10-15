@@ -189,6 +189,8 @@ export class GameService {
 			}),
 			game.run(),
 		]);
+		player1.inQueue = false;
+		player2.inQueue = false;
 		const data = await Promise.all([
 			this.userService.updateUser({
 				where: { login: player1.user.login },

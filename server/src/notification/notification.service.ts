@@ -46,7 +46,8 @@ export class NotificationService {
 		notification_date: Date,
 		notification_seen: boolean,
 		notification_sender_login?: string,
-		notification_receiver_login : string
+		notification_receiver_login : string,
+		notification_payload?: string
 	})
 	: Promise<Notification> {
 		userData['notification_seen'] = false;
