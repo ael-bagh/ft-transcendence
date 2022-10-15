@@ -17,6 +17,14 @@ export const NotificationsContext =
     NotificationsContextDefaultValues
   );
 
+function safeJSONParse(payload?: string) {
+  try {
+    return JSON.parse(payload || "");
+  } catch (error) {
+    return {};
+  }
+}
+
 const NotificationsProvider = ({
   children,
 }: {
@@ -27,9 +35,23 @@ const NotificationsProvider = ({
 
   useEffect(() => {
     axiosInstance.get("/notifications").then((res) => {
-      setNotifications(res.data);
+      setNotifications(
+        res.data?.map((notification: any) => {
+          return {
+            ...notification,
+            notification_payload: safeJSONParse(
+              notification.notification_payload
+            ),
+          };
+        }) || []
+      );
     });
     socket.on("notification", (notification: Notification) => {
+      notification.notification_payload = safeJSONParse(
+        notification.notification_payload
+      );
+
+      console.log("notification recieved", notification);
       if (notification.notification_type)
         setNotifications((prev) => [notification, ...prev]);
       else
@@ -37,7 +59,7 @@ const NotificationsProvider = ({
           prev.filter((n) => n.notification_id !== notification.notification_id)
         );
     });
-    
+
     return () => {
       socket.off("notifications");
     };

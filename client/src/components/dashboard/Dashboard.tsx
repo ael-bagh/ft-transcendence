@@ -11,6 +11,7 @@ import { MdPersonSearch } from "react-icons/md";
 import sock from "../../lib/socket";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../user/UserAvatar";
+import { AuthUserContext } from "../../contexts/authUser.context";
 
 export default function Dashboard() {
   const { queue, setQueue } = useContext(QueueContext);
@@ -45,7 +46,7 @@ export default function Dashboard() {
   return (
     <MainLayout>
       <div className="flex flex-col w-full p-2 gap-2">
-        <div className="flex justify-center px-2 w-full h-fit">
+        <div className="flex justify-center w-full h-fit">
           <div className="w-full">
             <label htmlFor="search" className="sr-only">
               Search
@@ -118,17 +119,44 @@ export default function Dashboard() {
 }
 
 function Friends() {
+  const { queue, setQueue } = useContext(QueueContext);
+  const {authUser} = useContext(AuthUserContext);
   const navigate = useNavigate();
   const [friends, setFriends] = useState<User[]>([]);
   const onChallenge = (user_login: string) => {
+    setQueue({
+      inQueue: true,
+      match: "ONE",
+      matchFound: false,
+    });
     sock.emit("invite_to_game", {target_login: user_login, mode: "ONE"} ,(data: any) => {
+      setQueue({
+        inQueue: false,
+        match: "ONE",
+        matchFound: false,
+      });
+
       navigate("/game/" + data);
     });
   };
   useEffect(() => {
+    sock.on("friend_updated_status", (data: any) => {
+      setFriends((prev) => {
+        const index = prev.findIndex((f) => f.login === data.login);
+        if (index !== -1) {
+          prev[index].status = data.status;
+          return [...prev];
+        }
+        return prev;
+      });
+    });
     axiosInstance.get("/user/friends").then((res) => {
       setFriends(res.data);
     });
+
+    return () => {
+      sock.off("friend_updated_status");
+    }
   }, []);
   return (
     <div className="bg-gray-900 shadow overflow-scroll sm:rounded-md flex-grow p-4">
@@ -168,7 +196,7 @@ function Friends() {
                         <FaRegEye className="w-5 h-5 rounded-full" />
                       </button>
                     )}
-                    {friend.status === "ONLINE" && (
+                    {friend.status === "ONLINE" && authUser?.status === "ONLINE" &&(
                       <div
                         onClick={() => {onChallenge(friend.login)}}
                         className="bg-purple-500 p-2 text-white text-sm rounded-full hover:cursor-pointer"

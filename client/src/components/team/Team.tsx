@@ -4,7 +4,7 @@ export default function Team() {
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="flex flex-row items-center">
-        <h1 className="md:text-4xl text-xl font-bold text-center text-gray-900 dark:text-white font-minecraft inline-block">
+        <h1 className="md:text-4xl text-xl font-bold text-center text-gray-900 font-minecraft inline-block">
           Made with{" "}
         </h1>
         <Player
@@ -15,7 +15,7 @@ export default function Team() {
           />
       </div>
 
-      <h2 className="md:text-2xl text-lg text-center text-gray-900 dark:text-white font-minecraft">
+      <h2 className="md:text-2xl text-lg text-center text-gray-900 font-minecraft">
         by a wonderful team
       </h2>
 

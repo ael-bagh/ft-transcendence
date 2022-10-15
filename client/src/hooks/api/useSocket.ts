@@ -44,7 +44,7 @@ export function useSocket() {
   const acceptFriendRequest = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
       socket.emit("accept_friend_request", object);
-      socket.on("friend_request_accepted", (obj, err) => {
+      socket.once("friend_request_accepted", (obj, err) => {
         if (err) return reject(err);
         resolve(obj);
       });
@@ -53,7 +53,7 @@ export function useSocket() {
   const deleteFriendRequest = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
       socket.emit("delete_friend_request", object);
-      socket.on("decline_friend_request", (obj, err) => {
+      socket.once("decline_friend_request", (obj, err) => {
         if (err) return reject(err);
         resolve(obj);
       });
@@ -61,7 +61,7 @@ export function useSocket() {
   };
   const deleteFriend = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
-      socket.emit("delete_friend", object,  (obj, err) => {
+      socket.emit("delete_friend", object, (obj: any, err: any) => {
         if (err) return reject(err);
         resolve(obj);
       });
@@ -70,7 +70,7 @@ export function useSocket() {
   const deleteSentFriendRequest = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
       socket.emit("delete_sent_friend_request", object);
-      socket.on("cancel_friend_request", (obj, err) => {
+      socket.once("cancel_friend_request", (obj, err) => {
         if (err) return reject(err);
         resolve(obj);
       });
@@ -79,7 +79,7 @@ export function useSocket() {
   const blockUser = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
       socket.emit("block_user", object);
-      socket.on("blocked", (obj, err) => {
+      socket.once("blocked", (obj, err) => {
         if (err) return reject(err);
         resolve(obj);
       });
@@ -88,7 +88,7 @@ export function useSocket() {
   const unblockUser = (object: { target_login?: string }) => {
     return new Promise((resolve, reject) => {
       socket.emit("unblock_user", object);
-      socket.on("unblocked", (obj, err) => {
+      socket.once("unblocked", (obj, err) => {
         if (err) return reject(err);
         resolve(obj);
       });
@@ -97,7 +97,7 @@ export function useSocket() {
   const queueUp = (mode: 'ONE' | 'NORMAL' | 'RANKED') => {
     return new Promise((resolve, reject) => {
       socket.emit("join_game_queue", { mode });
-      socket.on("accept_game", (data, err) => {
+      socket.once("accept_game", (data, err) => {
         if (err) return reject(err);
         resolve(data);
       });
@@ -107,7 +107,7 @@ export function useSocket() {
   const quitQueue = (mode: 'ONE' | 'NORMAL' | 'RANKED') => {
     return new Promise((resolve, reject) => {
       socket.emit("quit_queue", { mode });
-      socket.on("queue_quitted", (data, err) => {
+      socket.once("queue_quitted", (data, err) => {
         if (err) return reject(err);
         resolve(data);
       });
@@ -126,7 +126,7 @@ export function useSocket() {
   const gameInv = () => {
     return new Promise((resolve, reject) => {
       socket.emit("join_game_invit");
-      socket.on("match_found", (data, err) => {
+      socket.once("match_found", (data, err) => {
         if (err) return reject(err);
         resolve(data);
       });

@@ -23,7 +23,6 @@ import QueueContextProvider from "./contexts/queue.context";
 import ChatRooms from "./components/chat/ChatRooms";
 import RoomCreate from "./components/chat/RoomCreate";
 import RoomManagement from "./components/chat/RoomManagement";
-import GameInviteContextProvider from "./contexts/gameinvite.context";
 import ProfileByLogin from "./routes/ProfileByLogin";
 import TwoFactorAuth from "./components/2FA/TwoFactorAuth";
 
@@ -114,12 +113,10 @@ function App() {
   return (
     <AuthUserProvider>
       <NotificationsProvider>
-      <GameInviteContextProvider>
       <QueueContextProvider>
         <GetAuthuser />
         <RouterProvider router={router}/>
       </QueueContextProvider>
-      </GameInviteContextProvider>
       </NotificationsProvider>
     </AuthUserProvider>
   );

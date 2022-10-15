@@ -8,7 +8,6 @@ import { AuthUserContext } from "../contexts/authUser.context";
 
 export default function Profile() {
   const { authUser } = useContext(AuthUserContext);
-
   return (
     <MainLayout>
       {authUser && (

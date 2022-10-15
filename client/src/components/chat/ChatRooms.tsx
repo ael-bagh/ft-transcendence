@@ -72,13 +72,13 @@ function Room(props: { room: Room }) {
             </button>
           </div>
           <div className="mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
-            <div className="flex overflow-hidden -space-x-1">
+            <div className="flex -space-x-1">
               {props.room.room_users.map(
                 (user: roomUser, index: number) =>
                   index < 3 && (
                     <img
                       key={user.nickname}
-                      className="inline-block h-6 w-6 rounded-full ring-2 ring-purple-500"
+                      className="bg-slate-800 inline-block h-6 w-6 rounded-full ring-2 ring-purple-500"
                       src={user.avatar}
                       alt={user.nickname}
                     />
@@ -108,7 +108,7 @@ function Rooms() {
             !room.room_users.find(
               (user: roomUser) => user.login === authUser?.login
             )
-        )
+        ).sort((b: Room, a: Room) => b.room_creation_date.valueOf() - a.room_creation_date.valueOf())
       );
     });
   }, []);

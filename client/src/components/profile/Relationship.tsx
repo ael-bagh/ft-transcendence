@@ -1,5 +1,5 @@
 import { Menu, Transition } from "@headlessui/react";
-import { Fragment, useEffect, useRef, useState, useContext } from "react";
+import React, { Fragment, useEffect, useRef, useState, useContext } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import { useSocket } from "../../hooks/api/useSocket";
@@ -100,7 +100,7 @@ export default function Relationship(props: { user: User | null }) {
     if (relation?.is_request_sent) setIsRequestSent(true);
     if (relation?.is_request_received) setIsRequestReceived(true);
   }, [relation]);
-  useEffect(() => {}, [isFriend, isRequestReceived, isRequestSent, isBlocked]);
+  // useEffect(() => {}, [isFriend, isRequestReceived, isRequestSent, isBlocked]); // TODO: uncomment this if something goes wrong
 
   return (
     <div className="">

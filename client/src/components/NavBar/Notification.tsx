@@ -6,9 +6,8 @@ import sock from "../../lib/socket";
 import AvatarByLogin from "../user/AvatarByLogin";
 import { NotificationsContext } from "../../contexts/notifications.context";
 
-
 function Notification(props: { notification: Notification }, ref: any) {
-   const {notifications,setNotifications} = useContext(NotificationsContext);
+  const { notifications, setNotifications } = useContext(NotificationsContext);
   const [show, setShow] = useState(true);
   const [avatar, setAvatar] = useState("");
   useEffect(() => {
@@ -37,6 +36,12 @@ function Notification(props: { notification: Notification }, ref: any) {
                 setShow={setShow}
               />
             )}
+            {props.notification.notification_type === "GAME_INVITE" && (
+              <GameInviteComponent
+                notification={props.notification}
+                setShow={setShow}
+              />
+            )}
             {props.notification.notification_type === "NEW_FRIEND" && (
               <div className="ml-3 w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900">
@@ -46,10 +51,14 @@ function Notification(props: { notification: Notification }, ref: any) {
                   is now on your friend list.
                 </p>
                 <button
-                  onClick={async () => {      
-                    sock.emit("dismiss" ,{id : props.notification.notification_id}, (data: any) => {
-                      setShow(false);
-                    });
+                  onClick={async () => {
+                    sock.emit(
+                      "dismiss",
+                      { id: props.notification.notification_id },
+                      (data: any) => {
+                        setShow(false);
+                      }
+                    );
                     await axiosInstance.get("/notifications").then((res) => {
                       setNotifications(res.data);
                     });
@@ -78,7 +87,7 @@ function FriendRequestComponent({
   notification: Notification;
   setShow: (x: boolean) => void;
 }) {
-  const {notifications,setNotifications} = useContext(NotificationsContext);
+  const { notifications, setNotifications } = useContext(NotificationsContext);
   const { sendFriendRequest, deleteFriendRequest } = useSocket();
   const onAccept = () => {
     sendFriendRequest({
@@ -101,6 +110,59 @@ function FriendRequestComponent({
         {notification.notification_sender_login}
       </p>
       <p className="mt-1 text-sm text-gray-500">Sent you a friend request.</p>
+      <div className="mt-4 flex">
+        <button
+          onClick={onAccept}
+          type="button"
+          className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Accept
+        </button>
+        <button
+          onClick={onDecline}
+          type="button"
+          className="ml-3 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Decline
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function GameInviteComponent({
+  notification,
+  setShow,
+}: {
+  notification: Notification;
+  setShow: (x: boolean) => void;
+}) {
+  const { notifications, setNotifications } = useContext(NotificationsContext);
+  const { sendFriendRequest, deleteFriendRequest } = useSocket();
+  const onAccept = () => {
+    sock.emit("accept_game_request", {
+      isAccepted: true,
+      target_login: notification.notification_sender_login,
+      mode: notification.notification_payload?.mode,
+      roomId: notification.notification_payload?.roomId,
+    });
+  };
+  const onDecline = () => {
+    console.log(notification.notification_payload?.roomId);
+    sock.emit("accept_game_request", {
+      isAccepted: false,
+      target_login: notification.notification_sender_login,
+      mode: notification.notification_payload?.mode,
+      roomId: notification.notification_payload?.roomId,
+    });
+  };
+
+  return (
+    <div className="ml-3 w-0 flex-1">
+      <p className="text-sm font-medium text-gray-900">
+        {notification.notification_sender_login}
+      </p>
+      <p className="mt-1 text-sm text-gray-500">Challenged you to a game.</p>
       <div className="mt-4 flex">
         <button
           onClick={onAccept}

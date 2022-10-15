@@ -11,63 +11,65 @@ export default function Queue() {
   let navigate = useNavigate();
   const acceptMatch = () => {
     setAccepted(true);
-    acceptGame({ isAccepted: true })
-      .then((data) => {
-        setAccepted(false);
-        if (data === "refused") {
-          setQueue({
-            inQueue: true,
-            match: queue.match,
-            matchFound: false,
-          });
-            queueUp(queue.match).then(()=> {
+    acceptGame({ isAccepted: true }).then((data) => {
+      setAccepted(false);
+      if (data === "refused") {
+        setQueue({
+          inQueue: true,
+          match: queue.match,
+          matchFound: false,
+        });
+        queueUp(queue.match)
+          .then(() => {
             setQueue({
               inQueue: true,
               match: queue.match,
               matchFound: true,
             });
-          }).catch((err) => {
-            console.log("already in queue");}
-            );
-        } else {
-          setQueue({
-            inQueue: false,
-            match: 'ONE',
-            matchFound: false,
+          })
+          .catch((err) => {
+            console.log("already in queue");
           });
-          navigate("/game/" + data);
-        }
-      });
+      } else {
+        setQueue({
+          inQueue: false,
+          match: queue.match,
+          matchFound: false,
+        });
+        navigate("/game/" + data);
+      }
+    });
   };
   const declineMatch = () => {
     acceptGame({ isAccepted: false }).finally(() => {
       setQueue({
         inQueue: false,
-        match: 'ONE',
+        match: "ONE",
         matchFound: false,
       });
     });
   };
   const cancelQueue = () => {
     quitQueue(queue.match).finally(() => {
-    setQueue({
-      inQueue: false,
-      match: 'ONE',
-      matchFound: false,
-    });});
+      setQueue({
+        inQueue: false,
+        match: "ONE",
+        matchFound: false,
+      });
+    });
   };
   useEffect(() => {
-    const timer = setTimeout(() => {  
-    if (queue.matchFound && accepted===false) {
+    const timer = setTimeout(() => {
+      if (queue.matchFound && accepted === false) {
         declineMatch();
       }
-      }, 5000);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [queue, accepted]);
   return (
     <>
       {queue.inQueue && (
-        <div className="flex flex-row h-20 bg-black w-full m-2 p-2">
+        <div className="flex flex-row h-20 bg-black w-full p-2">
           <div className="flex w-44 h-full bg-black items-center justify-center">
             <Searching />
           </div>

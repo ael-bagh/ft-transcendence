@@ -27,6 +27,7 @@ interface GameData {
 }
 
 interface GameInv {
+    roomId: string;
     target_login: string;
     mode: "ONE" | "NORMAL" | "RANKED";
   }

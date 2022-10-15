@@ -3,7 +3,6 @@ import { ChatContext } from "../../contexts/chat.context";
 import TextMessage from "./TextMessage";
 import { GiCrossedSwords, GiExitDoor } from "react-icons/gi";
 import { BiLeftArrow } from "react-icons/bi";
-import UserStatus from "../user/UserStatus";
 import UserAvatar from "../user/UserAvatar";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import { useSocket } from "../../hooks/api/useSocket";
@@ -36,17 +35,19 @@ export default function Conversation() {
     );
     setCurrentGroup(null);
     await axiosInstance.get("/rooms").then((res: any) => {
+      console.log(res.data);
+      
       setChatHistory(
         res.data?.sort((b: any, a: any) => {
           return (
             new Date(
               a.room_messages.length > 0
-                ? a.room_messages?.[0]?.message_time
+                ? a.room_messages[0].message_time || a.room_creation_date
                 : a.room_creation_date
             ).valueOf() -
             new Date(
               b.room_messages.length > 0
-                ? b.room_messages?.[0]?.message_time
+                ? b.room_messages[0].message_time || a.room_creation_date
                 : b.room_creation_date
             ).valueOf()
           );
@@ -66,9 +67,6 @@ export default function Conversation() {
         message_user_login: authUser?.login!,
       };
       sendMessage(messageObject as Message)
-        .catch((err) => {
-          console.log(err);
-        })
         .finally(() => {
           setMessage("");
           chatboxRef.current?.scrollTo({

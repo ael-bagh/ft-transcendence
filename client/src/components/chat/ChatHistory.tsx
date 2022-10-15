@@ -29,16 +29,17 @@ export default function ChatHistory() {
     <div
       className={
         !currentGroup
-          ? "flex flex-col grow h-full md:w-1/4 md:shrink-0 justify-between"
+          ? "flex flex-col h-full w-full md:shrink-0 justify-between"
           : "hidden md:flex md:flex-col md:h-full md:w-1/4 md:shrink-0 md:min-w-1/4"
       }
+      style={{ height: 'calc(100vh - 4rem)' }}
     >
       <div className="w-full">
         <div className="relative w-full">
           <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
             <svg
               aria-hidden="true"
-              className="w-5 h-5 text-gray-500 dark:text-gray-400"
+              className="w-5 h-5 text-gray-500"
               fill="currentColor"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
@@ -58,31 +59,15 @@ export default function ChatHistory() {
           />
         </div>
       </div>
-      <div className="flex flex-col grow">
-        <div className="p-4 overflow-x-auto h-full w-full flex flex-col gap-4">
+      <div className="flex flex-col h-full overflow-scroll">
+        <div className="p-4 w-full flex flex-col gap-4">
           <h1 className="font-bold text-gray-100">Messages</h1>
-          <div className="h-2/6 overflow-scroll">
-            <div className="flex items-center justify-between">
-              <h1 className="text-gray-100 text-xl">Direct messages</h1>
-              </div>
-            {chatHistory?.filter((r) => r.room_direct_message).map((room: Room, idx: Number) => (
+            {chatHistory?.map((room: Room, idx: Number) => (
                 <MessageCard
                   key={room.room_id + "-" + idx}
                   room={room}
                 />
               ))}
-          </div>
-          <div className="h-2/6 overflow-scroll">
-            <div className="flex items-center justify-between">
-              <h1 className="text-gray-100 text-xl">Group chat</h1>
-              </div>
-            {chatHistory?.filter((r) => !r.room_direct_message).map((room: Room, idx: Number) => (
-                <MessageCard
-                  key={room.room_id + "-" + idx}
-                  room={room}
-                />
-              ))}
-          </div>
         </div>
       </div>
       <div className=" bg-purple-600 flex flex-col justify-center text-center items-center gap-2 pt-2">

@@ -27,10 +27,19 @@ function ChatComponent() {
       axiosInstance
       .get("/rooms")
       .then((res : any) => {
+        console.log("allooooooo", res.data[0].room_messages);
         setChatHistory(res.data?.sort(
           (b: any, a: any) =>
-            new Date(a.room_messages[0].message_time).valueOf() -
-            new Date(b.room_messages[0].message_time).valueOf()
+            new Date(
+              a.room_messages.length > 0
+                ? a.room_messages[0].message_time || a.room_creation_date
+                : a.room_creation_date
+            ).valueOf() -
+            new Date(
+              b.room_messages.length > 0
+                ? b.room_messages[0].message_time || a.room_creation_date
+                : b.room_creation_date
+            ).valueOf()
         ));
       })
     }));

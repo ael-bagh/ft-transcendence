@@ -5,4 +5,5 @@ interface Notification {
   notification_receiver_login: string;
   notification_sender_login: string;
   notification_seen: boolean;
+  notification_payload?: any;
 }
