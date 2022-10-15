@@ -20,7 +20,7 @@ import { AchievementModule } from './achievement/achievement.module';
 	imports: [
 		ConfigModule.forRoot(),
 		ServeStaticModule.forRoot({
-			rootPath: join(__dirname, '..', 'client'),
+			rootPath: join(__dirname, '../..', 'client/dist'),
 		}),
 		AuthModule,
 		HttpModule,

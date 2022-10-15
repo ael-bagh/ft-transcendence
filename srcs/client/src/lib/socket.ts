@@ -1,6 +1,6 @@
 import io from "socket.io-client";
 
-const sock = io(import.meta.env.VITE_API_URL?.replace(/^http/, "ws"), {
+const sock = io(import.meta.env.VITE_WEBSOCKET_URL, {
   transports: ["websocket"],
   reconnection: true,
   reconnectionDelay: 1000,
