@@ -19,7 +19,7 @@ export class GameController {
 	@Get('/games')
 	async getGames(): Promise<GameModel[]> {
 		try {
-			return this.gameService.games({});
+			return await this.gameService.games({});
 		}
 		catch (e) {
 			if (e instanceof HttpException) throw e;
@@ -29,7 +29,7 @@ export class GameController {
 	@Get('/games/:id')
 	async getGame(@Param('id') id: string): Promise<GameModel> {
 		try {
-			return this.gameService.game({ game_id: id });
+			return await this.gameService.game({ game_id: id });
 		}
 		catch (e) {
 			if (e instanceof HttpException) throw e;
@@ -39,7 +39,7 @@ export class GameController {
 	@Get('/:login/games')
 	async getGamesByLogin(@Param('login') login: string): Promise<GameModel[]> {
 		try {
-			return this.gameService.games({
+			return await this.gameService.games({
 				where: {
 					OR: [
 						{
