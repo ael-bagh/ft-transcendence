@@ -50,8 +50,6 @@ const NotificationsProvider = ({
       notification.notification_payload = safeJSONParse(
         notification.notification_payload
       );
-
-      console.log("notification recieved", notification);
       if (notification.notification_type)
         setNotifications((prev) => [notification, ...prev]);
       else

@@ -3,6 +3,7 @@ import { QueueContext } from "../../contexts/queue.context";
 import { Searching } from "./Loading";
 import { useSocket } from "../../hooks/api/useSocket";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Queue() {
   const [accepted, setAccepted] = useState(false);
@@ -28,7 +29,7 @@ export default function Queue() {
             });
           })
           .catch((err) => {
-            console.log("already in queue");
+            toast(err, { type: "warning" });
           });
       } else {
         setQueue({

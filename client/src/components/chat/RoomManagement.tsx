@@ -84,6 +84,9 @@ function Example() {
       <>
       <div className="bg-gray-700 shadow overflow-hidden sm:rounded-md w-full">
           <ul role="list" className="divide-y divide-gray-200">
+            {!roomUsers.length && (
+              <div className="text-center text-white">No users</div>
+            )}
         {!!roomUsers.length && roomUsers.map((roomUser) => (
                 <li key={roomUser.login}>
                   <div className="block hover:bg-gray-700">

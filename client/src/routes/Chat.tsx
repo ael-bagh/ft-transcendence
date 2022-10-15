@@ -27,7 +27,6 @@ function ChatComponent() {
       axiosInstance
       .get("/rooms")
       .then((res : any) => {
-        console.log("allooooooo", res.data[0].room_messages);
         setChatHistory(res.data?.sort(
           (b: any, a: any) =>
             new Date(
