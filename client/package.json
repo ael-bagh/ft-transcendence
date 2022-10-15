@@ -10,12 +10,12 @@
     "serve": "serve -s dist -p 3000"
   },
   "dependencies": {
+    "2fa-util": "^1.1.1",
     "@headlessui/react": "^1.7.3",
     "@heroicons/react": "^2.0.12",
     "@lottiefiles/react-lottie-player": "^3.4.7",
     "@types/matter-js": "^0.18.2",
     "@types/p5": "^1.4.3",
-    "2fa-util": "^1.1.1",
     "axios": "^0.27.2",
     "base32": "^0.0.7",
     "crypto-browserify": "^3.12.0",
@@ -40,6 +40,7 @@
     "reactjs-popup": "^2.0.5",
     "socket.io": "^4.5.2",
     "socket.io-client": "^4.5.2",
+    "tsc": "^2.0.4",
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
@@ -51,7 +52,7 @@
     "autoprefixer": "^10.4.11",
     "postcss": "^8.4.16",
     "tailwindcss": "^3.1.8",
-    "typescript": "^4.6.4",
+    "typescript": "^4.8.4",
     "vite": "^3.1.0"
   }
 }

@@ -1,5 +1,5 @@
 #! /bin/sh
-npm run prisma:dev:deploy
+npx prisma db push
 npm run prisma:generate
 
 npm run start:prod
