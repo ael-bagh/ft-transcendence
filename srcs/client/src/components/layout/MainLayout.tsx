@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import NavBar from "../NavBar/NavBar";
 import Queue from "./Queue";
@@ -33,23 +33,29 @@ export default function MainLayout({
 
 function GameEventsComponent() {
   const navigate = useNavigate();
-  const { isAuthLoaded, authUser } = useContext(AuthUserContext);
+  const [firstRun, setFirstRun] = useState(true);
+  const { isAuthLoaded, authUser, setAuthUser } = useContext(AuthUserContext);
   const { setQueue } = useContext(QueueContext);
   const { gameInvites, setGameInvite } = useContext(GameInviteContext);
 
   useEffect(() => {
-    if (isAuthLoaded && authUser?.status === "INQUEUE") {
+    if (firstRun && isAuthLoaded && authUser?.status === "INQUEUE") {
       setQueue({
         inQueue: true,
         match: "NORMAL",
         matchFound: false,
       });
+      setFirstRun(false);
     }
     sock.on("queue_quitted", () => {
       setQueue({
         inQueue: false,
         match: "ONE",
         matchFound: false,
+      });
+      authUser && setAuthUser({
+        ...authUser,
+        status: "ONLINE",
       });
     });
     sock.on("join_queue", (data: any) => {
