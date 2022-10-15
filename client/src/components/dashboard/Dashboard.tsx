@@ -17,7 +17,6 @@ export default function Dashboard() {
   const { queueUp } = useSocket();
   const [segment, setSegment] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [searching, setSearching] = useState(false);
   const [searchTimer, setSearchTimer] = useState<any>(null);
 
   const queueUpByMode = (mode: "ONE" | "NORMAL" | "RANKED") => {
@@ -153,22 +152,26 @@ function Friends() {
                   <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 gap-3">
                     <Link
                       to={"/profile/" + friend.login}
-                      className="bg-purple-500 p-2 text-white text-sm rounded-full"
+                      className="bg-purple-500 p-2 text-white text-sm rounded-full  hover:cursor-pointer"
                     >
                       <CgProfile className="w-5 h-5 rounded-full" />
                     </Link>
                     {friend.status === "INGAME" && (
-                      <Link
-                        to={"/game/"}
-                        className="bg-purple-500 p-2 text-white text-sm flex flex-row rounded-full"
+                      <button
+                        onClick={() => {
+                          sock.emit("spectate", {target_login: friend.login}, (ret :{lobby: string}) => {
+                            navigate("/game/" + ret.lobby);
+                          });
+                        }}
+                        className="bg-purple-500 p-2 text-white text-sm flex flex-row rounded-full hover:cursor-pointer"
                       >
                         <FaRegEye className="w-5 h-5 rounded-full" />
-                      </Link>
+                      </button>
                     )}
                     {friend.status === "ONLINE" && (
                       <div
                         onClick={() => {onChallenge(friend.login)}}
-                        className="bg-purple-500 p-2 text-white text-sm rounded-full"
+                        className="bg-purple-500 p-2 text-white text-sm rounded-full hover:cursor-pointer"
                       >
                         <GiCrossedSwords className="w-5 h-5 rounded-full" />
                       </div>

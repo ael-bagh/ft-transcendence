@@ -1,50 +1,71 @@
 /* This example requires Tailwind CSS v2.0+ */
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useState, useContext } from "react";
 import { useSocket } from "../../hooks/api/useSocket";
 import axiosInstance from "../../lib/axios";
+import sock from "../../lib/socket";
+import AvatarByLogin from "../user/AvatarByLogin";
+import { NotificationsContext } from "../../contexts/notifications.context";
+
 
 function Notification(props: { notification: Notification }, ref: any) {
+   const {notifications,setNotifications} = useContext(NotificationsContext);
   const [show, setShow] = useState(true);
   const [avatar, setAvatar] = useState("");
   useEffect(() => {
-      axiosInstance.get("/user/"+props.notification.notification_sender_login).then((res) => {
-              setAvatar(res.data.avatar)
+    axiosInstance
+      .get("/user/" + props.notification.notification_sender_login)
+      .then((res) => {
+        setAvatar(res.data.avatar);
       });
-      }, [])
-  return (
-    <div
-      ref={ref}
-      className="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5"
-    >
-      <div className="p-4">
-        <div className="flex items-start">
-          <div className="flex-shrink-0 pt-0.5">
-            <img
-              className="h-10 w-10 rounded-full"
-              src={avatar}
-              alt=""
-            />
-          </div>
-          {props.notification.notification_type === "FRIEND_REQUEST" && (
-            <FriendRequestComponent
-              notification={props.notification}
-              setShow={setShow}
-            />
-          )}
-          {props.notification.notification_type === "NEW_FRIEND" && (
-            <div className="ml-3 w-0 flex-1">
-              <p className="text-sm font-medium text-gray-900">
-                {props.notification.notification_sender_login}
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                is now on your friend list.
-              </p>
+  }, [notifications, show]);
+  if (show)
+    return (
+      <div
+        ref={ref}
+        className="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5"
+      >
+        <div className="p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 pt-0.5">
+              <AvatarByLogin
+                login={props.notification.notification_sender_login}
+              />
             </div>
-          )}
+            {props.notification.notification_type === "FRIEND_REQUEST" && (
+              <FriendRequestComponent
+                notification={props.notification}
+                setShow={setShow}
+              />
+            )}
+            {props.notification.notification_type === "NEW_FRIEND" && (
+              <div className="ml-3 w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  {props.notification.notification_sender_login}
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  is now on your friend list.
+                </p>
+                <button
+                  onClick={async () => {      
+                    sock.emit("dismiss" ,{id : props.notification.notification_id}, (data: any) => {
+                      setShow(false);
+                    });
+                    await axiosInstance.get("/notifications").then((res) => {
+                      setNotifications(res.data);
+                    });
+                  }}
+                  type="button"
+                  className=" mt-2 inline-flex px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  return <></>;
 }
 
 // This is used to fix the issue with the ref not being passed to the component correctly in the Menu.Item
@@ -57,11 +78,17 @@ function FriendRequestComponent({
   notification: Notification;
   setShow: (x: boolean) => void;
 }) {
+  const {notifications,setNotifications} = useContext(NotificationsContext);
   const { sendFriendRequest, deleteFriendRequest } = useSocket();
   const onAccept = () => {
     sendFriendRequest({
       target_login: notification.notification_sender_login,
-    }).then(() => setShow(false));
+    }).then(() => {
+      setShow(false);
+      axiosInstance.get("/notifications").then((res) => {
+        setNotifications(res.data);
+      });
+    });
   };
   const onDecline = () => {
     deleteFriendRequest({

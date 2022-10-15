@@ -29,7 +29,6 @@ export default function Relationship(props: { user: User | null }) {
       target_login: props.user?.login,
     })
       .then((ret) => {
-        console.log("ha ana:" ,ret)
         if (isRequestReceived) {
           setIsFriend(true);
           setIsRequestReceived(false);
@@ -46,7 +45,7 @@ export default function Relationship(props: { user: User | null }) {
     deleteFriendRequest({
       target_login: props.user?.login,
     })
-      .then(() => {
+      .then((ret) => {
         setIsRequestReceived(false);
         setIsFriend(false);
         setIsRequestSent(false);
