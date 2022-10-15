@@ -53,14 +53,12 @@ export class GameGateway {
 			action_mutual: true
 		});
 		if (!allowed)
-			throw new WsException('Not found');
-			const target_rooms = this.server.sockets.adapter.rooms.get('__connected_' + target_login);
-			console.log(target_login,target_rooms);
+			throw new WsException('Not allowd');
+		const target_rooms = this.server.sockets.adapter.rooms.get('__connected_' + target_login);
+		console.log(target_login,target_rooms);
 		const opp = await this.userService.user({login: target_login})
 		if (opp.status !== Status.ONLINE)
-		{
 			throw new WsException('Player Unavailable')
-		}
 		client.user = await this.userService.updateUser({
 			where: {
 				login: client.user.login
@@ -98,9 +96,7 @@ export class GameGateway {
 			throw new WsException('Not found');
 		const room = target_login+client.user.login;
 		if (this.server.sockets.adapter.rooms.get(room).size !== 1)
-		{
 			throw new WsException('player gone');
-		}
 		if (!userData.isAccepted)
 		{
 			this.server.to(room).emit('game_accepted', 'refused');
@@ -109,7 +105,6 @@ export class GameGateway {
 				queue.values().next().value,
 			) as CustomSocket;
 			matching_opp.leave(room);
-			console.log('nop chhh')
 			matching_opp.user = await this.userService.updateUser({
 				where: {
 					login: matching_opp.user.login
@@ -230,6 +225,33 @@ export class GameGateway {
             throw new WsException('not in queue');
     }
 
+	@SubscribeMessage('spectate')
+    async spectate(
+		@MessageBody() userData: {target_login: string},
+        @ConnectedSocket() client: CustomSocket,
+    ) {
+		client.user = await this.userService.user({login: client.user.login})
+		let allowed = await this.userService.permissionToDoAction({
+			action_performer: client.user.login,
+			action_target: userData.target_login,
+			action_mutual: true
+		});
+		if (!allowed)
+			throw new WsException('Not allowd');
+		const target = await this.userService.user({login: userData.target_login})
+		if (target.status !== Status.INGAME)
+			throw new WsException('Not in game');
+		client.user = await this.userService.updateUser({
+			where: {
+				login: client.user.login
+			},
+			data: {
+				status: Status.INGAME
+			}
+		})
+		client.join(target.current_lobby);
+		return ({lobby: target.current_lobby});
+    }
 	@SubscribeMessage('move')
 	async move(
 		@ConnectedSocket() client: CustomSocket,
