@@ -35,8 +35,6 @@ export default function Conversation() {
     );
     setCurrentGroup(null);
     await axiosInstance.get("/rooms").then((res: any) => {
-      console.log(res.data);
-      
       setChatHistory(
         res.data?.sort((b: any, a: any) => {
           return (
@@ -66,14 +64,13 @@ export default function Conversation() {
         message_content: message.trim(),
         message_user_login: authUser?.login!,
       };
-      sendMessage(messageObject as Message)
-        .finally(() => {
-          setMessage("");
-          chatboxRef.current?.scrollTo({
-            behavior: "smooth",
-            top: chatboxRef.current?.scrollHeight,
-          });
+      sendMessage(messageObject as Message).finally(() => {
+        setMessage("");
+        chatboxRef.current?.scrollTo({
+          behavior: "smooth",
+          top: chatboxRef.current?.scrollHeight,
         });
+      });
     }
   };
 
@@ -81,7 +78,6 @@ export default function Conversation() {
   useEffect(() => {
     setIsAuthAdmin(false);
     if (currentGroup) {
-      console.log(currentGroup, authUser);
       currentGroup?.room_creator_login === authUser?.login &&
         setIsAuthAdmin(true);
       currentGroup?.room_admins?.some((u: User) => {
@@ -104,7 +100,7 @@ export default function Conversation() {
         setIsLoading(false);
       }
     );
-  }, [currentGroup , isAuthAdmin]);
+  }, [currentGroup, isAuthAdmin]);
 
   return (
     <div
@@ -147,14 +143,14 @@ export default function Conversation() {
         </div>
         <div className="buttons flex gap-2">
           {!currentGroup?.room_direct_message && (
-          <div
-            className="action-icons hover:cursor-pointer"
-            onClick={onLeaveRoom}
-          >
+            <div
+              className="action-icons hover:cursor-pointer"
+              onClick={onLeaveRoom}
+            >
               <div className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                 <GiExitDoor className="w-5 h-5" />
               </div>
-          </div>
+            </div>
           )}
           {currentGroup?.room_direct_message && (
             <div className="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">

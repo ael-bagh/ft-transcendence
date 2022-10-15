@@ -1,6 +1,5 @@
 import React, { useContext, useEffect } from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
-import { useSocket } from "../../hooks/api/useSocket";
 import NavBar from "../NavBar/NavBar";
 import Queue from "./Queue";
 
@@ -54,7 +53,6 @@ function GameEventsComponent() {
       });
     });
     sock.on("join_queue", (data: any) => {
-      console.log("join_queue", data);
       setQueue({
         inQueue: true,
         match: data,

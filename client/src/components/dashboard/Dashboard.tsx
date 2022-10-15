@@ -12,7 +12,7 @@ import sock from "../../lib/socket";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../user/UserAvatar";
 import { AuthUserContext } from "../../contexts/authUser.context";
-
+import { toast } from 'react-toastify';
 export default function Dashboard() {
   const { queue, setQueue } = useContext(QueueContext);
   const { queueUp } = useSocket();
@@ -34,7 +34,7 @@ export default function Dashboard() {
           matchFound: true,
         });
       })
-      .catch((err) => console.log("already in queue"));
+      .catch((err) => toast(err , {type: "error"}));
   };
   useEffect(() => {
     if (segment)

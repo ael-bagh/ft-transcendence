@@ -1,5 +1,11 @@
 import { Menu, Transition } from "@headlessui/react";
-import React, { Fragment, useEffect, useRef, useState, useContext } from "react";
+import React, {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  useContext,
+} from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import { useSocket } from "../../hooks/api/useSocket";
@@ -7,6 +13,7 @@ import { useRelation } from "../../hooks/api/useUser";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../lib/axios";
 import sock from "../../lib/socket";
+import { toast } from "react-toastify";
 
 export default function Relationship(props: { user: User | null }) {
   const { relation } = useRelation(props.user?.login);
@@ -33,12 +40,18 @@ export default function Relationship(props: { user: User | null }) {
           setIsFriend(true);
           setIsRequestReceived(false);
           setIsRequestSent(false);
+          toast("You are now friends", { type: "success" });
         } else {
-          if (ret) setIsFriend(true);
-          else setIsRequestSent(true);
+          if (ret) {
+            toast("You are now friends", { type: "success" });
+            setIsFriend(true);
+          } else {
+            toast("Friend request sent", { type: "success" });
+            setIsRequestSent(true);
+          }
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast(err, { type: "error" }));
   };
 
   const onDeleteFriendRequest = () => {
@@ -49,36 +62,46 @@ export default function Relationship(props: { user: User | null }) {
         setIsRequestReceived(false);
         setIsFriend(false);
         setIsRequestSent(false);
+        toast("Ha lghdr bda !", { type: "success" });
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast(err, { type: "error" }));
   };
   const onCancelRequest = () => {
     deleteSentFriendRequest({
       target_login: props.user?.login,
     })
       .then(() => {
+        toast("Friend request canceled !", { type: "success" });
         setIsRequestSent(false);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast(err, { type: "error" }));
   };
   const onDeleteFriend = () => {
     deleteFriend({
       target_login: props.user?.login,
-    }).finally(() => {
+    }).then(() => {
+      toast("Ha lghder bdaa !", { type: "success" });
       setIsFriend(false);
       setIsRequestReceived(false);
       setIsRequestSent(false);
+
     });
   };
   const onBlockRequest = () => {
     blockUser({
       target_login: props.user?.login,
-    }).finally(() => setIsBlocked(true));
+    }).finally(() => {
+      toast("Ha lghder bdaa !", { type: "success" });
+      setIsBlocked(true)
+    });
   };
   const onUnblockRequest = () => {
     unblockUser({
       target_login: props.user?.login,
-    }).finally(() => setIsBlocked(false));
+    }).finally(() => {
+      toast("User Unblocked !", { type: "success" });
+      setIsBlocked(false)
+    });
   };
   const navigate = useNavigate();
   const onSendMessage = () => {
@@ -88,11 +111,7 @@ export default function Relationship(props: { user: User | null }) {
         navigate("/chat/" + ret.data);
       });
   };
-  const onChallenge = () => {
-    sock.emit("invite_to_game", {target_login: props.user?.login, mode: "ONE"} ,(data: any) => {
-      navigate("/game/" + data);
-    });
-  };
+
   useEffect(() => {
     if (relation.is_self) setIsSelf(true);
     if (relation?.is_friend) setIsFriend(true);
@@ -172,31 +191,6 @@ export default function Relationship(props: { user: User | null }) {
                         />
                       )}
                       cancel request
-                    </button>
-                  )}
-                </Menu.Item>
-              )}
-              {!isSelf && !isBlocked && (
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      onClick={onChallenge}
-                      className={`${
-                        active ? "bg-violet-500 text-white" : "text-gray-900"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                    >
-                      {active ? (
-                        <DuplicateActiveIcon
-                          className="mr-2 h-5 w-5"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <DuplicateInactiveIcon
-                          className="mr-2 h-5 w-5"
-                          aria-hidden="true"
-                        />
-                      )}
-                      Challenge
                     </button>
                   )}
                 </Menu.Item>

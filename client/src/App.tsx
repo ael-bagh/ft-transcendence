@@ -2,21 +2,21 @@ import "./App.css";
 import {
   createBrowserRouter,
   RouterProvider,
-  redirect
+  redirect,
 } from "react-router-dom";
 import Game from "./routes/Game";
 import Profile from "./routes/Profile";
 import LeaderBoard from "./routes/LeaderBoard";
 import Chat from "./routes/Chat";
 import AuthUserProvider from "./contexts/authUser.context";
-import  NotificationsProvider  from "./contexts/notifications.context";
-import { useContext ,useEffect} from "react";
+import NotificationsProvider from "./contexts/notifications.context";
+import { useContext, useEffect } from "react";
 import { AuthUserContext } from "./contexts/authUser.context";
 import useProfile from "./hooks/api/useProfile";
-import {ErrorPage, UserNotFound} from "./components/errors/error_page";
+import { ErrorPage, UserNotFound } from "./components/errors/error_page";
 import Home from "./components/layout/Home";
 import { useSocket } from "./hooks/api/useSocket";
-import  axiosInstance from "./lib/axios"
+import axiosInstance from "./lib/axios";
 import ProfileEdit from "./components/profile/ProfileEdit";
 import Dashboard from "./components/dashboard/Dashboard";
 import QueueContextProvider from "./contexts/queue.context";
@@ -25,6 +25,8 @@ import RoomCreate from "./components/chat/RoomCreate";
 import RoomManagement from "./components/chat/RoomManagement";
 import ProfileByLogin from "./routes/ProfileByLogin";
 import TwoFactorAuth from "./components/2FA/TwoFactorAuth";
+
+import { ToastContainer } from "react-toastify";
 
 const router = createBrowserRouter([
   {
@@ -46,7 +48,7 @@ const router = createBrowserRouter([
     path: "/profile/:id",
     element: <ProfileByLogin />,
     loader: async ({ params }) => {
-      return axiosInstance.get("/user/" + params.id)
+      return axiosInstance.get("/user/" + params.id);
     },
     errorElement: <UserNotFound />,
   },
@@ -68,8 +70,8 @@ const router = createBrowserRouter([
   {
     path: "/chat/:id",
     element: <Chat />,
-    loader : async ({ params }) => {
-      return axiosInstance.get("/rooms/" + params.id)
+    loader: async ({ params }) => {
+      return axiosInstance.get("/rooms/" + params.id);
     },
     errorElement: <ErrorPage />,
   },
@@ -113,10 +115,11 @@ function App() {
   return (
     <AuthUserProvider>
       <NotificationsProvider>
-      <QueueContextProvider>
-        <GetAuthuser />
-        <RouterProvider router={router}/>
-      </QueueContextProvider>
+        <QueueContextProvider>
+          <GetAuthuser />
+          <RouterProvider router={router} />
+          <ToastContainer />
+        </QueueContextProvider>
       </NotificationsProvider>
     </AuthUserProvider>
   );
@@ -127,16 +130,14 @@ function GetAuthuser() {
   const { profile } = useProfile();
   useSocket();
 
-  useEffect(() => {  
+  useEffect(() => {
     if (!authUser) {
       if (profile) {
         setAuthUser(profile);
       }
     }
-  }, [profile])
-  return (
-    <></>
-  );
+  }, [profile]);
+  return <></>;
 }
 
 export default App;

@@ -148,7 +148,6 @@ function GameInviteComponent({
     });
   };
   const onDecline = () => {
-    console.log(notification.notification_payload?.roomId);
     sock.emit("accept_game_request", {
       isAccepted: false,
       target_login: notification.notification_sender_login,

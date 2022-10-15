@@ -5,9 +5,6 @@ const socket = sock;
 
 (window as any).aymane_socket = socket;
 
-socket.on("exception", (data: any) => {
-  console.log("exception", data);
-});
 
 export function useSocket() {
   const relation = (object: { target_login?: string }) => {

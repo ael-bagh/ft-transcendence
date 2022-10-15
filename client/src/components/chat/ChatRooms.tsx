@@ -5,6 +5,7 @@ import TimeAgo from "react-timeago";
 import { RiChatPrivateLine, RiUserShared2Fill } from "react-icons/ri";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthUserContext } from "../../contexts/authUser.context";
+import { toast } from "react-toastify";
 
 function Room(props: { room: Room }) {
   const [password, setPassword] = useState("");
@@ -19,7 +20,7 @@ function Room(props: { room: Room }) {
         navigate(`/chat/${res.data.room_id}`);
       })
       .catch(() => {
-        alert("Incorrect password");
+        toast("Wrong password", { type: "error" });
       });
   };
   return (
