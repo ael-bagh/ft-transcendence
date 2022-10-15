@@ -84,7 +84,11 @@ export class GameController {
 						set_loser_login: login
 					},
 				]
-			}
+			},
+			include:{
+				set_games:true
+			},
+			orderBy: { set_date: 'desc' },
 		});
 	}
 
