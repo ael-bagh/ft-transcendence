@@ -32,7 +32,7 @@ export default function NewConversationModal() {
         label: friend.login,
       }))
       );
-    });
+    }).catch(() => {});
   },[currentGroup])
 
   const [roomLogin, setRoomLogin] = useState<string | undefined>("");
@@ -40,7 +40,7 @@ export default function NewConversationModal() {
   const onSendMessage = () => {
     axiosInstance.post("/rooms/create_direct_message/"+ roomLogin).then((ret) => {
         navigate("/chat/" + ret.data , {replace : true});
-    })
+    }).catch(() => {});
   };
 
   return (

@@ -19,7 +19,7 @@ export default function TwoFactorAuth() {
         }
       )
       .then((res) => {
-        window.location.href = '/profile/me';
+        window.location.href = "/profile/me";
       })
       .catch(() => {
         setRetry("Wrong code");
@@ -29,9 +29,8 @@ export default function TwoFactorAuth() {
     <div className="bg-purple-500   ">
       <div className="flex justify-center container mx-auto my-auto w-screen h-screen items-center flex-col">
         <div className="text-slate-100 items-center"></div>
-<FaQrcode className="text-white h-20 w-fit pb-4"/>
+        <FaQrcode className="text-white h-20 w-fit pb-4" />
         <div className="w-full md:w-3/4  lg:w-1/2 flex flex-col items-center bg-slate-50 rounded-md pt-12">
-        
           <div className="text-center pb-3">
             Please enter the 2FA code that you see in your QrAuth app
           </div>

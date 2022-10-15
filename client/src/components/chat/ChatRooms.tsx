@@ -111,7 +111,7 @@ function Rooms() {
             )
         ).sort((b: Room, a: Room) => b.room_creation_date.valueOf() - a.room_creation_date.valueOf())
       );
-    });
+    }).catch(() => {});
   }, []);
 
   return (

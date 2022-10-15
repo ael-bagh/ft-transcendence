@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import axiosInstance from "../../lib/axios";
 import { AuthUserContext } from "../../contexts/authUser.context";
+import { toast } from "react-toastify";
 
 interface roomUser {
   login: string;
@@ -24,7 +25,9 @@ function Example() {
       .patch("/rooms/" + room?.room_id + "/promoteadmin", {
         user_login: user.login,
       })
+      .catch((err) => {toast(err, {type: "error"})})
       .finally(() => {
+        toast("User promoted", { type: "success" });
         navigate(`/chat/${room?.room_id}`);
       });
   };
@@ -34,7 +37,9 @@ function Example() {
       .patch("/rooms/" + room?.room_id + "/revokeadmin", {
         user_login: user.login,
       })
+      .catch((err) => {toast(err, {type: "error"})})
       .finally(() => {
+        toast("Revoqued admine privelege", { type: "success" });
         navigate(`/chat/${room?.room_id}`);
       });
   };
@@ -45,7 +50,9 @@ function Example() {
       .patch("/rooms/" + room?.room_id + "/banuser", {
         user_login: user.login,
       })
+      .catch((err) => {toast(err, {type: "error"})})
       .finally(() => {
+        toast("User banned", { type: "success" });
         navigate(`/chat/${room?.room_id}`);
       });
   };
@@ -55,7 +62,9 @@ function Example() {
       .patch("/rooms/" + room?.room_id + "/unbanuser", {
         user_login: user.login,
       })
+      .catch((err) => {toast(err, {type: "error"})})
       .finally(() => {
+        toast("User unbanned", { type: "success" });
         navigate(`/chat/${room?.room_id}`);
       });
   };
@@ -73,10 +82,10 @@ function Example() {
       res.data.room_users.map((user: User) => {
         if (user.login === authUser?.login) setIsAuthAdmin(true);
       });
-    });
+    }).catch((err) => {toast(err, {type: "error"})});
     axiosInstance.get("/rooms/" + id + "/bannedusers").then((res) => {
       setBannedUsers(res.data);
-    });
+    }).catch(() => {})
   }, []);
 
   return (
@@ -175,14 +184,14 @@ export default function RoomManagement() {
   useEffect(() => {
       axiosInstance.get("/rooms/" + id + "/" + authUser?.login + "/role").catch((err) => {
           navigate("/chat");
-      });
+      }).catch((err) => {toast(err, {type: "error"})});
     axiosInstance.get("/rooms/" + id).then((res) => {
       setRoomUsers(
         res.data.room_users.filter(
           (user: User) => user.login !== res.data.room_creator_login
         )
       );
-    });
+    }).catch(() => {});
   }, []);
 
   return (

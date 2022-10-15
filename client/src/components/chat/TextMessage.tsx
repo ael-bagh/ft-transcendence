@@ -9,7 +9,7 @@ export default function TextMessage(props:{id: string | number, user: string | u
     useEffect(() => {
         axiosInstance.get("/user/"+props.user).then((res) => {
                 setAvatar(res.data.avatar)
-        });
+        }).catch(() => {});
         }, [])
     return (
         <div className={messageCss}>

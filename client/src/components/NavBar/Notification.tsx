@@ -15,7 +15,7 @@ function Notification(props: { notification: Notification }, ref: any) {
       .get("/user/" + props.notification.notification_sender_login)
       .then((res) => {
         setAvatar(res.data.avatar);
-      });
+      }).catch(() => {});
   }, [notifications, show]);
   if (show)
     return (
@@ -61,7 +61,7 @@ function Notification(props: { notification: Notification }, ref: any) {
                     );
                     await axiosInstance.get("/notifications").then((res) => {
                       setNotifications(res.data);
-                    });
+                    }).catch(() => {});
                   }}
                   type="button"
                   className=" mt-2 inline-flex px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -96,13 +96,13 @@ function FriendRequestComponent({
       setShow(false);
       axiosInstance.get("/notifications").then((res) => {
         setNotifications(res.data);
-      });
+      }).catch(() => {});
     });
   };
   const onDecline = () => {
     deleteFriendRequest({
       target_login: notification.notification_sender_login,
-    }).then(() => setShow(false));
+    }).then(() => setShow(false)).catch(() => {});
   };
   return (
     <div className="ml-3 w-0 flex-1">

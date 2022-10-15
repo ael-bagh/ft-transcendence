@@ -40,7 +40,7 @@ export default function Dashboard() {
     if (segment)
       axiosInstance.get("/user/some/" + segment).then((res: any) => {
         setUsers(res.data);
-      });
+      }).catch(() => {});
     else setUsers([]);
   }, [segment]);
   return (
@@ -152,7 +152,7 @@ function Friends() {
     });
     axiosInstance.get("/user/friends").then((res) => {
       setFriends(res.data);
-    });
+    }).catch(() => {});
 
     return () => {
       sock.off("friend_updated_status");

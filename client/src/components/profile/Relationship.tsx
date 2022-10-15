@@ -109,7 +109,7 @@ export default function Relationship(props: { user: User | null }) {
       .post("/rooms/create_direct_message/" + props.user?.login)
       .then((ret) => {
         navigate("/chat/" + ret.data);
-      });
+      }).catch(() => toast("Could not create direct message", { type: "error" }));
   };
 
   useEffect(() => {

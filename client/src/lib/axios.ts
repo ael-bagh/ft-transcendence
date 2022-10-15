@@ -17,8 +17,8 @@ axiosInstance.interceptors.response.use(
         originalConfig._retry = true;
         try {
           const refreshResponse = await axiosInstance.get("/auth/refresh");
-          // refreshResponse
-
+          if (!refreshResponse.data?.authenticied)
+            return Promise.reject(err);
           return axiosInstance(originalConfig);
         } catch (_error) {
           return Promise.reject(_error);

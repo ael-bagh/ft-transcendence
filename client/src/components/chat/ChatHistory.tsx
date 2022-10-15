@@ -22,7 +22,7 @@ export default function ChatHistory() {
           return new Date((a.room_messages.length > 0)? a.room_messages?.[0]?.message_time : a.room_creation_date).valueOf() -
           new Date((b.room_messages.length > 0)? b.room_messages?.[0]?.message_time : b.room_creation_date).valueOf()}
       ));
-    })
+    }).catch(() => {}); // No need to handle error here
     setShowNewConversation(false);
   }, [conversation, currentGroup]);
   return (

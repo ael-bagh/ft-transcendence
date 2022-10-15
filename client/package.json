@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --port 80 --host 0.0.0.0",
     "build": "tsc && vite build",
-    "serve": "serve -s dist -p 3000",
+    "serve": "serve -s dist -p 80",
     "preview": "vite preview"
   },
   "dependencies": {

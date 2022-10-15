@@ -3,26 +3,22 @@ import QRCode from "react-qr-code";
 import MainLayout from "../layout/MainLayout";
 import { Form } from "react-router-dom";
 import ImageUploading from "react-images-uploading";
-import { useNavigate } from "react-router-dom";
 import { useState, Fragment, useEffect, useContext } from "react";
 import axiosInstance from "../../lib/axios";
 import { Spinner } from "../layout/Loading";
 import { AuthUserContext } from "../../contexts/authUser.context";
+import { toast } from "react-toastify";
 
 async function generateToken(user: User) {
-  const { secret } = await axiosInstance
-    .get("/2fa/generate")
-    .then((res) => res.data);
-
-  // var base32 = require('base32')
   const mail = user?.email;
   const service = "ft_transcendance";
-  // const secret =base32.encode(mail + service);
-  // const secret = '6L4OH6DDC4PLNQBA5422GM67KXRDIQQP';
-  const otpauth = `otpauth://totp/${mail}?secret=${secret}&issuer=${service}`;
-  //otpauth://totp/?secret=&issuer=ft_transcendance
-  //otpauth://totp/EQWESDsfgsdg?secret=ahmed.shite@gmail.com&issuer=Google&algorithm=SHA1&digits=6&period=30
-  return { secret, otpauth };
+  const { secret } = await axiosInstance
+    .get("/2fa/generate")
+    .then((res) => res.data).catch(() => ({ secret: "" }));
+  return {
+    secret,
+    otpauth: `otpauth://totp/${mail}?secret=${secret}&issuer=${service}`,
+  };
 }
 
 export default function ProfileEdit() {
@@ -37,18 +33,17 @@ export default function ProfileEdit() {
 
 function ProfileEditComponent({ authUser }: { authUser: User }) {
   const [avatar, setAvatar] = useState(authUser?.avatar);
-
-  const [choice, setChoice] = useState(authUser?.two_factor_auth_enabled);
   const [image, setImage] = useState([]);
   const [base64, setBase64] = useState(authUser?.avatar || "");
-  const onChange = (imageList: any, addUpdateIndex: any) => {
+  const [name, setName] = useState(authUser?.nickname);
+  const [is_available, setIsAvailable] = useState("unchanged");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onChange = (imageList: any) => {
     setImage(imageList);
     setBase64(imageList[0]?.data_url);
   };
-  const [name, setName] = useState(authUser?.nickname);
-  // const [code, setCode] = useState(user?);
-  const [is_available, setIsAvailable] = useState("unchanged");
-  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     if (name && name != "" && name?.length > 3) {
       if (name === authUser?.nickname) {
@@ -58,12 +53,12 @@ function ProfileEditComponent({ authUser }: { authUser: User }) {
         axiosInstance.get("/user/is_available/" + name).then((res) => {
           setIsAvailable(res.data ? "available" : "unavailable");
           setIsLoading(false);
-        });
+        }).catch(() => {});
       }
     } else {
       setIsAvailable("unavailable");
     }
-  }, [name, is_available, choice]);
+  }, [name, is_available]);
 
   return (
     <div className="flex flex-col w-full">
@@ -74,16 +69,14 @@ function ProfileEditComponent({ authUser }: { authUser: User }) {
         dataURLKey="data_url"
       >
         {({ imageList, onImageUpload, onImageRemove, dragProps }) => (
-          // write your building UI
           <div
             className="sm:h-96 w-full flex justify-center items-center"
             {...dragProps}
           >
             {imageList.length === 0 && (
               <div className="sm:absolute">
-                {" "}
                 <img
-                  className="sm:absolute sm:h-44 sm:w-44 h-full  sm:rounded-full w-screen sm:object-contain"
+                  className="sm:h-44 sm:w-44 h-full mx-auto mb-8 sm:rounded-full w-screen sm:object-contain"
                   src={avatar}
                   alt="avatar"
                 />
@@ -112,11 +105,10 @@ function ProfileEditComponent({ authUser }: { authUser: User }) {
             )}
             {imageList.length !== 0 && (
               <div className="sm:absolute">
-                {" "}
                 <img
                   src={imageList[0]["data_url"]}
                   alt="avatar"
-                  className="sm:absolute sm:h-44 sm:w-44 sm:p-4 sm:bg-purple-500 h-full  sm:rounded-full w-screen sm:object-contain"
+                  className="sm:h-44 sm:w-44 sm:p-4 sm:bg-purple-500 h-full mx-auto mb-8 sm:rounded-full w-screen sm:object-contain"
                 />
                 <div className="flex flex-row gap-2 items-center justify-center">
                   <button
@@ -140,7 +132,7 @@ function ProfileEditComponent({ authUser }: { authUser: User }) {
       <Form
         method="put"
         action={"/profile/edit"}
-        className="p-4 flex-col gap-4"
+        className="p-4 flex flex-col gap-4"
       >
         <div className="flex flex-col">
           <div className="flex">
@@ -172,41 +164,41 @@ function ProfileEditComponent({ authUser }: { authUser: User }) {
           type="submit"
           disabled={is_available === "unavailable"}
         >
-          {" "}
           submit
         </button>
       </Form>
       <div className="relative">
-        {choice ? <TwoFAOff user={authUser!} /> : <TwoFAOn user={authUser!} />}
+        {authUser?.two_factor_auth_enabled ? (
+          <TwoFAOff />
+        ) : (
+          <TwoFAOn user={authUser!} />
+        )}
       </div>
     </div>
   );
 }
 
 function TwoFAOn({ user }: { user: User | null }) {
-  const [mfa, setMFA] = useState(null as any);
-  const navigate = useNavigate();
-  const [code, setCode] = useState("");
-  const [retry, setRetry] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+  const [code, setCode] = useState<string>("");
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [mfa, setMFA] = useState<Record<string, string> | null>(null);
+
   function closeModal() {
     axiosInstance
       .post(
         import.meta.env.VITE_API_URL + "/2fa/enable",
-        { code, secret: mfa.secret },
-        {
-          withCredentials: true,
-        }
+        { code, secret: mfa?.secret },
+        { withCredentials: true }
       )
-      .then((res) => {
-        window.location.reload();
+      .then(() => {
+        toast("2FA enabled successfully", { type: "success" });
+        setTimeout(() => window.location.reload(), 1000);
       })
-      .catch(() => {
-        setRetry("Wrong code");
-      });
+      .catch(() => toast("Invalid 2FA code", { type: "error" }));
 
     setIsOpen(false);
   }
+
   function openModal() {
     setIsOpen(true);
   }
@@ -296,30 +288,26 @@ function TwoFAOn({ user }: { user: User | null }) {
   );
 }
 
-function TwoFAOff({ user }: { user: User | null }) {
-  //const [mfa] = useState(generateToken());
-  const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-  const [code, setCode] = useState("");
-  const [retry, setRetry] = useState("");
+function TwoFAOff() {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [code, setCode] = useState<string>("");
+
   function closeModal() {
     axiosInstance
       .post(
         import.meta.env.VITE_API_URL + "/2fa/disable",
         { code },
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       )
-      .then((res) => {
-        window.location.reload();
+      .then(() => {
+        toast("2FA disabled successfully", { type: "success" });
+        setTimeout(() => window.location.reload(), 1000);
       })
-      .catch(() => {
-        setRetry("Wrong code");
-      });
+      .catch(() => toast("Invalid 2FA code", { type: "error" }));
 
     setIsOpen(false);
   }
+
   function openModal() {
     setIsOpen(true);
   }

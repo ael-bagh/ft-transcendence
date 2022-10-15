@@ -40,7 +40,7 @@ function ChatComponent() {
                 : b.room_creation_date
             ).valueOf()
         ));
-      })
+      }).catch(() => {});
     }));
     if (loaderData?.data) setCurrentGroup(loaderData?.data);
 

@@ -32,7 +32,7 @@ export default function Conversation() {
   const onLeaveRoom = async () => {
     await axiosInstance.delete(
       "/rooms/" + currentGroup?.room_id + "/leaveroom"
-    );
+    ).catch(() => {});
     setCurrentGroup(null);
     await axiosInstance.get("/rooms").then((res: any) => {
       setChatHistory(
@@ -51,7 +51,7 @@ export default function Conversation() {
           );
         })
       );
-    });
+    }).catch(() => {});
   };
 
   const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) =>

@@ -15,7 +15,7 @@ export default function UserAvatar(props:{user: roomUser | undefined}){
         }else if(res.data.status === "OFFLINE"){
             setStatus(offline)
         }
-    });
+    }).catch(() => {});
     }, [])
     return (
         <span className="inline-block relative object-contain">

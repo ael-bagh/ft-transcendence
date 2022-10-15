@@ -34,18 +34,21 @@ const NotificationsProvider = ({
   const { socket } = useSocket();
 
   useEffect(() => {
-    axiosInstance.get("/notifications").then((res) => {
-      setNotifications(
-        res.data?.map((notification: any) => {
-          return {
-            ...notification,
-            notification_payload: safeJSONParse(
-              notification.notification_payload
-            ),
-          };
-        }) || []
-      );
-    });
+    axiosInstance
+      .get("/notifications")
+      .then((res) => {
+        setNotifications(
+          res.data?.map((notification: any) => {
+            return {
+              ...notification,
+              notification_payload: safeJSONParse(
+                notification.notification_payload
+              ),
+            };
+          }) || []
+        );
+      })
+      .catch(() => {}); // No need to handle error here
     socket.on("notification", (notification: Notification) => {
       notification.notification_payload = safeJSONParse(
         notification.notification_payload

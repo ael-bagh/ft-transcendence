@@ -19,7 +19,7 @@ function Badges() {
   useEffect(() => {
     axiosInstance.get("/user/achievements").then((res) => {
       setBadges(res.data);
-    });
+    }).catch(() => {});
   }, []);
   return (
     <div className="flex flex-col">
