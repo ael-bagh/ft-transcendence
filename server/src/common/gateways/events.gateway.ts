@@ -46,7 +46,7 @@ export class EventsGateway {
 
 	async handleDisconnect(client: CustomSocket) {
 		// console.log(new Date(),this.server.sockets.adapter.rooms);
-		console.log('Client rooms', client.rooms);
+		// console.log('Client rooms', client.rooms);
 		// client.leave('__connected_' + client.user.login);
 
 		// get user from db
@@ -152,7 +152,7 @@ export class EventsGateway {
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		console.log(new Date(), 1, userData);
+		// console.log(new Date(), 1, userData);
 		let login = client.user.login;
 		let target_login = userData.target_login;
 		if (!target_login) {
@@ -280,6 +280,7 @@ export class EventsGateway {
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
+		// console.log("mamak")
 		let login = client.user.login;
 		let target_login = userData?.target_login
 		if (!target_login) {

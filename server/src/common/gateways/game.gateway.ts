@@ -1,4 +1,4 @@
-import Crypto from 'crypto';
+const Crypto = require('crypto');
 import { CustomSocket } from '@/auth/auth.adapter';
 import { GameService } from '@/game/game.service';
 import { UserService } from '@/user/user.service';
@@ -240,6 +240,7 @@ export class GameGateway {
 			if (target.status != Status.INGAME)
 				throw new WsException('user not in game');
 			client.join(target.current_lobby);
+			return {lobby :target.current_lobby}
 		}
 		if (userData.target_lobby)
 		{
@@ -251,6 +252,8 @@ export class GameGateway {
 			if (room == 0)
 				throw new WsException('room not found');
 			client.join(userData.target_lobby);
+			return {lobby:userData.target_lobby}
+			
 		}
 		throw new WsException('data not given');
     }

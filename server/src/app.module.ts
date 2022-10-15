@@ -13,6 +13,8 @@ import { PrismaService } from '@/common/services/prisma.service';
 import { GatewayService } from './common/services/gateway.service';
 import { GameGateway } from './common/gateways/game.gateway';
 import { NotificationModule } from '@/notification/notification.module';
+import { NotificationGateway } from './common/gateways/notification.gateway';
+import { AchievementModule } from './achievement/achievement.module';
 
 @Module({
 	imports: [
@@ -25,9 +27,10 @@ import { NotificationModule } from '@/notification/notification.module';
 		UserModule,
 		GameModule,
 		RoomModule,
-		NotificationModule
+		NotificationModule,
+		AchievementModule
 	],
 	controllers: [],
-	providers: [GameGateway,GatewayService, EventsGateway, ChatGateway, PrismaService],
+	providers: [GameGateway,GatewayService, EventsGateway, ChatGateway, PrismaService, NotificationGateway],
 })
 export class AppModule { }

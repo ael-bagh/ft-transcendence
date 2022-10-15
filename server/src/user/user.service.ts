@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { User, Prisma, Game, Status } from '@prisma/client';
+import { use } from 'passport';
 
 @Injectable()
 export class UserService {
@@ -20,6 +21,59 @@ export class UserService {
 		});
 	}
 
+
+	async getUsersFriendsBySegment(
+		login: string,
+		segment?: string
+	): Promise<User[] | null> {
+		const users = await this.users({
+			where: {
+				OR :[
+					{
+						nickname: {
+							contains: segment,
+						},
+					},
+					{
+						login: {
+							contains: segment,
+						},
+					}
+				],
+				friends: {
+					some: {
+						login: login
+					}
+				}
+			}
+		})
+		console.log(users)
+		return users;
+	}
+
+	async getUsersBysegment(
+		login: string,
+		segment?: string
+	): Promise<User[] | null> {
+		const users = await this.users({
+			where: {
+				OR :[
+					{
+						nickname: {
+							contains: segment,
+						},
+					},
+					{
+						login: {
+							contains: segment,
+						},
+					}
+				],
+			}
+		})
+		console.log(users)
+		return users;
+	}
 
 	async getUserFriends(
 		login: string,
@@ -379,11 +433,6 @@ export class UserService {
 	async signupUser(
 		userData: { login: string; nickname: string; avatar: string, email: string },
 	): Promise<User> {
-		const user_exists = await this.user({ login: userData['login'] });
-		if (user_exists != null) {
-			console.log(new Date(), user_exists, "hi");
-			return user_exists;
-		}
 		userData['KDA'] = 0;
 		userData['two_factor_auth'] = '';
 		userData['creation_date'] = new Date();
@@ -519,6 +568,12 @@ export class UserService {
 
 	async deleteAllUsers(): Promise<Prisma.BatchPayload> {
 		return this.prisma.user.deleteMany({});
+	}
+
+	async addAcheivement(data : Prisma.AchievementCreateInput) {
+		return this.prisma.achievement.create({
+			data: data
+		})
 	}
 
 	async searchUsers(segment: string, user: User): Promise<User[]> {

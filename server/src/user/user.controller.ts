@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 
 import { UserService } from '@/user/user.service';
-import { User as UserModel, Game as GameModel, Status, prisma, Room } from '@prisma/client';
+import { User as UserModel, Game as GameModel, Status, prisma, Room, Achievement } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime';
 import { GameService } from '@/game/game.service';
 import { profile, timeStamp } from 'console';
@@ -29,6 +29,8 @@ import { HttpService } from '@nestjs/axios';
 import { NOTFOUND } from 'dns';
 import { MessageBody } from '@nestjs/websockets';
 import { NotificationService } from '@/notification/notification.service';
+import { Sleeping } from 'matter-js';
+import { AchievementService } from '@/achievement/achievement.service';
 
 
 enum status {
@@ -49,6 +51,7 @@ export class UserController {
 		private readonly userService: UserService,
 		private readonly gameService: GameService,
 		private readonly roomService: RoomService,
+		private readonly acheivementService: AchievementService,
 		
 	) { }
 
@@ -183,10 +186,18 @@ export class UserController {
 		return newUserInfo;
 	}
 
-	
+	@Get('achievements')
+	async getAchievements(@CurrentUser() user: UserModel) {
+		return(await this.acheivementService.getAchievements(user.login))
+	}
+
+
 	@Get(':login')
 	async getUserByLogin(@CurrentUser() user: UserModel, @Param('login') profile_login: string): Promise<UserModel> {
+		console.log('stupido', profile_login)
 		console.log("whuuuut",user);
+		if (profile_login == 'me')
+			return user;
 		let profile_user: UserModel | null;
 		if (!Number(profile_login)) {
 			if (user.login == profile_login)
@@ -254,11 +265,23 @@ export class UserController {
 			return false;
 		return true;
 	}
-	
-	@Get('/friends/:segment')
+	@Get(['/friends/some', '/some'])
+	async getNothing(@CurrentUser() user: UserModel,@Param("segment") segment: string)
+	{
+		return [];
+	}
+
+	@Get('/some/:segment')
+	async getUsersBysegments(@CurrentUser() user: UserModel,@Param("segment") segment: string)
+	{
+		const friends = await this.userService.getUsersBysegment(user.login, segment);
+		return friends;
+	}
+
+	@Get('/friends/some/:segment')
 	async getFriendsBySegment(@CurrentUser() user: UserModel,@Param("segment") segment: string)
 	{
-		const friends=await this.userService.getUserFriends(user.login, segment);
+		const friends = await this.userService.getUsersFriendsBySegment(user.login, segment);
 		return friends;
 	}
 	// @Delete('/:id/delete')

@@ -36,7 +36,7 @@ export class TwoFactorAuthenticationController {
     @Body('code') code: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-	console.log("mamak");
+	// console.log("mamak");
 	
     const user = await this.usersService.user({ login: login });
     if (!user) throw new BadRequestException('User with this login does not exist');
@@ -46,7 +46,7 @@ export class TwoFactorAuthenticationController {
     );
     if (!isCodeValid) throw new BadRequestException('Wrong authentication code');
     const refreshToken = await this.authenticationService.loginAndGenerateRefreshToken(user);
-	console.log('real one', refreshToken);
+	// console.log('real one', refreshToken);
     const accessToken = await this.authenticationService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
@@ -88,7 +88,7 @@ export class TwoFactorAuthenticationController {
     @Body() { code, secret }: { code: string; secret: string },
     @CurrentUser() user: UserModel,
   ) {
-    console.log(code, secret);
+    // console.log(code, secret);
     const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(code, secret);
     if (!isCodeValid) {
       throw new BadRequestException('Wrong authentication code');

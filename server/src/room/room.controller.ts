@@ -91,7 +91,7 @@ export class RoomController {
 	}
 	@Delete(":room_id/leaveroom")
 	async leaveRoom(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<Room[]> {
-		console.log(room_id, "not here");
+		// console.log(room_id, "not here");
 		if (Number(room_id) == NaN)
 			return null;
 		const room = await this.roomService.room({ room_id: Number(room_id) });
@@ -169,6 +169,7 @@ export class RoomController {
 		const rooms = await this.roomService.rooms({
 			where: whereClause,
 			include: {
+				room_admins: true,
 				room_users: true,
 				room_messages:
 				{
@@ -190,7 +191,7 @@ export class RoomController {
 			room_password : undefined,
 			unread_messages_count: await this.roomService.unseenMessages(room.room_id, user.login),
 		})));
-		console.log(new Date(),test);
+		// console.log(new Date(),test);
 		return(test);
 	}
 
@@ -290,7 +291,7 @@ export class RoomController {
 
 	@Get(':room_id')
 	async getRoom(@CurrentUser() action_performer: User, @Param('room_id') room_id: string): Promise<Room | null> {
-		console.log(room_id);
+		// console.log(room_id);
 		if (Number(room_id) == NaN)
 			return null;
 		if (await (this.roomService.roomPermissions(action_performer.login, 'viewRoom', null, { room_id: Number(room_id) })) == false)
@@ -301,7 +302,7 @@ export class RoomController {
 			room.room_name = (action_performer.login == room_users[0].login ? room_users[1].login : room_users[0].login)
 		}
 		delete (room).room_password;
-		console.log(new Date(),room);
+		// console.log(new Date(),room);
 		return room;
 	}
 
@@ -334,8 +335,11 @@ export class RoomController {
 		console.log("dcnjdnckwd");
 		if (Number(room_id) == NaN)
 			return null;
-		if (await (this.roomService.roomPermissions(user.login, 'banFromRoom', { login: user_login }, { room_id: Number(room_id) })) == false)
+		if (await (this.roomService.roomPermissions(user.login, 'banFromRoom', { login: user_login }, { room_id: Number(room_id) })) == false){
+			console.log("why????");
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+		}
+		console.log("ban saad", user.login, user_login);
 		return this.roomService.banFromRoom({ room_id: Number(room_id) }, { login: user_login });
 	}
 
