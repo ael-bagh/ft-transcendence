@@ -24,6 +24,7 @@ model User {
 	is_banned Boolean?
 	KDA	Decimal?
 	wins Int @default(0)
+	games_played Int @default(0)
 	games_won Game[] @relation("winner")
 	games_lost Game[] @relation ("loser")
 	set_won Set[] @relation("set_winner")
@@ -60,6 +61,7 @@ model Notification {
 	notification_receiver User? @relation("notification_receiver", fields: [notification_receiver_login], references: [login])
 	notification_sender_login String
 	notification_sender User? @relation("notification_sender", fields: [notification_sender_login], references: [login])
+	notification_payload String?
 	notification_seen Boolean
 }
 
@@ -73,6 +75,7 @@ model Set {
 	set_loser User? @relation("set_loser", fields: [set_loser_login], references: [login])
 	set_winner_score Int
 	set_loser_score Int
+	set_date DateTime
 }
 
 model Game {
@@ -92,8 +95,10 @@ model Game {
 model Achievement {
 	achievements_id Int @id @default(autoincrement())
 	achievement_name Achievements_name
-	achievement_image String
-	achievement_user User[] @relation("user_achievements")
+	// achievement_image String
+	achievement_user_login String
+	achievement_user User @relation("user_achievements", fields: [achievement_user_login], references: [login])
+	achievement_date DateTime @default(now())
 }
 
 model Room {
@@ -138,15 +143,17 @@ enum Status {
 	ONLINE
 	INGAME
 	INQUEUE
+	SPECTATING
 }
 
 enum Achievements_name {
-	TheAddict
-	WinStreak
+	WELCOME
+	FIRST_GAME
+	FIRST_WIN
 }
 
 enum Notification_type {
-	GAME_INVIT
+	GAME_INVITE
 	FRIEND_REQUEST
 	NEW_FRIEND
 }

@@ -36,7 +36,6 @@ export class TwoFactorAuthenticationController {
     @Body('code') code: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-	console.log("mamak");
 	
     const user = await this.usersService.user({ login: login });
     if (!user) throw new BadRequestException('User with this login does not exist');
@@ -46,8 +45,7 @@ export class TwoFactorAuthenticationController {
     );
     if (!isCodeValid) throw new BadRequestException('Wrong authentication code');
     const refreshToken = await this.authenticationService.loginAndGenerateRefreshToken(user);
-	console.log('real one', refreshToken);
-    const accessToken = await this.authenticationService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
+	const accessToken = await this.authenticationService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
 	  domain: process.env.DOMAIN,
@@ -62,16 +60,7 @@ export class TwoFactorAuthenticationController {
       path: '/',
     });
     return user;
-  }
-
-  // @Get('generate')
-  // // @UseGuards(JwtAuthGuard)
-  // async register(@Res() response: Response, @CurrentUser() user: UserModel) {
-  //   const { otpauthUrl } = await this.twoFactorAuthenticationService.generateTwoFactorAuthenticationSecret(user);
-  //   return otpauthUrl
-
-  //   // return this.twoFactorAuthenticationService.pipeQrCodeStream(response, otpauthUrl);
-  // }  
+  } 
 
   @Get("generate")
   @HttpCode(200)
@@ -88,7 +77,6 @@ export class TwoFactorAuthenticationController {
     @Body() { code, secret }: { code: string; secret: string },
     @CurrentUser() user: UserModel,
   ) {
-    console.log(code, secret);
     const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(code, secret);
     if (!isCodeValid) {
       throw new BadRequestException('Wrong authentication code');

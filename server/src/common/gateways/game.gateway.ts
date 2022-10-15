@@ -1,4 +1,4 @@
-import Crypto from 'crypto';
+const Crypto = require('crypto');
 import { CustomSocket } from '@/auth/auth.adapter';
 import { GameService } from '@/game/game.service';
 import { UserService } from '@/user/user.service';
@@ -15,6 +15,7 @@ import { Server } from 'socket.io';
 import { GatewayService } from '../services/gateway.service';
 import { PrismaService } from '../services/prisma.service';
 import * as dotenv from 'dotenv'
+import { NotificationService } from '@/notification/notification.service';
 dotenv.config()
 
 @WebSocketGateway({
@@ -30,6 +31,7 @@ export class GameGateway {
 		private readonly prisma: PrismaService,
 		private readonly gameService: GameService,
 		private readonly gateWayService: GatewayService,
+		private readonly notificationService: NotificationService
 	) { }
 
 	@WebSocketServer()
@@ -37,11 +39,10 @@ export class GameGateway {
 
 	@SubscribeMessage('invite_to_game')
 	async sendRequest(
-		@MessageBody() userData: { target_login: string , mode: Game_mode},
+		@MessageBody() userData: { target_login: string, mode: Game_mode },
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		client.user = await this.userService.user({login: client.user.login})
-		console.log(client.user.login, client.user.status ,userData.target_login)
+		client.user = await this.userService.user({ login: client.user.login })
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || !userData?.target_login)
 			throw new WsException('data not given');
 		if (userData.target_login === client.user.login || client.user.status !== Status.ONLINE)
@@ -55,9 +56,7 @@ export class GameGateway {
 		});
 		if (!allowed)
 			throw new WsException('Not allowd');
-		// const target_rooms = this.server.sockets.adapter.rooms.get('__connected_' + target_login);
-		// console.log(target_login,target_rooms);
-		const opp = await this.userService.user({login: target_login})
+		const opp = await this.userService.user({ login: target_login })
 		if (opp.status !== Status.ONLINE)
 			throw new WsException('Player Unavailable')
 		client.user = await this.userService.updateUser({
@@ -68,10 +67,23 @@ export class GameGateway {
 				status: Status.INQUEUE
 			}
 		})
-		console.log(client.user.login, client.user.status)
+		this.gateWayService.broadcastStatusChangeToFriends(
+			this.server,
+			this.userService,
+			client.user
+		);
 		const room = Crypto.randomBytes(20).toString('hex');
 		client.join(room);
-		this.server.to(`__connected_${target_login}`).emit('game_request', {target_login : client.user.login, mode : userData.mode, roomId: room});
+		const notification = await this.notificationService.addNotification({
+			notification_type: 'GAME_INVITE',
+			notification_date: new Date(),
+			notification_receiver_login: target_login,
+			notification_sender_login: login,
+			notification_seen: false,
+			notification_payload: JSON.stringify({ target_login: client.user.login, mode: userData.mode, roomId: room, })
+		});
+		this.server.to(`__connected_${target_login}`).emit('notification', notification);
+		// this.server.to(`__connected_${target_login}`).emit('game_request', { target_login: client.user.login, mode: userData.mode, roomId: room, });
 	}
 
 
@@ -80,8 +92,18 @@ export class GameGateway {
 		@MessageBody() userData: { target_login: string, isAccepted: boolean, mode: Game_mode, roomId: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		client.user = await this.userService.user({login: client.user.login})
-		console.log(client.id);
+		client.user = await this.userService.user({ login: client.user.login })
+		try {
+			const notification = await this.notificationService.findNotification({
+				notification_sender_login: userData.target_login,
+				// no	
+			} as any);
+	
+			await this.notificationService.deleteNotification(notification.notification_id);
+			const cancel_notification = {notification_id: notification.notification_id, notification_type:""};
+			this.server.to('__connected_' + notification.notification_receiver_login).emit('notification', cancel_notification);
+		} catch (_) {}
+	
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || userData?.target_login === undefined || userData?.isAccepted === undefined)
 			throw new WsException('data not given');
 		let login = client.user.login;
@@ -96,10 +118,10 @@ export class GameGateway {
 		});
 		if (!allowed)
 			throw new WsException('Not found');
-		if (this.server.sockets.adapter.rooms.get(userData.roomId).size !== 1)
+		const room = this.server.sockets.adapter.rooms.get(userData.roomId);
+		if (room.size!==1)
 			throw new WsException('player gone');
-		if (!userData.isAccepted)
-		{
+		if (!userData.isAccepted) {
 			this.server.to(userData.roomId).emit('game_accepted', 'refused');
 			const queue = this.server.sockets.adapter.rooms.get(userData.roomId);
 			let matching_opp = this.server.sockets.sockets.get(
@@ -114,7 +136,12 @@ export class GameGateway {
 					status: Status.ONLINE
 				}
 			})
-			console.log(matching_opp.user.login, matching_opp.user.status)
+			matching_opp.inQueue = false;
+			this.gateWayService.broadcastStatusChangeToFriends(
+				this.server,
+				this.userService,
+				client.user
+			);
 			return;
 		}
 		client.join(userData.roomId);
@@ -125,10 +152,9 @@ export class GameGateway {
 	async joinGameQueue(
 		@MessageBody() userData: { mode: Game_mode },
 		@ConnectedSocket() client: CustomSocket) {
-		client.user = await this.userService.user({login: client.user.login})
+		client.user = await this.userService.user({ login: client.user.login })
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode))
 			throw new WsException('data not given');
-		console.log('join game queue');
 		if (client.user.status != Status.ONLINE)
 			throw new WsException('Action Unavailable');
 		client.user = await this.userService.updateUser({
@@ -140,7 +166,6 @@ export class GameGateway {
 			}
 		})
 		client.inQueue = true;
-		console.log(client.user);
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
 			this.userService,
@@ -148,44 +173,66 @@ export class GameGateway {
 		);
 		if (!this.server.sockets.adapter.rooms.has('__game_queue' + userData.mode)) {
 			client.join('__game_queue' + userData.mode);
-			console.log('joined game');
+			this.server.to("__connected_" + client.user.login).emit("join_queue", userData.mode);
 			return;
 		}
-		console.log('game found');
 		const queue = this.server.sockets.adapter.rooms.get('__game_queue' + userData.mode);
 		let matching_opp = this.server.sockets.sockets.get(
 			queue.values().next().value,
 		) as CustomSocket;
 		if (matching_opp.user.login == client.user.login) {
-			console.log('same person');
 			this.server.to('__connected_' + client.user.login).emit('i_am_you');
 			return;
 		}
 		matching_opp.inQueue = false;
-		console.log(matching_opp.user, 'hihi');
 		matching_opp.leave('__game_queue' + userData.mode);
-		console.log('accepting game');
+		// console.log(userData.mode);
 		const game_lobby = Crypto.randomBytes(20).toString('hex');
 		client.join(game_lobby);
 		matching_opp.join(game_lobby);
 		this.server.to(game_lobby).emit('accept_game', 'go');
-		
+
 		const wait_res  = (sock:CustomSocket) => {
 			return new Promise<Boolean>(((resolve , reject) => {
 				sock.on("accept_response", (obj: {isAccepted :Boolean}) => {
 				resolve(obj.isAccepted);
 			  });
 			}));
-		  };
+		};
 		const res = await Promise.all([wait_res(client), wait_res(matching_opp)]);
-		console.log(res[0], res[1]);
-		
+
 		if (res[0] == true && res[1] == true) {
-			console.log('starting game');
 			this.gameService.startGame(this.server, game_lobby, userData.mode);
 		}
-		else
-		{
+		else {
+			client.user = await this.userService.updateUser({
+				where: {
+					login: client.user.login
+				},
+				data: {
+					status: Status.ONLINE
+				}
+			})
+			client.inQueue = false;
+			matching_opp.user = await this.userService.updateUser({
+				where: {
+					login: matching_opp.user.login
+				},
+				data: {
+					status: Status.ONLINE
+				}
+			})
+			matching_opp.inQueue = false;
+			this.gateWayService.broadcastStatusChangeToFriends(
+				this.server,
+				this.userService,
+				client.user
+			);
+			this.gateWayService.broadcastStatusChangeToFriends(
+				this.server,
+				this.userService,
+				matching_opp.user
+			);
 			this.server.to(game_lobby).emit('game_accepted', 'refused');
 			client.leave(game_lobby);
 			matching_opp.leave(game_lobby);
@@ -193,23 +240,25 @@ export class GameGateway {
 	}
 
 	@SubscribeMessage('quit_queue')
-    async quitQueue(
-		@MessageBody() userData: {mode: Game_mode},
-        @ConnectedSocket() client: CustomSocket,
-    ) {
-		client.user = await this.userService.user({login: client.user.login})
+	async quitQueue(
+		@MessageBody() userData: { mode: Game_mode },
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		client.user = await this.userService.user({ login: client.user.login })
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode))
 			throw new WsException('data not given');
 		let found = false;
-		if (client.user.status == Status.INQUEUE)
-		{
-			this.server.sockets.adapter.rooms.get('__game_queue' + userData.mode).forEach( async (socketId) => {
+		if (client.user.status == Status.INQUEUE) {
+			this.server.sockets.adapter.rooms.get('__connected_' + client.user.login).forEach(async (socketId) => {
 				const socket = this.server.sockets.sockets.get(socketId) as CustomSocket;
-				if (socket.rooms.has('__game_queue' + userData.mode))
-				{
-					socket.leave('__game_queue' + userData.mode);
+				const mode = socket.rooms.has('__game_queue' + 'ONE') ? 'ONE' :
+							 socket.rooms.has('__game_queue' + 'RANKED') ? 'RANKED' :
+							 socket.rooms.has('__game_queue' + 'NORMAL') ? 'NORMAL' :
+							 "NOPE";
+				if (mode!=="NOPE") {
+					socket.leave('__game_queue' + mode);
 					socket.inQueue = false;
-					client.emit('queue_quitted', 'ok');
+					this.server.to('__connected_' + client.user.login).emit('queue_quitted', 'ok');
 					found = true;
 					client.user = await this.userService.updateUser({
 						where: {
@@ -219,46 +268,98 @@ export class GameGateway {
 							status: Status.ONLINE
 						}
 					})
+					client.inQueue = false;
+					this.gateWayService.broadcastStatusChangeToFriends(
+						this.server,
+						this.userService,
+						client.user
+					);
 				}
 			});
 		}
-        if (!found)
-            throw new WsException('not in queue');
-    }
+		if (!found) {
+			client.user = await this.userService.updateUser({
+				where: {
+					login: client.user.login
+				},
+				data: {
+					status: Status.ONLINE
+				}
+			})
+			client.inQueue = false;
+			this.gateWayService.broadcastStatusChangeToFriends(
+				this.server,
+				this.userService,
+				client.user
+			);
+			try {
+				const notification = await this.notificationService.findNotification({
+					notification_sender_login: client.user.login,
+					notification_type: 'GAME_INVITE'
+				} as any);
+				await this.notificationService.deleteNotification(notification.notification_id);
+				const cancel_notification = {notification_id: notification.notification_id, notification_type:""};
+				this.server.to('__connected_' + notification.notification_receiver_login).emit('notification', cancel_notification);
+			} catch (error) {}
+			this.server.to('__connected_' + client.user.login).emit('queue_quitted', 'ok');
+		}
+	}
 
 	@SubscribeMessage('spectate')
-    async spectate(
-		@MessageBody() userData: {target_login: string},
-        @ConnectedSocket() client: CustomSocket,
-    ) {
-		client.user = await this.userService.user({login: client.user.login})
-		let allowed = await this.userService.permissionToDoAction({
-			action_performer: client.user.login,
-			action_target: userData.target_login,
-			action_mutual: true
-		});
-		if (!allowed)
-			throw new WsException('Not allowd');
-		const target = await this.userService.user({login: userData.target_login})
-		if (target.status !== Status.INGAME)
-			throw new WsException('Not in game');
-		client.join(target.current_lobby);
-		return ({lobby: target.current_lobby});
-    }
+	async spectate(
+		@MessageBody() userData: { target_login?: string, target_lobby?: string },
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		client.user = await this.userService.user({ login: client.user.login })
+		if (userData.target_login) {
+			const target = await this.userService.user({ login: userData.target_login })
+			if (!target)
+				throw new WsException('user not found');
+			if (target.status != Status.INGAME)
+				throw new WsException('user not in game');
+			client.join(target.current_lobby);
+			return { lobby: target.current_lobby }
+		}
+		if (userData.target_lobby) {
+			const room = await this.prisma.user.count({
+				where: {
+					current_lobby: userData.target_lobby,
+				}
+			})
+			if (room == 0)
+				throw new WsException('room not found');
+			client.join(userData.target_lobby);
+			return { lobby: userData.target_lobby }
+
+		}
+		throw new WsException('data not given');
+	}
 	@SubscribeMessage('move')
 	async move(
 		@ConnectedSocket() client: CustomSocket,
 		@MessageBody() data: number,
 	) {
-		
-		console.log(data);
+
 		if (!client.game_lobby || !client.game_lobby.gameStarted)
 			return;
-		console.log(data);
 		const game = client.game_lobby;
 		if (data > 0) game.mov[client.user_nb] = 1;
 		else if (data < 0) game.mov[client.user_nb] = -1;
 		else game.mov[client.user_nb] = 0;
 	}
 
+	@SubscribeMessage('quitGame')
+	async quitGame(
+		@MessageBody() userData: { target_lobby: string },
+		@ConnectedSocket() client: CustomSocket,
+	) {
+		client.user = await this.userService.user({ login: client.user.login })
+		if (client.user.current_lobby === userData.target_lobby) {
+			if (client.game_lobby !== undefined) {
+				client.game_lobby.forceEnd(client.user.login);
+			}
+		}
+		else
+			client.leave(userData.target_lobby);
+	}
 }

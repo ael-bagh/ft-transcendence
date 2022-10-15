@@ -24,7 +24,7 @@ export class GatewayService {
 		user: User) {
 			const friends = await userService.getUserFriends(user.login);
 			for (let index = 0; index < friends.length; index++) {
-				server.to('__connected_' + friends[index])
+				server.to('__connected_' + friends[index].login)
 				.emit(
 					"friend_updated_status",
 					{ login: user.login, status: user.status }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
-import { Game, User, Prisma, Status, Set, Game_mode } from '@prisma/client';
+import { Game, User, Prisma, Status, Set, Game_mode, Achievements_name } from '@prisma/client';
 import { Server } from 'socket.io';
 import { CustomSocket } from '@/auth/auth.adapter';
 import { GameObject, GameEnded } from './game.object';
@@ -77,19 +77,44 @@ export class GameService {
 				set_loser_login: gameEnded.loser,
 				set_winner_score: gameEnded.winner_score,
 				set_loser_score: gameEnded.loser_score,
+				set_date: new Date()
 			}
 		});
-		if (gameEnded.game_type == Game_mode.RANKED)
-			await this.prisma.user.update({
-				where: {
-					login: gameEnded.winner
+		// if (gameEnded.game_type == Game_mode.RANKED)
+		const winner = await this.prisma.user.update({
+			where: {
+				login: gameEnded.winner
+			},
+			data: {
+				wins :{
+					increment: 1
 				},
-				data: {
-					wins :{
-						increment: 1
+				games_played: {
+					increment: 1
+				}
+			}
+		});
+		if (winner.wins == 1)
+		{
+			await this.userService.addAcheivement({
+				achievement_name:Achievements_name.FIRST_WIN,
+				achievement_user:{
+					connect:{
+						login:gameEnded.winner
 					}
 				}
-			});
+			})
+		}
+		await this.prisma.user.update({
+			where: {
+				login: gameEnded.loser
+			},
+			data: {
+				games_played: {
+					increment: 1
+				}
+			}
+		});
 		let games = Promise.all(gameEnded.games.map(async game => {
 			await this.prisma.game.create({
 				data: {
@@ -114,7 +139,6 @@ export class GameService {
 		});
 	}
 	async startGame(server: Server, roomId: string, mode: Game_mode) {
-		console.log('start game');
 		const room = server.sockets.adapter.rooms.get(roomId);
 		if (!room || room.size !== 2)
 			return;
@@ -125,12 +149,30 @@ export class GameService {
 		let player2 = server.sockets.sockets.get(
 			it.next().value,
 		) as CustomSocket;
-		console.log(player1.user.login);
-		console.log(player2.user.login);
 		player1.user_nb = 0;
 		player2.user_nb = 1;
 		server.to(roomId).emit('game_accepted', roomId);
 		const game = new GameObject(server, roomId, mode, player1.user.login, player2.user.login);
+		if (player1.user.games_played==0){
+			await this.userService.addAcheivement({
+				achievement_name:Achievements_name.FIRST_GAME,
+				achievement_user:{
+					connect:{
+						login:player1.user.login
+					}
+				}
+			})
+		}
+		if (player2.user.games_played==0){
+			await this.userService.addAcheivement({
+				achievement_name:Achievements_name.FIRST_GAME,
+				achievement_user:{
+					connect:{
+						login:player2.user.login
+					}
+				}
+			})
+		}
 		player1.game_lobby = game;
 		player2.game_lobby = game;
 		const score = await Promise.all([
@@ -140,10 +182,15 @@ export class GameService {
 			}),
 			this.userService.updateUser({
 				where: { login: player2.user.login },
-				data: { current_lobby: roomId, status: Status.INGAME },
+				data: {
+					current_lobby: roomId,
+					status: Status.INGAME,
+				},
 			}),
 			game.run(),
 		]);
+		player1.inQueue = false;
+		player2.inQueue = false;
 		const data = await Promise.all([
 			this.userService.updateUser({
 				where: { login: player1.user.login },
@@ -155,7 +202,6 @@ export class GameService {
 			}),
 			this.saveGame(score[2]),
 		]);
-		console.log(score[2]);
 		server.to(roomId).emit('game_ended', score[2]);
 	}
 

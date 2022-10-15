@@ -16,7 +16,6 @@ export class AuthService {
       sub: user.user_id,
       refreshId: Math.random().toString(16).slice(2) + Date.now(),
     };
-    // console.log(payload);
 
     return this.jwtService.sign(payload, { expiresIn: '60d' });
   }

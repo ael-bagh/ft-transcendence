@@ -32,14 +32,24 @@ export class ChatGateway {
 		@MessageBody() data: Message,
 		@ConnectedSocket() client: CustomSocket,
 	): Promise<Message> {
-		console.log('message type: ', data.message_room_id);
 		if (await (this.roomService.roomPermissions(client.user.login, 'viewRoom', null, { room_id: data.message_room_id },)) == false)
 			throw new WsException('Not found');
+		const user = await this.prisma.user.findUnique({
+			where: {
+				login: client.user.login
+			},
+			include: {
+				blocked_by_users: true
+			}
+		})
+		const blockers_logins = user.blocked_by_users.map((user) => user.login);
 		const message = await this.roomService.addUserMessage(data.message_content,client.user.login,String(data.message_room_id), client.user.login)
 		const users = await this.roomService.getRoomUsers({room_id:data.message_room_id});
-		console.log('message: ', message)
 		users.map(async user =>{
-			this.server.to('__connected_'+user.login).emit("message", message)
+			if (!blockers_logins.some((e)=>e==user.login))
+			{
+				this.server.to('__connected_'+user.login).emit("message", message)
+			}
 		});
 		return message;
 	}
@@ -48,11 +58,7 @@ export class ChatGateway {
 		@ConnectedSocket() client : CustomSocket,
 		@MessageBody() data : {room_id: number}
 	) : Promise<Message[]> {
-		const messages = await this.roomService.getRoomMessages(data.room_id);
+		const messages = await this.roomService.getRoomMessages(data.room_id, client.user.login);
 		return messages.reverse();
 	}
-	// @SubscribeMessage('join_room')
-	// async handleSystemMessage(
-	// 	@MessageBody() 
-	// )
 }

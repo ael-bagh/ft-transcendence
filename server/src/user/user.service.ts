@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { User, Prisma, Game, Status } from '@prisma/client';
+import { use } from 'passport';
 
 @Injectable()
 export class UserService {
@@ -20,6 +21,57 @@ export class UserService {
 		});
 	}
 
+
+	async getUsersFriendsBySegment(
+		login: string,
+		segment?: string
+	): Promise<User[] | null> {
+		const users = await this.users({
+			where: {
+				OR :[
+					{
+						nickname: {
+							contains: segment,
+						},
+					},
+					{
+						login: {
+							contains: segment,
+						},
+					}
+				],
+				friends: {
+					some: {
+						login: login
+					}
+				}
+			}
+		})
+		return users;
+	}
+
+	async getUsersBysegment(
+		login: string,
+		segment?: string
+	): Promise<User[] | null> {
+		const users = await this.users({
+			where: {
+				OR :[
+					{
+						nickname: {
+							contains: segment,
+						},
+					},
+					{
+						login: {
+							contains: segment,
+						},
+					}
+				],
+			}
+		})
+		return users;
+	}
 
 	async getUserFriends(
 		login: string,
@@ -48,7 +100,6 @@ export class UserService {
 			// 	},
 			//	]
 		})
-		console.log(users)
 		return users;
 	}
 
@@ -62,7 +113,6 @@ export class UserService {
 			relationships.is_self = true;
 			return relationships;
 		}
-		// console.log(new Date(),friend_login);
 		if (await this.getFriendBool({
 			where: {
 				login: login,
@@ -126,7 +176,6 @@ export class UserService {
 				}
 
 			});
-			console.log(new Date(), users)
 			return users.friend_requests_sent;
 		}
 		else if (includename == 'received_requests') {
@@ -139,7 +188,6 @@ export class UserService {
 				}
 
 			});
-			console.log(new Date(), users)
 			return users.friend_requests;
 		}
 		else
@@ -174,17 +222,6 @@ export class UserService {
 			}).games_lost();
 		}
 	}
-
-	// async userPermissions(
-	// 	action_perfomer: Prisma.UserWhereUniqueInput,
-	// 	action: string,
-	// 	action_target: Prisma.UserWhereUniqueInput,
-	// ): Promise<Boolean> {
-	// 	switch (action) {
-	// 		// add user permissions here.
-	// 	}
-	// 	return false;
-	// }
 
 	async deleteFriends(user_login: string, friend_login: string) {
 		await this.prisma.user.update({
@@ -379,11 +416,6 @@ export class UserService {
 	async signupUser(
 		userData: { login: string; nickname: string; avatar: string, email: string },
 	): Promise<User> {
-		const user_exists = await this.user({ login: userData['login'] });
-		if (user_exists != null) {
-			console.log(new Date(), user_exists, "hi");
-			return user_exists;
-		}
 		userData['KDA'] = 0;
 		userData['two_factor_auth'] = '';
 		userData['creation_date'] = new Date();
@@ -446,20 +478,16 @@ export class UserService {
 	}
 	): Promise<Boolean> {
 		const { login, friend_login } = params;
-		console.log(new Date(), login, friend_login);
 		const friend = await this.user({ login: friend_login });
 		const user = await this.user({ login: login });
 		if (!user || !friend)
 			return null;
-		// if not mutual request
-		console.log(new Date(), 'survived')
 		let mutual = await this.prisma.user.count({
 			where: {
 				friend_requests: { some: { login: friend_login } },
 				login: login
 			}
 		});
-		console.log(new Date(), 'mutual:', mutual);
 		if (mutual == 0) {
 			await this.updateUser({
 				where: { login: (friend_login) },
@@ -484,7 +512,6 @@ export class UserService {
 			params.onFinish && params.onFinish(user, friend_login, false);
 		}
 		else {
-			console.log('yo bitch wtf?')
 			await this.addfriends(login, friend_login);
 			await this.updateUser({
 				where: { login: (login) },
@@ -519,6 +546,12 @@ export class UserService {
 
 	async deleteAllUsers(): Promise<Prisma.BatchPayload> {
 		return this.prisma.user.deleteMany({});
+	}
+
+	async addAcheivement(data : Prisma.AchievementCreateInput) {
+		return this.prisma.achievement.create({
+			data: data
+		})
 	}
 
 	async searchUsers(segment: string, user: User): Promise<User[]> {

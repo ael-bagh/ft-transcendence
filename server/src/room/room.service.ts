@@ -7,8 +7,8 @@ import { compare, genSalt, hash } from "bcrypt";
 export class RoomService {
 	constructor(private prisma: PrismaService) {
 		prisma.$on<any>('query', (event: Prisma.QueryEvent) => {
-			console.log(new Date(),'Query: ' + event.query);
-			console.log(new Date(),'Duration: ' + event.duration + 'ms');
+			console.log(new Date(), 'Query: ' + event.query);
+			console.log(new Date(), 'Duration: ' + event.duration + 'ms');
 		});
 	}
 
@@ -38,10 +38,7 @@ export class RoomService {
 		let room = await this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
 		});
-		// console.log(await compare(password, room.room_password));
-		if (!room.room_private || await compare(password, room.room_password))
-		{
-			console.log("ok?")
+		if (!room.room_private || await compare(password, room.room_password)) {
 			room = await this.prisma.room.update({
 				where: roomWhereUniqueInput,
 				data: {
@@ -57,11 +54,10 @@ export class RoomService {
 
 	async roomUsersCount(
 		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
-	): Promise<Number>
-	{
+	): Promise<Number> {
 		const room = await this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
-			include:{
+			include: {
 				room_users: true
 			}
 		});
@@ -84,7 +80,7 @@ export class RoomService {
 
 	async greedySuccessor(
 		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
-	) : Promise<User | null> {
+	): Promise<User | null> {
 		const room = await this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
 			include: {
@@ -112,13 +108,13 @@ export class RoomService {
 					},
 				},
 				room_admins: {
-					disconnect:{
-						login:room.room_creator_login
+					disconnect: {
+						login: room.room_creator_login
 					}
 				},
 				room_users: {
-					disconnect:{
-						login:room.room_creator_login
+					disconnect: {
+						login: room.room_creator_login
 					}
 				}
 			},
@@ -155,8 +151,6 @@ export class RoomService {
 				}).then((count) => count > 0);
 			case 'removeAdmin':
 			case 'addAdmin':
-				console.log("yo", action_room)
-				// Check if user is creator of the room
 				return await this.prisma.room.count({
 					where: {
 						room_id: action_room.room_id,
@@ -177,17 +171,22 @@ export class RoomService {
 						]
 					}
 				}).then((count) => count > 0);
-			// Check if user is creator of the room
 			case 'banFromRoom':
 				return await this.prisma.room.count({
 					where: {
 						room_id: action_room.room_id,
-						room_admins: {
-							some:
-							{
-								login: action_perfomer,
+						OR: [{
+							room_admins: {
+								some:
+								{
+									login: action_perfomer,
+								},
 							},
 						},
+						{
+							room_creator_login: action_perfomer,
+						}
+						],
 						NOT:
 						{
 							OR: [
@@ -195,7 +194,6 @@ export class RoomService {
 									room_banned_users: {
 										some:
 										{
-
 											login: action_target.login
 										}
 									}
@@ -210,16 +208,22 @@ export class RoomService {
 
 					}
 				}).then((count) => count > 0);
+
 			case 'unbanFromRoom':
 				return await this.prisma.room.count({
 					where: {
 						room_id: action_room.room_id,
-						room_admins: {
-							some:
-							{
-								login: action_perfomer,
+						OR: [{
+							room_admins: {
+								some:
+								{
+									login: action_perfomer,
+								},
 							},
-						},
+							room_creator_login: action_perfomer,
+
+						}
+						],
 						room_banned_users: {
 							some:
 							{
@@ -289,40 +293,17 @@ export class RoomService {
 						}
 					}).then((count) => count > 0));
 			case 'seeMessages':
-				return (await this.seemessages(action_room.room_id,action_perfomer))
-			
-			// case 'editRoom':
-				// return await this.prisma.room.count({
-				// 	where: {
-				// 		room_id: action_room.room_id,
-				// 		OR:[
-				// 			{
-				// 				room_creator: {
-				// 					login: action_perfomer
-				// 				}
-				// 			},
-				// 			{
-				// 				room_admins:{
-				// 					some:{
-				// 						login: action_perfomer
-				// 					}
-				// 				}
-				// 			}
-				// 		]
-						
-				// 	}
-				// }).then((count) => count > 0);
-
+				return (await this.seemessages(action_room.room_id, action_perfomer))
 			default:
 				return false;
 		}
 	}
 
 	async createRoom(
-		roomData: { room_password?: string; room_name: string; room_creator_login: string; room_private: boolean;room_direct_message : boolean }
+		roomData: { room_password?: string; room_name: string; room_creator_login: string; room_private: boolean; room_direct_message: boolean }
 	): Promise<Partial<Room>> {
 		let data: Prisma.RoomCreateInput = {
-			room_name: roomData['room_name'], 
+			room_name: roomData['room_name'],
 			room_creator: {
 				connect: {
 					login: roomData['room_creator_login']
@@ -336,17 +317,19 @@ export class RoomService {
 			room_private: roomData['room_private'],
 			room_direct_message: roomData['room_direct_message'],
 			room_creation_date: new Date(),
-			room_password: (roomData['room_private'] ? await hash(roomData['room_password'], 12):null),
+			room_password: (roomData['room_private'] ? await hash(roomData['room_password'], 12) : null),
 			room_users: {
 				connect: {
 					login: roomData['room_creator_login']
 				}
 			}
 		};
-		return this.prisma.room.create({ data, select: {
-			room_id: true,
-			room_name:true
-		} })
+		return this.prisma.room.create({
+			data, select: {
+				room_id: true,
+				room_name: true
+			}
+		})
 	}
 
 	async rooms(params: Prisma.RoomFindManyArgs): Promise<Room[]> {
@@ -356,7 +339,7 @@ export class RoomService {
 	async room(
 		roomWhereUniqueInput: Prisma.RoomWhereUniqueInput,
 	): Promise<Room | null> {
-		let room =  await this.prisma.room.findUnique({
+		let room = await this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
 			include: {
 				_count: {
@@ -375,21 +358,22 @@ export class RoomService {
 						}
 					}
 				},
+				room_admins: true
 			},
 		});
 		let users = await this.prisma.user.findMany({
 			where: {
-				rooms_member:{
-					some:{
+				rooms_member: {
+					some: {
 						room_id: roomWhereUniqueInput.room_id
+					}
 				}
+			},
+			select: {
+				login: true,
+				nickname: true,
+				avatar: true
 			}
-		},
-		select:{
-			login:true,
-			nickname:true,
-			avatar:true
-		}
 		});
 		await Promise.all(users.map(async (user) => {
 			if (await this.isRoomAdmin(room.room_id, user.login)) {
@@ -403,14 +387,14 @@ export class RoomService {
 	}
 
 	async isRoomAdmin(
-		room_id : number,
-		data : string,
-	) : Promise<boolean> {
+		room_id: number,
+		data: string,
+	): Promise<boolean> {
 		return await this.prisma.room.count({
 			where: {
 				room_id: room_id,
-				room_admins:{
-					some:{
+				room_admins: {
+					some: {
 						login: data
 					}
 				},
@@ -419,33 +403,35 @@ export class RoomService {
 	}
 
 	async directMessageRoom(
-		params : Prisma.RoomFindManyArgs
-	):  Promise<Room | null> {
+		params: Prisma.RoomFindManyArgs
+	): Promise<Room | null> {
 		return this.prisma.room.findFirst(params);
 	}
 
-	async deleteRooms(where: Prisma.RoomWhereUniqueInput)
-	{
+	async deleteRooms(where: Prisma.RoomWhereUniqueInput) {
 		this.prisma.room.deleteMany({
 			where,
 		})
 	}
 
-	async deleteRoom(where: Prisma.RoomWhereUniqueInput){
+	async deleteRoom(where: Prisma.RoomWhereUniqueInput) {
+		const room = await this.prisma.room.findUnique({
+			where,
+			include: {
+				room_messages: true
+			}
+		})
+		room.room_messages.map(async (message) => {
+			await this.prisma.message.delete({
+				where: {
+					message_id: message.message_id
+				}
+			})
+		});
 		await this.prisma.room.delete({
 			where,
 		});
 	}
-
-	// async updateRoom(
-	// 	where: Prisma.RoomWhereUniqueInput,
-	// 	data: Prisma.RoomUpdateInput
-	// ): Promise<Room> {
-	// 	return this.prisma.room.update({
-	// 		data,
-	// 		where,
-	// 	});
-	// }
 
 	async unseenMessages(
 		room_id: number,
@@ -508,46 +494,57 @@ export class RoomService {
 			}
 		});
 		const users = (await this.prisma.user.findMany({
-			where:{
-					rooms_member:{
-						some:{
-							room_id:Number(message_room_id)
-						}
+			where: {
+				rooms_member: {
+					some: {
+						room_id: Number(message_room_id)
 					}
 				}
+			}
 		}));
-		await Promise.all(users.map(async user =>{
-			console.log(new Date(),'Sender user: ', user.login, 'Connected login: ', connected_user_login)
+		await Promise.all(users.map(async user => {
 			if (user.login != connected_user_login)
-			await this.prisma.message_Notification.create({
-				data: {
-					message_id: message.message_id,
-					room_id: Number(message_room_id),
-					user_login: user.login,
-				}
-			});
+				await this.prisma.message_Notification.create({
+					data: {
+						message_id: message.message_id,
+						room_id: Number(message_room_id),
+						user_login: user.login,
+					}
+				});
 		}));
 		return message;
 	}
 
 	async deleteMessage(where: Prisma.MessageWhereUniqueInput): Promise<Message> {
-		return this.prisma.message.delete({
+		return await this.prisma.message.delete({
 			where,
 		});
 	}
 
-	async getMessages(): Promise<Message[]>
-	{
+	async getMessages(): Promise<Message[]> {
 		return this.prisma.message.findMany({});
 	}
 
 
 	async getRoomMessages(
 		room_id: number,
+		login: string
 	): Promise<Message[]> {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				login: login
+			},
+			include: {
+				blocked_users: true
+			}
+		})
+		const blocked_logins = user.blocked_users.map((user) => user.login);
 		return this.prisma.message.findMany({
 			where: {
-				message_room_id: room_id
+				message_room_id: room_id,
+				message_user_login: {
+					notIn: blocked_logins
+				}
 			},
 			include: {
 				message_user: {
@@ -581,6 +578,7 @@ export class RoomService {
 		data: Prisma.UserWhereUniqueInput
 	): Promise<Room> {
 		return this.prisma.room.update({
+			where,
 			data: {
 				room_banned_users: {
 					connect: data
@@ -588,11 +586,7 @@ export class RoomService {
 				room_users: {
 					disconnect: data
 				},
-				room_admins:{
-					disconnect: data
-				}
 			},
-			where,
 		});
 	}
 
@@ -670,21 +664,7 @@ export class RoomService {
 	}
 	async deleteMessages(
 		where: Prisma.RoomWhereUniqueInput,
-	){
+	) {
 		return this.prisma.message.deleteMany({})
 	}
-
-	// async editRoom(
-	// 	where: Prisma.RoomWhereUniqueInput,
-	// 	data: {name: string, password: string, is_private: boolean},
-	// ) {
-	// 	this.prisma.room.update({
-	// 		where,
-	// 		data: {
-	// 			room_name: data.name,
-	// 			room_password: data.password,
-	// 			room_private: data.is_private
-	// 		}
-	// 	});
-	// }
 }
