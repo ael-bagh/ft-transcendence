@@ -1,4 +1,3 @@
-import { CustomSocket } from '@/auth/auth.adapter';
 import { Game_mode } from '@prisma/client';
 import {
   Body,
@@ -11,7 +10,6 @@ import {
 } from 'matter-js';
 import { Subject } from 'rxjs';
 import { Server } from 'socket.io';
-// import { GameService } from './game.service';
 
 export interface GameEnded{
   game_id: string;

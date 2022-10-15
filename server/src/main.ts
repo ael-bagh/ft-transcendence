@@ -13,7 +13,8 @@ async function bootstrap() {
 		cors: {
 			origin: [process.env.FRONTEND_URL],
 			credentials: true,
-		}
+		},
+		logger: false
 	});
 	const conf = app.get(ConfigService);
 	const user = app.get(UserService);

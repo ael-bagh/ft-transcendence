@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Redirect, Res, Req } from '@nestjs/common';
+import { Controller, Get, Query, Redirect, Res, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AuthService } from '@/auth/auth.service';
 import { Request, Response } from 'express';
@@ -105,7 +105,7 @@ export class AuthController {
 			const payload = jwt.verify(refreshToken, process.env.SECRET_TOKEN) as Record<string, any>;
 			const user = await this.userService.user({ login: payload.login });
 			if (!user) {
-				throw new Error('User not found');
+				throw new HttpException('User not found', HttpStatus.NOT_FOUND);
 			}
 			const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
 			response.cookie('access_token', accessToken, {

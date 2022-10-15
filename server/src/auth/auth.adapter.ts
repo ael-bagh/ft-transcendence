@@ -1,6 +1,6 @@
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Socket } from 'socket.io';
-import { User, Game, Status } from '@prisma/client';
+import { User, Status } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '@/user/user.service';

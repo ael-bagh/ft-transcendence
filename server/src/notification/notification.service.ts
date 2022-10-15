@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
-import { User, Prisma, Game, Status, Notification, Notification_type } from '@prisma/client';
+import {Prisma, Notification, Notification_type } from '@prisma/client';
 
 @Injectable()
 export class NotificationService {

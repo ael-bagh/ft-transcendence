@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/services/prisma.service';
 import { Room, User, Prisma, Message, Message_type } from '@prisma/client';
-import { compare, genSalt, hash } from "bcrypt";
+import { compare, hash } from "bcrypt";
 
 @Injectable()
 export class RoomService {
@@ -49,7 +49,7 @@ export class RoomService {
 			});
 			return room
 		}
-		throw new Error('Wrong password');
+		throw new HttpException('Wrong password', HttpStatus.BAD_REQUEST);
 	}
 
 	async roomUsersCount(

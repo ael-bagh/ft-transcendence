@@ -1,11 +1,10 @@
 import { CustomSocket } from "@/auth/auth.adapter";
 import { RoomService } from "@/room/room.service";
-import { CurrentUser } from "@/user/user.decorator";
 import { UserService } from "@/user/user.service";
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from "@nestjs/websockets"
-import { Status, User } from "@prisma/client";
-import { Socket, Server } from "socket.io"
+import { Status} from "@prisma/client";
+import {Server} from "socket.io"
 import { PrismaService } from "@/common/services/prisma.service";
 import { GatewayService } from "../services/gateway.service";
 import * as dotenv from 'dotenv'

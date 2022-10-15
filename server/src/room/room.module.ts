@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { PrismaService } from '@/common/services/prisma.service';
 import { RoomController } from "@/room/room.controller";
 import { RoomService } from "@/room/room.service";
-import { GatewayService } from "@/common/services/gateway.service";
 import { UserService } from "@/user/user.service";
 
 

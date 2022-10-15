@@ -1,7 +1,5 @@
-import { createParamDecorator, ExecutionContext, UseGuards } from '@nestjs/common';
-import { CustomSocket } from '@/auth/auth.adapter';
+import { createParamDecorator, ExecutionContext} from '@nestjs/common';
 import { Status } from '@prisma/client';
-import { PrismaService } from '@/common/services/prisma.service';
 
 export const CurrentUser = createParamDecorator(
   async (data: unknown, ctx: ExecutionContext) => {

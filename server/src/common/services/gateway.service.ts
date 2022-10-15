@@ -1,7 +1,5 @@
-import { CustomSocket } from "@/auth/auth.adapter";
 import { UserService } from "@/user/user.service";
 import { Injectable } from "@nestjs/common";
-import { WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { User } from "@prisma/client";
 import { Server } from "socket.io";
 
