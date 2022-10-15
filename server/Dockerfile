@@ -1,38 +1,53 @@
+FROM node:16-alpine
+
+WORKDIR /app
+
+COPY package.json .
+COPY package-lock.json .
+
+RUN npm install
+
+COPY . .
+RUN npx prisma generate
+RUN npm run build
+
+CMD [ "sh", "run.sh" ]
+
 ###################
 # BUILD FOR LOCAL DEVELOPMENT
 ###################
 
-FROM node:lts
-RUN mkdir -p /app
-RUN npm i -g @nestjs/cli --silent
-# Create app directory
-WORKDIR /app
+# FROM node:lts
+# RUN mkdir -p /app
+# RUN npm i -g @nestjs/cli --silent
+# # Create app directory
+# WORKDIR /app
 
-# Copy application dependency manifests to the container image.
-# A wildcard is used to ensure copying both package.json AND package-lock.json (when available).
-# Copying this first prevents re-running npm install on every code change.
-# COPY --chown=node:node package*.json ./
-COPY . /app
-# RUN apt-get install vite
-COPY package.json ./app
-COPY package-lock.json ./app
+# # Copy application dependency manifests to the container image.
+# # A wildcard is used to ensure copying both package.json AND package-lock.json (when available).
+# # Copying this first prevents re-running npm install on every code change.
+# # COPY --chown=node:node package*.json ./
+# COPY . /app
+# # RUN apt-get install vite
+# COPY package.json ./app
+# COPY package-lock.json ./app
 
-# Install app dependencies using the `npm ci` command instead of `npm install`
-RUN npm install
-RUN npm install -g prisma
-RUN npx prisma  
-# RUN prisma init
-# RUN npm run prisma:dev:deploy  
-RUN npm run prisma:generate
-# Bundle app source
-# COPY --chown=node:node . .
+# # Install app dependencies using the `npm ci` command instead of `npm install`
+# RUN npm install
+# RUN npm install -g prisma
+# RUN npx prisma  
+# # RUN prisma init
+# # RUN npm run prisma:dev:deploy  
+# RUN npm run prisma:generate
+# # Bundle app source
+# # COPY --chown=node:node . .
 
-# Use the node user from the image (instead of the root user)
-RUN npm run build
-RUN npm ci --only=production && npm cache clean --force
-RUN npm run prisma:generate
-USER node
-CMD [ "node", "dist/main.js" ]
+# # Use the node user from the image (instead of the root user)
+# RUN npm run build
+# RUN npm ci --only=production && npm cache clean --force
+# RUN npm run prisma:generate
+# USER node
+# CMD [ "node", "dist/main.js" ]
 ###################
 # BUILD FOR PRODUCTION
 ###################
