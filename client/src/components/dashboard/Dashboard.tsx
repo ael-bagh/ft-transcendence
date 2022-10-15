@@ -17,7 +17,6 @@ export default function Dashboard() {
   const { queueUp } = useSocket();
   const [segment, setSegment] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [searching, setSearching] = useState(false);
   const [searchTimer, setSearchTimer] = useState<any>(null);
 
   const queueUpByMode = (mode: "ONE" | "NORMAL" | "RANKED") => {
@@ -160,7 +159,9 @@ function Friends() {
                     {friend.status === "INGAME" && (
                       <button
                         onClick={() => {
-                          navigate("/game/" + friend.current_lobby);
+                          sock.emit("spectate", {target_login: friend.login}, (ret :{lobby: string}) => {
+                            navigate("/game/" + ret.lobby);
+                          });
                         }}
                         className="bg-purple-500 p-2 text-white text-sm flex flex-row rounded-full hover:cursor-pointer"
                       >
