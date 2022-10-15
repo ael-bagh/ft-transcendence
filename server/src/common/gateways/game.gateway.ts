@@ -41,7 +41,6 @@ export class GameGateway {
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		client.user = await this.userService.user({login: client.user.login})
-		console.log(client.user.login, client.user.status ,userData.target_login)
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || !userData?.target_login)
 			throw new WsException('data not given');
 		if (userData.target_login === client.user.login || client.user.status !== Status.ONLINE)
@@ -55,8 +54,6 @@ export class GameGateway {
 		});
 		if (!allowed)
 			throw new WsException('Not allowd');
-		// const target_rooms = this.server.sockets.adapter.rooms.get('__connected_' + target_login);
-		// console.log(target_login,target_rooms);
 		const opp = await this.userService.user({login: target_login})
 		if (opp.status !== Status.ONLINE)
 			throw new WsException('Player Unavailable')
@@ -68,7 +65,6 @@ export class GameGateway {
 				status: Status.INQUEUE
 			}
 		})
-		console.log(client.user.login, client.user.status)
 		const room = Crypto.randomBytes(20).toString('hex');
 		client.join(room);
 		this.server.to(`__connected_${target_login}`).emit('game_request', {target_login : client.user.login, mode : userData.mode, roomId: room});
@@ -81,7 +77,6 @@ export class GameGateway {
 		@ConnectedSocket() client: CustomSocket,
 	) {
 		client.user = await this.userService.user({login: client.user.login})
-		console.log(client.id);
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode) || userData?.target_login === undefined || userData?.isAccepted === undefined)
 			throw new WsException('data not given');
 		let login = client.user.login;
@@ -114,7 +109,6 @@ export class GameGateway {
 					status: Status.ONLINE
 				}
 			})
-			console.log(matching_opp.user.login, matching_opp.user.status)
 			return;
 		}
 		client.join(userData.roomId);
@@ -128,7 +122,6 @@ export class GameGateway {
 		client.user = await this.userService.user({login: client.user.login})
 		if (!['ONE', 'RANKED', 'NORMAL'].includes(userData?.mode))
 			throw new WsException('data not given');
-		console.log('join game queue');
 		if (client.user.status != Status.ONLINE)
 			throw new WsException('Action Unavailable');
 		client.user = await this.userService.updateUser({
@@ -140,7 +133,6 @@ export class GameGateway {
 			}
 		})
 		client.inQueue = true;
-		console.log(client.user);
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
 			this.userService,
@@ -148,23 +140,18 @@ export class GameGateway {
 		);
 		if (!this.server.sockets.adapter.rooms.has('__game_queue' + userData.mode)) {
 			client.join('__game_queue' + userData.mode);
-			console.log('joined game');
 			return;
 		}
-		console.log('game found');
 		const queue = this.server.sockets.adapter.rooms.get('__game_queue' + userData.mode);
 		let matching_opp = this.server.sockets.sockets.get(
 			queue.values().next().value,
 		) as CustomSocket;
 		if (matching_opp.user.login == client.user.login) {
-			console.log('same person');
 			this.server.to('__connected_' + client.user.login).emit('i_am_you');
 			return;
 		}
 		matching_opp.inQueue = false;
-		console.log(matching_opp.user, 'hihi');
 		matching_opp.leave('__game_queue' + userData.mode);
-		console.log('accepting game');
 		const game_lobby = Crypto.randomBytes(20).toString('hex');
 		client.join(game_lobby);
 		matching_opp.join(game_lobby);
@@ -178,10 +165,8 @@ export class GameGateway {
 			}));
 		  };
 		const res = await Promise.all([wait_res(client), wait_res(matching_opp)]);
-		console.log(res[0], res[1]);
 		
 		if (res[0] == true && res[1] == true) {
-			console.log('starting game');
 			this.gameService.startGame(this.server, game_lobby, userData.mode);
 		}
 		else
@@ -263,14 +248,27 @@ export class GameGateway {
 		@MessageBody() data: number,
 	) {
 		
-		console.log(data);
 		if (!client.game_lobby || !client.game_lobby.gameStarted)
 			return;
-		console.log(data);
 		const game = client.game_lobby;
 		if (data > 0) game.mov[client.user_nb] = 1;
 		else if (data < 0) game.mov[client.user_nb] = -1;
 		else game.mov[client.user_nb] = 0;
 	}
 
+	@SubscribeMessage('quitGame')
+    async quitGame(
+		@MessageBody() userData: {target_lobby: string},
+        @ConnectedSocket() client: CustomSocket,
+    ) {
+		client.user = await this.userService.user({login: client.user.login})
+		if(client.user.current_lobby === userData.target_lobby)
+		{
+			if (client.game_lobby !== undefined) {
+				client.game_lobby.forceEnd(client.user.login);
+			}
+		}
+		else
+			client.leave(userData.target_lobby);	
+    }
 }

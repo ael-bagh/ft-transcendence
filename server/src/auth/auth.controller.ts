@@ -60,35 +60,17 @@ export class AuthController {
 					.subscribe(async (info) => {
 
 						const user_exists = await this.userService.user({ login: info.data.login, });
-						if (user_exists != null) {
-							// console.log(new Date(), user_exists, "hi");
-						}
-						//remove password
 						const user = (user_exists ? user_exists : await this.userService.signupUser({
 							login: info.data.login,
 							nickname: info.data.login,
 							email: info.data.email,
-
-							// password: value.data.access_token,
 							avatar: `https://avatars.dicebear.com/api/micah/${info.data.login}.svg`,
 						}));
-
-						// Prevent password from being sent out
-						// delete user.password;
-						// Generate both refreshToken and accessToken
-						// if (!user.two_factor_auth_enabled && !user.two_factor_auth) {
-						// 	// return user;
-						// }
 						if (user.two_factor_auth_enabled) {
-							// console.log(user);
 							return response.redirect(process.env.FRONTEND_URL + '/2fa/' + user.login);
 						}
 						const refreshToken = await this.authService.loginAndGenerateRefreshToken(user);
 						const accessToken = await this.authService.regenerateAccessTokenWithRefreshToken(user, refreshToken);
-						console.log(refreshToken,);
-
-						// const refreshExpires = new Date();
-						// refreshExpires.setSeconds(refreshExpires.getSeconds() + 2);
 						response.cookie('refresh_token', refreshToken, {
 							httpOnly: true,
 							domain: process.env.DOMAIN,
@@ -97,11 +79,8 @@ export class AuthController {
 						response.cookie('access_token', accessToken, {
 							httpOnly: true,
 							domain: process.env.DOMAIN,
-							// expires: refreshExpires,
 							path: '/',
 						});
-
-						//send the token to be cookied
 						if (user_exists == null){
 							this.userService.addAcheivement({
 								achievement_name:Achievements_name.WELCOME,
@@ -115,8 +94,7 @@ export class AuthController {
 						}
 						else
 							response.redirect(process.env.FRONTEND_URL);
-						// response.redirect(process.env.BACKEND_URL);
-					});
+						});
 			});
 	}
 
@@ -124,8 +102,6 @@ export class AuthController {
 	async getRefreshTockenAndRegenerateAccessToken(@Req() req: Request, @Res() response: Response) {
 		const refreshToken = req.cookies["refresh_token"];
 		try {
-			console.log(refreshToken);
-
 			const payload = jwt.verify(refreshToken, process.env.SECRET_TOKEN) as Record<string, any>;
 			const user = await this.userService.user({ login: payload.login });
 			if (!user) {
@@ -139,7 +115,6 @@ export class AuthController {
 			});
 			response.json(req.cookies);
 		} catch (e) {
-			console.log(e, 'oh noo');
 			response.json({ authenticied: false });
 		}
 	}

@@ -60,29 +60,15 @@ export class RoomController {
 		const { user_login }: { user_login: string } = body;
 		if (Number(room_id) == NaN)
 			return null;
-		console.log("tf",await this.roomService.roomPermissions(user.login, 'removeAdmin', { login: user_login }, { room_id: Number(room_id) },))
 		if (await (this.roomService.roomPermissions(user.login, 'addAdmin', { login: user_login }, { room_id: Number(room_id) },)) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		this.roomService.addAdmin({ room_id: Number(room_id) }, { login: user_login });
 		return this.roomService.room({ room_id: Number(room_id) });
 	}
 
-	// @Patch(":room_id/edit_room")
-	// async editRoom(@CurrentUser() user: User, @Param() params: { room_id: string, user_login: string }): Promise<Room | null> {
-	// 	const { room_id, user_login }: { room_id: string, user_login: string } = params;
-	// 	if (Number(room_id) == NaN)
-	// 		return null;
-	// 	if (await (this.roomService.roomPermissions(user.login, 'editRoom', null, { room_id: Number(room_id) },)) == false)
-	// 		throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-	// 	this.roomService.editRoom({ room_id: Number(room_id) }, { login: user_login });
-	// 	return this.roomService.room({ room_id: Number(room_id) });
-	// }
-
-
 	@Post(":room_id/join_room")
 	async joinRoom(@CurrentUser() user: User, @Param() params: { room_id: string }, @Body() password?: { password: string }): Promise<Room | null> {
 		const { room_id }: { room_id: string } = params;
-		console.log('hi');
 		if (Number(room_id) == NaN)
 			return null;
 		if (await (this.roomService.roomPermissions(user.login, 'joinRoom', null, { room_id: Number(room_id) })) == false)
@@ -91,19 +77,16 @@ export class RoomController {
 	}
 	@Delete(":room_id/leaveroom")
 	async leaveRoom(@CurrentUser() user: User, @Param('room_id') room_id: string): Promise<Room[]> {
-		// console.log(room_id, "not here");
 		if (Number(room_id) == NaN)
 			return null;
 		const room = await this.roomService.room({ room_id: Number(room_id) });
 		if ((await this.roomService.roomUsersCount( {room_id: Number(room_id) })) == 1)
 		{
-			console.log("wut", room_id);
 			await this.roomService.deleteRoom({room_id: Number(room_id)});
 			return [];
 		}
 		if (room.room_creator_login == user.login)
 		{
-			console.log("yay")
 			await this.roomService.greedySuccessor({ room_id: Number(room_id)} );
 		}
 		this.roomService.leaveRoom({ room_id: Number(room_id) }, { login: user.login });
@@ -123,7 +106,6 @@ export class RoomController {
 		const { user_login }: { user_login: string } = body;
 		if (Number(room_id) == NaN)
 			return null;
-		console.log("tf",await this.roomService.roomPermissions(user.login, 'removeAdmin', { login: user_login }, { room_id: Number(room_id) },))
 		if (await (this.roomService.roomPermissions(user.login, 'removeAdmin', { login: user_login }, { room_id: Number(room_id) },)) == false)
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		this.roomService.removeAdmin({ room_id: Number(room_id) }, { login: user_login });
@@ -191,15 +173,8 @@ export class RoomController {
 			room_password : undefined,
 			unread_messages_count: await this.roomService.unseenMessages(room.room_id, user.login),
 		})));
-		// console.log(new Date(),test);
 		return(test);
 	}
-
-	// @Get("create_room2")
-	// async createRoom2(@CurrentUser() user: User): Promise<Room> {
-	// 	return await this.roomService.createRoom({ room_name: "hello", room_creator_login: user.login, room_private: Boolean(false), room_direct_message: false }) as Room;
-	// }
-
 
 	@Get('group_rooms')
 	async getGroupRooms(@CurrentUser() user: User) : Promise<Room[]> {
@@ -257,7 +232,6 @@ export class RoomController {
 				}
 			}
 		)
-		console.log(new Date(),room, !room);
 		if (!room)
 		{
 			room = await this.roomService.createRoom({
@@ -291,7 +265,6 @@ export class RoomController {
 
 	@Get(':room_id')
 	async getRoom(@CurrentUser() action_performer: User, @Param('room_id') room_id: string): Promise<Room | null> {
-		// console.log(room_id);
 		if (Number(room_id) == NaN)
 			return null;
 		if (await (this.roomService.roomPermissions(action_performer.login, 'viewRoom', null, { room_id: Number(room_id) })) == false)
@@ -302,7 +275,6 @@ export class RoomController {
 			room.room_name = (action_performer.login == room_users[0].login ? room_users[1].login : room_users[0].login)
 		}
 		delete (room).room_password;
-		// console.log(new Date(),room);
 		return room;
 	}
 
@@ -324,22 +296,15 @@ export class RoomController {
 		this.roomService.deleteRoom({ room_id: Number(room_id) });
 	}
 
-	// async addAdmin(@CurrentUser() user: User, @Param() params: { room_id: string}, @Body() body : {user_login: string}): Promise<Room | null> {
-	// 	const { room_id }: { room_id: string } = params;
-	// 	const { user_login }: { user_login: string } = body;
-
 	@Patch(":room_id/banuser")
 	async banUser(@CurrentUser() user: User,  @Param() params: { room_id: string}, @Body() body : {user_login: string}): Promise<Room | null> {
 		const { room_id }: { room_id: string } = params;
 		const { user_login }: { user_login: string } = body;
-		console.log("dcnjdnckwd");
 		if (Number(room_id) == NaN)
 			return null;
 		if (await (this.roomService.roomPermissions(user.login, 'banFromRoom', { login: user_login }, { room_id: Number(room_id) })) == false){
-			console.log("why????");
 			throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 		}
-		console.log("ban saad", user.login, user_login);
 		return this.roomService.banFromRoom({ room_id: Number(room_id) }, { login: user_login });
 	}
 
@@ -356,7 +321,6 @@ export class RoomController {
 
 	@Get(":room_id/:user_login/role")
 	async isAdmin(@CurrentUser() user: User, @Param() params: { room_id: string, user_login: string }) : Promise<string> {
-		console.log('ROOM_ID', params.room_id);
 		if (this.roomService.roomPermissions(user.login, 'viewRoom', null, { room_id: Number(params.room_id) }))
 		if (Number(params.room_id) == NaN)
 			return null;
@@ -366,32 +330,4 @@ export class RoomController {
 			return "ADMIN";
 		throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 	}
-
-
-	// @Post(":room_id/addMessage")
-	// async addMessage(@CurrentUser() user: User, @Param() params: { room_id: string }): Promise<Room | null> {
-	// 	let message = "hello from the other side";
-	// 	const { room_id }: { room_id: string } = params;
-	// 	if (Number(room_id) == NaN)
-	// 		return null;
-	// 	if (await (this.roomService.roomPermissions(user.login, 'viewRoom', null, { room_id: Number(room_id) },)) == false)
-	// 		throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-	// 	this.roomService.addMessage(message, user.login, Number(room_id));
-	// 	return this.roomService.room({ room_id: Number(room_id) });
-	// }
-	
-	// @SubscribeMessage('search_rooms')
-	// searchForRoom(@MessageBody() segment: string, @ConnectedSocket() client: CustomSocket) {
-	// 	/// prisma.rooms.find(name contains query)
-	// 	const result = this.prisma.room.findMany({
-	// 		where: {
-	// 			room_name: {
-	// 				contains: segment,
-	// 			}
-	// 		}
-	// 	})
-	// 	client.emit('found_rooms', result);
-
-	// }
-
 }

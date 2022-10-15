@@ -139,7 +139,6 @@ export class GameService {
 		});
 	}
 	async startGame(server: Server, roomId: string, mode: Game_mode) {
-		console.log('start game');
 		const room = server.sockets.adapter.rooms.get(roomId);
 		if (!room || room.size !== 2)
 			return;
@@ -150,8 +149,6 @@ export class GameService {
 		let player2 = server.sockets.sockets.get(
 			it.next().value,
 		) as CustomSocket;
-		console.log(player1.user.login);
-		console.log(player2.user.login);
 		player1.user_nb = 0;
 		player2.user_nb = 1;
 		server.to(roomId).emit('game_accepted', roomId);
@@ -203,7 +200,6 @@ export class GameService {
 			}),
 			this.saveGame(score[2]),
 		]);
-		console.log(score[2]);
 		server.to(roomId).emit('game_ended', score[2]);
 	}
 

@@ -31,10 +31,7 @@ export class AuthAdapter extends IoAdapter {
                 ?.find((cookie: string) => cookie.startsWith('access_token'))
                 ?.split('=')[1];
             try {
-                // console.log('access_token from header:', accessTokenHeader);
-                // console.log('access_token from cookie:', accessTokenCookie);
                 const payload = jwt.verify(accessTokenCookie || accessTokenHeader, this.configService.get('SECRET_TOKEN')) as any;
-                // console.log(payload);
                 let user = await this.userService.user({
                     login: payload.login
                 });
@@ -47,8 +44,8 @@ export class AuthAdapter extends IoAdapter {
 					}
 				});
                 socket.user = user;
-				// console.log(new Date(),"svjh",user)
-                socket.token_expire_at = payload.exp * 1000;
+				
+				socket.token_expire_at = payload.exp * 1000;
             } catch (e) {
                 console.log(new Date(),"oh no");
                 return next(new WsException('Invalid token'));

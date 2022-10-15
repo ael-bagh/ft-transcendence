@@ -72,7 +72,7 @@ export class GameObject {
       restitution: 1,
     });
 
-    // console.log(this.bars);
+    
     this.bars.push(
       Bodies.rectangle(50, 300, 10, 100, {
         inertia: Infinity,
@@ -100,7 +100,7 @@ export class GameObject {
       this.walls['left'],
       this.walls['right'],
     ]);
-    // console.log(this.bars);
+    
     this.mov.push(0);
     this.mov.push(0);
     this.score.push([0, 0]);
@@ -144,7 +144,6 @@ export class GameObject {
           pair.bodyA === this.walls['top'] ||
           pair.bodyB === this.walls['top']
         ) {
-          console.log('top');
           Body.setVelocity(this.ball, {
             x: this.ball.velocity.x,
             y: -this.ball.velocity.y,
@@ -153,7 +152,6 @@ export class GameObject {
           pair.bodyA === this.walls['bottom'] ||
           pair.bodyB === this.walls['bottom']
         ) {
-          console.log('bottom');
           Body.setVelocity(this.ball, {
             x: this.ball.velocity.x,
             y: -this.ball.velocity.y,
@@ -162,7 +160,6 @@ export class GameObject {
           pair.bodyA === this.walls['left'] ||
           pair.bodyB === this.walls['left']
         ) {
-          console.log('left player 2 goaal');
           // Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
           this.reset();
           ++this.score[this.games_played][1];
@@ -171,13 +168,11 @@ export class GameObject {
           pair.bodyA === this.walls['right'] ||
           pair.bodyB === this.walls['right']
         ) {
-          console.log('right player 1 goaal');
           this.reset();
           ++this.score[this.games_played][0];
           this.speed = 10;
           // Body.setVelocity(this.ball, { x: -this.ball.velocity.x, y: this.ball.velocity.y });
         } else {
-          console.log('bar');
           if (pair.bodyA == this.ball) {
             Body.setStatic(pair.bodyB, true);
           } else {
@@ -213,7 +208,6 @@ export class GameObject {
         });
       }
       ++this.games_played;
-      console.log(this.games_played, this.data.games);
       if (this.number_of_games == this.games_played || this.game_score[0] == Math.ceil(this.number_of_games / 2) || this.game_score[1] == Math.ceil(this.number_of_games / 2)) {
         Runner.stop(this.runner);
         this.gameStarted = false;
@@ -245,21 +239,16 @@ export class GameObject {
 
     const pos_ball = ball.position;
     const pos_bar = bar.position;
-    // console.log(pos_ball);
-    // console.log(pos_bar);
     const y = pos_ball.y - pos_bar.y;
     const x = pos_ball.x - pos_bar.x;
-    // console.log('x',x);
     if ((x < 0 && pos_bar.x == 50) || (x > 0 && pos_bar.x == 1230))
       return [ball.velocity.x, ball.velocity.y];
     if (y > 0) a[1] *= -1;
     if (pos_bar.x == 50) a[0] *= -1;
-    // console.log('a',a, 'y', y);
     const vtx = pos_ball.x - a[0] - pos_bar.x;
     const vty = pos_ball.y - a[1] - pos_bar.y;
 
     const teta = Math.atan2(vty, vtx);
-    // console.log(teta * 180 / Math.PI);
     const vx = this.speed * Math.cos(teta);
     const vy = this.speed * Math.sin(teta);
     return [vx, vy];
@@ -269,41 +258,31 @@ export class GameObject {
     for (let i = 0; i < pairs.length; ++i) {
       const pair = pairs[i];
       if (pair.bodyA === this.ball || pair.bodyB === this.ball) {
-        console.log('velocity', this.ball.velocity);
-        console.log('pos', this.ball.position);
-
         if (
           pair.bodyA === this.walls['top'] ||
           pair.bodyB === this.walls['top']
         ) {
-          console.log('top');
         } else if (
           pair.bodyA === this.walls['bottom'] ||
           pair.bodyB === this.walls['bottom']
         ) {
-          console.log('bottom');
         } else if (
           pair.bodyA === this.walls['left'] ||
           pair.bodyB === this.walls['left']
         ) {
-          console.log('left');
         } else if (
           pair.bodyA === this.walls['right'] ||
           pair.bodyB === this.walls['right']
         ) {
-          console.log('right');
         } else {
-          console.log('bar');
           if (pair.bodyA == this.ball) {
             Body.setStatic(pair.bodyB, false);
             const v = this.calculate_new_pos(this.ball, pair.bodyB);
             Body.setVelocity(this.ball, { x: v[0], y: v[1] });
-            console.log(v);
           } else {
             Body.setStatic(pair.bodyA, false);
             const v = this.calculate_new_pos(this.ball, pair.bodyA);
             Body.setVelocity(this.ball, { x: v[0], y: v[1] });
-            console.log(v);
           }
           this.speed *= 1.05;
         }
@@ -360,7 +339,6 @@ export class GameObject {
           winner_score: Math.ceil(this.number_of_games / 2),
           loser_score: 0,
         }
-        console.log('disconnected', new_data);
         this.gameEvents.next({
           event: 'GAME_FINISHED',
           payload: new_data,
@@ -381,7 +359,6 @@ export class GameObject {
           winner_score: Math.ceil(this.number_of_games / 2),
           loser_score: 0,
         }
-        console.log('disconnected', new_data);
         this.gameEvents.next({
           event: 'GAME_FINISHED',
           payload: new_data,

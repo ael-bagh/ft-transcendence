@@ -38,9 +38,7 @@ export class RoomService {
 		let room = await this.prisma.room.findUnique({
 			where: roomWhereUniqueInput,
 		});
-		// console.log(await compare(password, room.room_password));
 		if (!room.room_private || await compare(password, room.room_password)) {
-			console.log("ok?")
 			room = await this.prisma.room.update({
 				where: roomWhereUniqueInput,
 				data: {
@@ -153,8 +151,6 @@ export class RoomService {
 				}).then((count) => count > 0);
 			case 'removeAdmin':
 			case 'addAdmin':
-				console.log("yo", action_room)
-				// Check if user is creator of the room
 				return await this.prisma.room.count({
 					where: {
 						room_id: action_room.room_id,
@@ -175,16 +171,7 @@ export class RoomService {
 						]
 					}
 				}).then((count) => count > 0);
-			// Check if user is creator of the room
 			case 'banFromRoom':
-				// const __room = await this.prisma.room.findUnique({ where: { room_id: action_room.room_id }, include: { room_admins: true, room_users: true, room_banned_users: true, room_creator: true } });
-				// // If room doesn't exist, return false
-				// if (!__room) return false;
-				// // If action performer not admin/creator. return false
-				// if (__room.room_creator_login !== action_perfomer && __room.room_admins.some((e) => e.login === action_perfomer) == false) return false;
-				// // 
-				// if (__room.room_creator_login === action_target.login || __room.room_banned_users.some((e) => e.login === action_target.login)) return false;
-				// return true;
 				return await this.prisma.room.count({
 					where: {
 						room_id: action_room.room_id,
@@ -307,29 +294,6 @@ export class RoomService {
 					}).then((count) => count > 0));
 			case 'seeMessages':
 				return (await this.seemessages(action_room.room_id, action_perfomer))
-
-			// case 'editRoom':
-			// return await this.prisma.room.count({
-			// 	where: {
-			// 		room_id: action_room.room_id,
-			// 		OR:[
-			// 			{
-			// 				room_creator: {
-			// 					login: action_perfomer
-			// 				}
-			// 			},
-			// 			{
-			// 				room_admins:{
-			// 					some:{
-			// 						login: action_perfomer
-			// 					}
-			// 				}
-			// 			}
-			// 		]
-
-			// 	}
-			// }).then((count) => count > 0);
-
 			default:
 				return false;
 		}
@@ -469,16 +433,6 @@ export class RoomService {
 		});
 	}
 
-	// async updateRoom(
-	// 	where: Prisma.RoomWhereUniqueInput,
-	// 	data: Prisma.RoomUpdateInput
-	// ): Promise<Room> {
-	// 	return this.prisma.room.update({
-	// 		data,
-	// 		where,
-	// 	});
-	// }
-
 	async unseenMessages(
 		room_id: number,
 		user: string,
@@ -549,7 +503,6 @@ export class RoomService {
 			}
 		}));
 		await Promise.all(users.map(async user => {
-			console.log(new Date(), 'Sender user: ', user.login, 'Connected login: ', connected_user_login)
 			if (user.login != connected_user_login)
 				await this.prisma.message_Notification.create({
 					data: {
@@ -575,10 +528,23 @@ export class RoomService {
 
 	async getRoomMessages(
 		room_id: number,
+		login: string
 	): Promise<Message[]> {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				login: login
+			},
+			include: {
+				blocked_users: true
+			}
+		})
+		const blocked_logins = user.blocked_users.map((user) => user.login);
 		return this.prisma.message.findMany({
 			where: {
-				message_room_id: room_id
+				message_room_id: room_id,
+				message_user_login: {
+					notIn: blocked_logins
+				}
 			},
 			include: {
 				message_user: {
@@ -611,7 +577,6 @@ export class RoomService {
 		where: Prisma.RoomWhereUniqueInput,
 		data: Prisma.UserWhereUniqueInput
 	): Promise<Room> {
-		console.log("???", data, where);
 		return this.prisma.room.update({
 			where,
 			data: {
@@ -702,18 +667,4 @@ export class RoomService {
 	) {
 		return this.prisma.message.deleteMany({})
 	}
-
-	// async editRoom(
-	// 	where: Prisma.RoomWhereUniqueInput,
-	// 	data: {name: string, password: string, is_private: boolean},
-	// ) {
-	// 	this.prisma.room.update({
-	// 		where,
-	// 		data: {
-	// 			room_name: data.name,
-	// 			room_password: data.password,
-	// 			room_private: data.is_private
-	// 		}
-	// 	});
-	// }
 }

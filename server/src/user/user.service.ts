@@ -47,7 +47,6 @@ export class UserService {
 				}
 			}
 		})
-		console.log(users)
 		return users;
 	}
 
@@ -71,7 +70,6 @@ export class UserService {
 				],
 			}
 		})
-		console.log(users)
 		return users;
 	}
 
@@ -102,7 +100,6 @@ export class UserService {
 			// 	},
 			//	]
 		})
-		console.log(users)
 		return users;
 	}
 
@@ -116,7 +113,6 @@ export class UserService {
 			relationships.is_self = true;
 			return relationships;
 		}
-		// console.log(new Date(),friend_login);
 		if (await this.getFriendBool({
 			where: {
 				login: login,
@@ -180,7 +176,6 @@ export class UserService {
 				}
 
 			});
-			console.log(new Date(), users)
 			return users.friend_requests_sent;
 		}
 		else if (includename == 'received_requests') {
@@ -193,7 +188,6 @@ export class UserService {
 				}
 
 			});
-			console.log(new Date(), users)
 			return users.friend_requests;
 		}
 		else
@@ -228,17 +222,6 @@ export class UserService {
 			}).games_lost();
 		}
 	}
-
-	// async userPermissions(
-	// 	action_perfomer: Prisma.UserWhereUniqueInput,
-	// 	action: string,
-	// 	action_target: Prisma.UserWhereUniqueInput,
-	// ): Promise<Boolean> {
-	// 	switch (action) {
-	// 		// add user permissions here.
-	// 	}
-	// 	return false;
-	// }
 
 	async deleteFriends(user_login: string, friend_login: string) {
 		await this.prisma.user.update({
@@ -495,20 +478,16 @@ export class UserService {
 	}
 	): Promise<Boolean> {
 		const { login, friend_login } = params;
-		console.log(new Date(), login, friend_login);
 		const friend = await this.user({ login: friend_login });
 		const user = await this.user({ login: login });
 		if (!user || !friend)
 			return null;
-		// if not mutual request
-		console.log(new Date(), 'survived')
 		let mutual = await this.prisma.user.count({
 			where: {
 				friend_requests: { some: { login: friend_login } },
 				login: login
 			}
 		});
-		console.log(new Date(), 'mutual:', mutual);
 		if (mutual == 0) {
 			await this.updateUser({
 				where: { login: (friend_login) },
@@ -533,7 +512,6 @@ export class UserService {
 			params.onFinish && params.onFinish(user, friend_login, false);
 		}
 		else {
-			console.log('yo bitch wtf?')
 			await this.addfriends(login, friend_login);
 			await this.updateUser({
 				where: { login: (login) },

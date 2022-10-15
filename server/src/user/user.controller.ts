@@ -58,7 +58,6 @@ export class UserController {
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
 	async getProfile(@CurrentUser() user: UserModel) {
-		console.log(new Date(),1,user);
 		const usercount = await this.userService.user({ login: user.login },
 			{
 				_count: {
@@ -149,7 +148,6 @@ export class UserController {
 	}
 	@Get('friends')
 	async getUserFriends(@CurrentUser() user: UserModel): Promise<UserModel[]> {
-		console.log('current user: yihssan');
 		return (await this.userService.getUserFriends(user.login));
 	}
 
@@ -172,8 +170,7 @@ export class UserController {
 		user['status'] = userData['status'] || user['status'];
 		if (userData['is_banned'] != undefined)
 			user['is_banned'] = userData['is_banned'];
-		console.log(new Date(),user, "updated")
-
+		
 		const verify_duplicate = await this.userService.user({ nickname: user['nickname'] });
 		if (verify_duplicate != null && verify_duplicate.login != user.login)
 			throw new HttpException('Nickname already taken', HttpStatus.BAD_REQUEST);
@@ -182,7 +179,6 @@ export class UserController {
 			data: user
 		});
 		const newUserInfo = await this.userService.user({ login: login });
-		console.log(new Date(),newUserInfo)
 		return newUserInfo;
 	}
 
@@ -194,8 +190,6 @@ export class UserController {
 
 	@Get(':login')
 	async getUserByLogin(@CurrentUser() user: UserModel, @Param('login') profile_login: string): Promise<UserModel> {
-		console.log('stupido', profile_login)
-		console.log("whuuuut",user);
 		if (profile_login == 'me')
 			return user;
 		let profile_user: UserModel | null;
@@ -234,7 +228,6 @@ export class UserController {
 				}
 			);
 		}
-		console.log("oooooo", profile_user)
 		if (profile_user == null)
 			throw new HttpException('Not found', HttpStatus.NOT_FOUND);
 		let allowed = await this.userService.permissionToDoAction({

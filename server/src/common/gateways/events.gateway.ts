@@ -41,16 +41,10 @@ export class EventsGateway {
 			this.userService,
 			client.user
 		);
-		console.log(new Date(), "a user connected", client.user);
+		// console.log(new Date(), "a user connected", client.user);
 	}
 
 	async handleDisconnect(client: CustomSocket) {
-		// console.log(new Date(),this.server.sockets.adapter.rooms);
-		// console.log('Client rooms', client.rooms);
-		// client.leave('__connected_' + client.user.login);
-
-		// get user from db
-
 		let leftGame = false;
 		if (client.game_lobby !== undefined) {
 			leftGame = true;
@@ -72,18 +66,6 @@ export class EventsGateway {
 				}
 			});
 		}
-		// else
-		// {
-		// 	if (client.user.status !== Status.INGAME)
-		// 	{
-		// 		client.user = await this.prisma.user.update({
-		// 			where: { login: client.user.login },
-		// 			data: {
-		// 				status: Status.ONLINE,
-		// 			}
-		// 		});
-		// 	}
-		// }
 		this.gateWayService.broadcastStatusChangeToFriends(
 			this.server,
 			this.userService,
@@ -92,29 +74,6 @@ export class EventsGateway {
 		console.log(new Date(), "a user disconnected", client.user);
 	}
 
-	@SubscribeMessage('identity')
-	handleIdentity(
-		@MessageBody() data: string,
-		@ConnectedSocket() client: CustomSocket
-	): string {
-		console.log(new Date(), data, client.user.login);
-		return data;
-	}
-
-
-
-	@SubscribeMessage('events')
-	handleEvent(
-		@MessageBody() data: string,
-		@ConnectedSocket() client: CustomSocket,
-	): string {
-		console.log(new Date(), data);
-		return data;
-	}
-
-
-	// @SubscribeMessage('accept_friend')
-
 	@SubscribeMessage('relationship')
 	async friendRelationship(
 		@MessageBody() userData: { target_login: string },
@@ -122,10 +81,6 @@ export class EventsGateway {
 	) {
 		return this.userService.getRelationship(client.user.login, userData.target_login)
 	}
-
-
-
-
 
 	@SubscribeMessage('seen_notification')
 	async seenNotification(
@@ -152,7 +107,6 @@ export class EventsGateway {
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		// console.log(new Date(), 1, userData);
 		let login = client.user.login;
 		let target_login = userData.target_login;
 		if (!target_login) {
@@ -280,7 +234,6 @@ export class EventsGateway {
 		@MessageBody() userData: { target_login: string },
 		@ConnectedSocket() client: CustomSocket,
 	) {
-		// console.log("mamak")
 		let login = client.user.login;
 		let target_login = userData?.target_login
 		if (!target_login) {

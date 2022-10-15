@@ -37,7 +37,6 @@ export class NotificationGateway{
 		@MessageBody() data : {id : number},
 		@ConnectedSocket() client: CustomSocket 
 	) : Promise<number> {
-		console.log("the f?");
 		await this.notificationService.deleteNotification(data.id);
 		return data.id;
 	}

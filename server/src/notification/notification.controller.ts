@@ -49,7 +49,6 @@
 			@CurrentUser() user: UserModel,
 		) {
 			const notifications = await this.notificationService.getNotifications(user.login);
-			console.log('NOTIFICATIONS', notifications);
 			return notifications;
 		}
 		@Get('deleteNotifications')
