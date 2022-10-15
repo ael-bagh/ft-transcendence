@@ -228,22 +228,31 @@ export class GameGateway {
 
 	@SubscribeMessage('spectate')
     async spectate(
-		@MessageBody() userData: {target_login: string},
+		@MessageBody() userData: {target_login?: string, target_lobby?: string},
         @ConnectedSocket() client: CustomSocket,
     ) {
 		client.user = await this.userService.user({login: client.user.login})
-		let allowed = await this.userService.permissionToDoAction({
-			action_performer: client.user.login,
-			action_target: userData.target_login,
-			action_mutual: true
-		});
-		if (!allowed)
-			throw new WsException('Not allowd');
-		const target = await this.userService.user({login: userData.target_login})
-		if (target.status !== Status.INGAME)
-			throw new WsException('Not in game');
-		client.join(target.current_lobby);
-		return ({lobby: target.current_lobby});
+		if (userData.target_login)
+		{
+			const target = await this.userService.user({login: userData.target_login})
+			if (!target)
+				throw new WsException('user not found');
+			if (target.status != Status.INGAME)
+				throw new WsException('user not in game');
+			client.join(target.current_lobby);
+		}
+		if (userData.target_lobby)
+		{
+			const room = await this.prisma.user.count({
+				where: {
+					current_lobby: userData.target_lobby,
+				}
+			})
+			if (room == 0)
+				throw new WsException('room not found');
+			client.join(userData.target_lobby);
+		}
+		throw new WsException('data not given');
     }
 	@SubscribeMessage('move')
 	async move(
