@@ -79,6 +79,13 @@ export class EventsGateway {
 		// console.log(new Date(), "a user disconnected", client.user);
 	}
 
+	@SubscribeMessage("logout")
+	async logoutAll(@ConnectedSocket() client: CustomSocket)
+	{
+		this.server.to('__connected_' + client.user.login).emit('force_disconnect');
+		this.server.to('__connected_' + client.user.login).disconnectSockets(true);
+	}
+
 	@SubscribeMessage('relationship')
 	async friendRelationship(
 		@MessageBody() userData: { target_login: string },
