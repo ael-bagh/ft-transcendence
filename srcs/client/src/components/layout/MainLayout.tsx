@@ -85,6 +85,9 @@ function GameEventsComponent() {
 
     return () => {
       sock.off("game_request");
+      sock.off("game_accepted");
+      sock.off("queue_quitted");
+      sock.off("join_queue");
     };
   }, []);
 
