@@ -47,6 +47,9 @@ function GameEventsComponent() {
       });
       setFirstRun(false);
     }
+    sock.on('force_disconnect', () => {
+      window.location.href = import.meta.env.VITE_API_URL + "/auth/logout";
+    });
     sock.on("queue_quitted", () => {
       setQueue({
         inQueue: false,
@@ -84,6 +87,7 @@ function GameEventsComponent() {
     });
 
     return () => {
+      sock.off('force_disconnect');
       sock.off("game_request");
       sock.off("game_accepted");
       sock.off("queue_quitted");

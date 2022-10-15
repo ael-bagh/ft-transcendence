@@ -6,6 +6,7 @@ import logo from "../imgs/logo.png";
 import { Link } from "react-router-dom";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import Notifications from "./Notifications";
+import sock from "../../lib/socket";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", current: true },
@@ -121,15 +122,16 @@ export default function NavBar() {
                       </Menu.Item>
                       <Menu.Item>
                         {({ active }) => (
-                          <a
-                            href={import.meta.env.VITE_API_URL + "/auth/logout"}
+                          <button
+                            onClick={() => sock.emit("logout")}
+                            type='button'
                             className={classNames(
                               active ? "bg-gray-100" : "",
-                              "block px-4 py-2 text-sm text-gray-700"
+                              "block px-4 py-2 text-sm text-gray-700 w-full text-left"
                             )}
                           >
                             Sign out
-                          </a>
+                          </button>
                         )}
                       </Menu.Item>
                     </Menu.Items>
