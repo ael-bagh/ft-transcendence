@@ -665,6 +665,10 @@ export class RoomService {
 	async deleteMessages(
 		where: Prisma.RoomWhereUniqueInput,
 	) {
-		return this.prisma.message.deleteMany({})
+		return this.prisma.message.deleteMany({
+			where: {
+				message_room_id: where.room_id
+			}
+		})
 	}
 }
