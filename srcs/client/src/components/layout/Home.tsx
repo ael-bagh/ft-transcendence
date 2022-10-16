@@ -4,7 +4,6 @@ import {useContext, useState } from "react";
 import { AuthUserContext } from "../../contexts/authUser.context";
 import { Navigate } from "react-router-dom";
 import { BsArrowBarLeft, BsArrowBarRight, BsGithub } from "react-icons/bs";
-import Team from "../team/Team";
 import logod42 from "../imgs/42_Logo_W.png"
 
 export default function Home() {
@@ -34,7 +33,6 @@ export default function Home() {
           onClick={handleClick}
         >
           <div className="text-xl text-white underline font-minecraft">
-              {!show && <div className="flex">Team <BsArrowBarRight /> </div>}
               {show && <div className="flex flex-row-reverse">Back <BsArrowBarLeft /> </div>}
           </div>
           <a
@@ -50,15 +48,10 @@ export default function Home() {
       </div>
       <div className="bg-black w-full flex flex-col sm:flex-grow h-2/3 sm:h-full self-start">
         <div className="flex flex-grow relative justify-center items-center">
-        {!show && (
           <img
             src="https://i.kym-cdn.com/photos/images/original/002/174/536/2b1.gif"
             className="w-full h-auto"
           />
-        )}
-        {show && (
-          <Team />
-        )}
         </div>
       </div>
     </div>
