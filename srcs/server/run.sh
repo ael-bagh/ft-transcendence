@@ -2,4 +2,4 @@
 npx prisma db push
 npm run prisma:generate
 
-npm run start:prod
+npm run start:dev

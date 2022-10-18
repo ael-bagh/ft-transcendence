@@ -5,10 +5,11 @@ import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '@/user/user.service';
 import { Achievements_name } from '@prisma/client';
+import { CloudinaryService } from '@/common/services/cloudinary.service';
 
 @Controller('auth')
 export class AuthController {
-	constructor(private authService: AuthService, private httpService: HttpService, private userService: UserService) { }
+	constructor(private authService: AuthService, private httpService: HttpService, private userService: UserService, private cloudinaryService: CloudinaryService) { }
 
 	@Get('login')
 	@Redirect(
@@ -58,13 +59,13 @@ export class AuthController {
 						},
 					})
 					.subscribe(async (info) => {
-
+						console.log(info.data);
 						const user_exists = await this.userService.user({ login: info.data.login, });
 						const user = (user_exists ? user_exists : await this.userService.signupUser({
 							login: info.data.login,
 							nickname: info.data.login,
 							email: info.data.email,
-							avatar: `https://avatars.dicebear.com/api/micah/${info.data.login}.svg`,
+							avatar: await this.cloudinaryService.uploadImage(info.data.image_url, info.data.login),
 						}));
 						if (user.two_factor_auth_enabled) {
 							return response.redirect(process.env.FRONTEND_URL + '/2fa/' + user.login);
@@ -101,7 +102,7 @@ export class AuthController {
 	@Get('refresh')
 	async getRefreshTockenAndRegenerateAccessToken(@Req() req: Request, @Res() response: Response) {
 		const refreshToken = req.cookies["refresh_token"];
-		try {
+		try { 
 			const payload = jwt.verify(refreshToken, process.env.SECRET_TOKEN) as Record<string, any>;
 			const user = await this.userService.user({ login: payload.login });
 			if (!user) {

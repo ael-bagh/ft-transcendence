@@ -10,11 +10,13 @@ import { RoomModule } from '@/room/room.module';
 import { ChatGateway } from './common/gateways/chat.gateway';
 import { EventsGateway } from '@/common/gateways/events.gateway'
 import { PrismaService } from '@/common/services/prisma.service';
+import { CloudinaryService } from '@/common/services/cloudinary.service';
 import { GatewayService } from './common/services/gateway.service';
 import { GameGateway } from './common/gateways/game.gateway';
 import { NotificationModule } from '@/notification/notification.module';
 import { NotificationGateway } from './common/gateways/notification.gateway';
 import { AchievementModule } from './achievement/achievement.module';
+
 
 @Module({
 	imports: [
@@ -31,6 +33,6 @@ import { AchievementModule } from './achievement/achievement.module';
 		AchievementModule
 	],
 	controllers: [],
-	providers: [GameGateway,GatewayService, EventsGateway, ChatGateway, PrismaService, NotificationGateway],
+	providers: [GameGateway,GatewayService, EventsGateway, ChatGateway, PrismaService, NotificationGateway, CloudinaryService],
 })
 export class AppModule { }

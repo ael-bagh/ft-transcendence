@@ -57,6 +57,7 @@ const router = createBrowserRouter([
     element: <ProfileEdit />,
     action: async ({ request }) => {
       const data = Object.fromEntries(await request.formData());
+      if (data.avatar == "") delete data.avatar;
       const user = await axiosInstance.patch("/user/update", data);
       return redirect(`/profile/${user.data.user_id}`);
     },

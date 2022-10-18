@@ -1,0 +1,7 @@
+context 
+files : file.context.tsx
+
+interface authUserContextInterface{
+    ..
+}
+

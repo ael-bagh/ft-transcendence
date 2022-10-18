@@ -10,6 +10,7 @@ import { AuthController } from '@/auth/auth.controller';
 import { HttpModule } from '@nestjs/axios';
 import { TwoFactorAuthenticationController } from '@/auth/twoFactorAuthentication.controller';
 import { TwoFactorAuthenticationService } from '@/auth/twoFactorAuthentication.service';
+import { CloudinaryService } from '@/common/services/cloudinary.service';
 
 
 @Module({
@@ -23,7 +24,7 @@ import { TwoFactorAuthenticationService } from '@/auth/twoFactorAuthentication.s
 		}),
 	],
 	controllers: [AuthController, TwoFactorAuthenticationController],
-	providers: [AuthService, JwtStrategy, AuthAdapter, ConfigService, TwoFactorAuthenticationService],
+	providers: [AuthService, JwtStrategy, AuthAdapter, ConfigService, TwoFactorAuthenticationService, CloudinaryService],
 	exports: [AuthService, AuthAdapter],
 })
 export class AuthModule { }

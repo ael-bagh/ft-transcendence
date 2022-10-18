@@ -1,22 +1,9 @@
 services:
-  app:
-    build:
-      dockerfile: Dockerfile
-      context: .
-    env_file:
-      - ./srcs/server/.env.production
-      - ./srcs/client/.env.production
-    ports:
-      - 80:80
-    networks:
-      - transcendence-network
-    depends_on:
-      - db
   db:
     container_name: db
     image: postgres:13-alpine
-    # ports:
-    #   - 5432:5432
+    ports:
+      - 5432:5432
     networks:
       - transcendence-network
     environment:

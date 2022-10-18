@@ -41,6 +41,8 @@ export default function TwoFactorAuth() {
               id="secret"
               value={code}
               onChange={(e) => setCode(e.target.value)}
+              // catch enter key
+              onKeyPress={(e) => {if (e.key === "Enter")handleSubmit();}}
               className="w-full py-4 px-8 bg-slate-200 placeholder:font-semibold rounded hover:ring-1 hover:ring-gray-600 outline-slate-500 border-solid border-2 border-slate-300"
             />
           </div>

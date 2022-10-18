@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-	"prisma:generate": "prisma generate",
+    "prisma:generate": "prisma generate",
     "prisma:dev:deploy": "prisma migrate deploy",
     "db:dev:rm": "docker compose rm dev-db -s -f -v",
     "db:dev:up": "docker compose up dev-db -d",
@@ -41,6 +41,7 @@
     "@types/bcrypt": "^5.0.0",
     "bcrypt": "^5.0.1",
     "class-transformer": "^0.5.1",
+    "cloudinary": "^1.32.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.2",
     "matter-js": "^0.18.0",

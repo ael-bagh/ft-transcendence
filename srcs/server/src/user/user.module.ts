@@ -6,6 +6,7 @@ import { GameService } from "@/game/game.service";
 import { RoomService } from "@/room/room.service";
 import { NotificationService } from "@/notification/notification.service";
 import { AchievementService } from "@/achievement/achievement.service";
+import { CloudinaryService } from '@/common/services/cloudinary.service';
 
 
 @Module({
@@ -14,6 +15,7 @@ import { AchievementService } from "@/achievement/achievement.service";
 	  providers: [
 		UserService,
 		PrismaService,
+		CloudinaryService,
 		GameService,
 		RoomService,
 		NotificationService,

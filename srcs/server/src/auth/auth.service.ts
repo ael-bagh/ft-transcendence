@@ -22,7 +22,11 @@ export class AuthService {
   async regenerateAccessTokenWithRefreshToken(user: any, refreshToken: string) {
     const payload = this.jwtService.verify(refreshToken);
     // TODO: Only add the minimum required fields instead of ...user
-    return this.jwtService.sign({ ...user, refreshId: payload.refreshId });
+    const  { user_id, login, email, two_factor_auth, two_factor_auth_enabled } = user;
+    // console.log(this.jwtService.sign({ user_id, login, email, two_factor_auth, two_factor_auth_enabled,  refreshId: payload.refreshId }));
+    // console.log("");
+    // console.log(this.jwtService.sign({ ...user,  refreshId: payload.refreshId }));
+    return this.jwtService.sign({ user_id, login, email, two_factor_auth, two_factor_auth_enabled,  refreshId: payload.refreshId });
   }
 
   async login(user: any, isTwoFactorAuthenticated = false) {

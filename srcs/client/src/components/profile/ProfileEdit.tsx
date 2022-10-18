@@ -14,7 +14,8 @@ async function generateToken(user: User) {
   const service = "ft_transcendance";
   const { secret } = await axiosInstance
     .get("/2fa/generate")
-    .then((res) => res.data).catch(() => ({ secret: "" }));
+    .then((res) => res.data)
+    .catch(() => ({ secret: "" }));
   return {
     secret,
     otpauth: `otpauth://totp/${mail}?secret=${secret}&issuer=${service}`,
@@ -34,7 +35,7 @@ export default function ProfileEdit() {
 function ProfileEditComponent({ authUser }: { authUser: User }) {
   const [avatar, setAvatar] = useState(authUser?.avatar);
   const [image, setImage] = useState([]);
-  const [base64, setBase64] = useState(authUser?.avatar || "");
+  const [base64, setBase64] = useState("");
   const [name, setName] = useState(authUser?.nickname);
   const [is_available, setIsAvailable] = useState("unchanged");
   const [isLoading, setIsLoading] = useState(false);
@@ -50,10 +51,13 @@ function ProfileEditComponent({ authUser }: { authUser: User }) {
         setIsAvailable("unchanged");
       } else {
         setIsLoading(true);
-        axiosInstance.get("/user/is_available/" + name).then((res) => {
-          setIsAvailable(res.data ? "available" : "unavailable");
-          setIsLoading(false);
-        }).catch(() => {});
+        axiosInstance
+          .get("/user/is_available/" + name)
+          .then((res) => {
+            setIsAvailable(res.data ? "available" : "unavailable");
+            setIsLoading(false);
+          })
+          .catch(() => {});
       }
     } else {
       setIsAvailable("unavailable");
@@ -67,6 +71,7 @@ function ProfileEditComponent({ authUser }: { authUser: User }) {
         onChange={onChange}
         maxNumber={1}
         dataURLKey="data_url"
+        maxFileSize={5242880}
       >
         {({ imageList, onImageUpload, onImageRemove, dragProps }) => (
           <div
@@ -248,36 +253,40 @@ function TwoFAOn({ user }: { user: User | null }) {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
-                  >
-                    Scan To Enable Your Two Factor Authentication
-                  </Dialog.Title>
-                  <div className="mt-2">
-                    <div className="flex min-h-full items-center justify-center p-4 text-center">
-                      {mfa && <QRCode value={mfa.otpauth} />}
-                    </div>
-                    <div className="flex min-h-full items-center justify-center p-4 text-center">
-                      <input
-                        onChange={(e) => setCode(e.target.value)}
-                        type="text"
-                        name="secret"
-                        className="w-full "
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      onClick={() => closeModal()}
+                <Dialog.Panel
+                  className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                  onSubmit={() => closeModal()}
+                >
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900"
                     >
-                      Activate
-                    </button>
-                  </div>
+                      Scan To Enable Your Two Factor Authentication
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      <div className="flex min-h-full items-center justify-center p-4 text-center">
+                        {mfa && <QRCode value={mfa.otpauth} />}
+                      </div>
+                      <div className="flex min-h-full items-center justify-center p-4 text-center">
+                        <input
+                          onChange={(e) => setCode(e.target.value)}
+                          type="text"
+                          name="secret"
+                          className="w-full "
+                          onKeyPress={(e) => {if (e.key === "Enter")closeModal();}}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <button
+                        type="submit"
+                        className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                        onClick={() => closeModal()}
+                      >
+                        Activate
+                      </button>
+                    </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>
@@ -354,33 +363,34 @@ function TwoFAOff() {
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
-                  >
-                    Enter Your Two Factor Authentication
-                  </Dialog.Title>
-                  <div className="mt-2">
-                    <div className="flex min-h-full items-center justify-center p-4 text-center">
-                      <input
-                        type="text"
-                        name="code"
-                        id="code"
-                        onChange={(e) => setCode(e.target.value)}
-                        className="w-full "
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      onClick={() => closeModal()}
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900"
                     >
-                      Disable
-                    </button>
-                  </div>
+                      Enter Your Two Factor Authentication
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      <div className="flex min-h-full items-center justify-center p-4 text-center">
+                        <input
+                          type="text"
+                          name="code"
+                          id="code"
+                          onChange={(e) => setCode(e.target.value)}
+                          className="w-full "
+                          onKeyPress={(e) => {if (e.key === "Enter")closeModal();}}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <button
+                        type="submit"
+                        className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                        onClick={() => closeModal()}
+                      >
+                        Disable
+                      </button>
+                    </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>

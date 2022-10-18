@@ -19,6 +19,7 @@ import { CurrentUser } from './user.decorator';
 import { MessageBody } from '@nestjs/websockets';
 import { NotificationService } from '@/notification/notification.service';
 import { AchievementService } from '@/achievement/achievement.service';
+import { CloudinaryService } from '@/common/services/cloudinary.service';
 
 
 enum status {
@@ -40,8 +41,9 @@ export class UserController {
 		private readonly gameService: GameService,
 		private readonly roomService: RoomService,
 		private readonly acheivementService: AchievementService,
-
+		private readonly cloudinaryService: CloudinaryService,
 	) { }
+
 
 	@Get('me')
 	// @UseGuards(JwtAuthGuard)
@@ -195,7 +197,8 @@ export class UserController {
 	async updateUser(@CurrentUser() user: UserModel, @Body() userData: { nickname?: string; password?: string; avatar?: string; two_factor_auth?: string; current_lobby?: string; status?: Status },) {
 		let login = user.login;
 		user['nickname'] = userData['nickname'] || user['nickname'];
-		user['avatar'] = userData['avatar'];
+		if (userData['avatar'])
+			user['avatar'] = await this.cloudinaryService.uploadImage(userData['avatar'], login);
 		if (userData['two_factor_auth_enabled'])
 			user['two_factor_auth_enabled'] = userData['two_factor_auth_enabled'] == 'on' ? true : false;
 		user['current_lobby'] = userData['current_lobby'] || user['current_lobby'];

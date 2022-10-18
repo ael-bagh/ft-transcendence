@@ -5,7 +5,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AuthAdapter } from '@/auth/auth.adapter';
 import { UserService } from '@/user/user.service';
 import * as cookieParser from 'cookie-parser';
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
+import * as bodyParser from 'body-parser';
+
 dotenv.config()
 
 async function bootstrap() {
@@ -16,6 +18,7 @@ async function bootstrap() {
 		},
 		logger: false,
 	});
+	app.use(bodyParser.json({limit: '50mb'}));
 	const conf = app.get(ConfigService);
 	const user = app.get(UserService);
 	const Adapter = new AuthAdapter(app, conf, user);
