@@ -130,7 +130,7 @@ export default function RoomCreate() {
               onChange={(e) => setPassword(e.currentTarget.value)}
               required={enabled}
               minLength={8}
-              maxLength={50}
+              maxLength={25}
             />
           </div>
         )}

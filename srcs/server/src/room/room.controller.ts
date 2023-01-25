@@ -372,7 +372,8 @@ export class RoomController {
 				return null;
 			if (await (this.roomService.roomPermissions(user.login, 'deleteRoom', null, { room_id: Number(room_id) })) == false)
 				throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-			this.roomService.deleteRoom({ room_id: Number(room_id) });
+			await this.roomService.deleteMessages({ room_id: Number(room_id) });
+			await this.roomService.deleteRoom({ room_id: Number(room_id) });
 		}
 		catch (e) {
 			if (e instanceof HttpException) throw e;
